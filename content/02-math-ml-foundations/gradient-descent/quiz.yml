@@ -4,13 +4,13 @@
     - "The direction of steepest decrease of the loss"
     - "The direction of steepest increase of the loss"
     - "Directly toward the global minimum"
-    - "Perpendicular to every contour of the loss"
+    - "Along the contour line, keeping the loss constant"
   answer: 1
   explanation: "The gradient is the direction of steepest local increase, which is why we subtract it."
   whyWrong:
     "0": "That is the negative gradient, the direction we actually step in."
     "2": "The gradient is local information; it does not know where the global minimum is."
-    "3": "The gradient is perpendicular to the contour line through that point, not to every contour in general; this option overstates it and is not the key property."
+    "3": "Moving along a contour keeps the loss constant; the gradient is perpendicular to it, not along it."
 
 - id: update-sign
   question: "Which update rule is gradient descent for a parameter x with learning rate lr?"
@@ -67,7 +67,7 @@
     "3": "That would multiply the error by -99 each step."
 
 - id: ill-conditioning
-  question: "Why does gradient descent crawl on a loss with curvatures 1 and 100 along two axes?"
+  question: "Why does gradient descent crawl on a quadratic loss with curvatures 1 and 100 along two axes?"
   options:
     - "The gradient is zero along one axis"
     - "The steep axis limits the learning rate, so the shallow axis moves very slowly"
@@ -121,7 +121,7 @@
     - "It avoids needing a learning rate"
     - "It guarantees reaching the global minimum"
   answer: 1
-  explanation: "Examples are correlated, so a small random subset approximates the full gradient and allows many more updates per pass."
+  explanation: "A random mini-batch gives an unbiased estimate of the full gradient, and data is redundant enough that a small subset is informative, so you can make many more updates per pass."
   whyWrong:
     "0": "It is an estimate, not equal, except by chance."
     "2": "A learning rate is still needed."
@@ -135,9 +135,9 @@
     - "It is exact for every function"
     - "It does not need a step h"
   answer: 1
-  explanation: "The odd-order error terms cancel, leaving an error of order h squared."
+  explanation: "In the Taylor expansion the even-order terms cancel in the difference, leaving an error of order h squared (from the third derivative)."
   whyWrong:
-    "0": "It needs two evaluations per coordinate, the same as two one-sided differences, so no saving."
+    "0": "It actually costs more: two evaluations per coordinate, versus one extra evaluation per coordinate for a one-sided difference."
     "2": "It is only exact for functions up to quadratic, up to rounding."
     "3": "It still needs h."
 
