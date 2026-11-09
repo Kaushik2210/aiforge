@@ -11,6 +11,7 @@ export interface ChallengeData {
   summary: string;
   starter: string;
   tests: string;
+  hiddenTests?: string;
   hints: string[];
 }
 
@@ -23,6 +24,7 @@ export function Challenge({ challenge }: { challenge: ChallengeData }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<RunResult | null>(null);
   const [hintsShown, setHintsShown] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState<number | null>(null);
   const mounted = useRef(false);
 
   // Restore an unsent draft (a per-learner convenience; page works without it).
@@ -47,12 +49,25 @@ export function Challenge({ challenge }: { challenge: ChallengeData }) {
       const runner = getRunner();
       await runner.warmUp();
       setPhase("running");
-      setResult(await runner.run(code, challenge.tests));
+      const t0 = performance.now();
+      const r = await runner.run(code, challenge.tests, challenge.hiddenTests);
+      setElapsedMs(Math.round(performance.now() - t0));
+      setResult(r);
     } catch (err) {
-      setResult({ passed: false, tests: [], error: err instanceof Error ? err.message : String(err), raw: "" });
+      setResult({
+        passed: false,
+        tests: [],
+        error: err instanceof Error ? err.message : String(err),
+        output: "",
+        outputTruncated: false,
+      });
     } finally {
       setPhase("idle");
     }
+  }
+
+  function stop() {
+    getRunner().cancel();
   }
 
   function reset() {
@@ -68,7 +83,17 @@ export function Challenge({ challenge }: { challenge: ChallengeData }) {
       <p className="mt-1 text-text-muted">{challenge.summary}</p>
 
       <div className="mt-4">
-        <CodeEditor value={code} onChange={update} label="Your Python code" />
+        <div
+          onKeyDown={(e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && phase === "idle") {
+              e.preventDefault();
+              void run();
+            }
+          }}
+        >
+          <CodeEditor value={code} onChange={update} label="Your Python code" />
+        </div>
+        <p className="mt-1 text-xs text-text-muted">Tip: press Ctrl+Enter (Cmd+Enter on Mac) to run the tests.</p>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
@@ -80,6 +105,15 @@ export function Challenge({ challenge }: { challenge: ChallengeData }) {
         >
           {phase === "loading" ? "Loading Python..." : phase === "running" ? "Running..." : "Run tests"}
         </button>
+        {phase === "running" && (
+          <button
+            type="button"
+            onClick={stop}
+            className="tap rounded-[var(--radius)] border-2 border-danger bg-surface px-4 font-bold text-danger"
+          >
+            Stop
+          </button>
+        )}
         <button
           type="button"
           onClick={reset}
@@ -111,25 +145,35 @@ export function Challenge({ challenge }: { challenge: ChallengeData }) {
       )}
 
       <div role="status" aria-live="polite" className="mt-4">
-        {result && <Results result={result} />}
+        {result && <Results result={result} elapsedMs={elapsedMs} />}
       </div>
     </section>
   );
 }
 
-function Results({ result }: { result: RunResult }) {
+function Results({ result, elapsedMs }: { result: RunResult; elapsedMs: number | null }) {
   const total = result.tests.length;
   const ok = result.tests.filter((t) => t.passed).length;
   return (
     <div className="rounded-lg bg-surface-2 p-3">
       {result.error ? (
         <>
-          <p className="font-bold text-danger">{result.timedOut ? "Stopped: took too long" : "Your code hit an error"}</p>
-          <pre className="mt-1 whitespace-pre-wrap text-sm">{result.error}</pre>
+          <p className="font-bold text-danger">{result.cancelled ? "Run stopped" : result.timedOut ? "Stopped: took too long" : "Your code hit an error"}</p>
+          {!result.cancelled && <pre className="mt-1 whitespace-pre-wrap text-sm">{result.error}</pre>}
         </>
       ) : (
         <p className={`font-bold ${result.passed ? "text-success" : "text-danger"}`}>
           {result.passed ? `All ${total} tests passed. Nice work!` : `${ok} of ${total} tests passed`}
+        </p>
+      )}
+      {result.hidden && (
+        <p className="mt-2 text-sm">
+          <strong className={result.hidden.passed === result.hidden.total ? "text-success" : "text-danger"}>
+            Hidden checks: {result.hidden.passed} of {result.hidden.total} passed.
+          </strong>{" "}
+          <span className="text-text-muted">
+            They try different inputs so an answer that only fits the examples above does not pass.
+          </span>
         </p>
       )}
       {total > 0 && (
@@ -143,6 +187,16 @@ function Results({ result }: { result: RunResult }) {
             </li>
           ))}
         </ul>
+      )}
+      {result.output && (
+        <details className="mt-3">
+          <summary className="tap flex cursor-pointer items-center text-sm font-semibold">Your program's output</summary>
+          <pre className="mt-1 max-h-60 overflow-auto whitespace-pre-wrap text-sm">{result.output}</pre>
+          {result.outputTruncated && <p className="text-xs text-text-muted">Output was cut off to keep the page fast.</p>}
+        </details>
+      )}
+      {elapsedMs !== null && !result.timedOut && !result.cancelled && (
+        <p className="mt-2 text-xs text-text-muted">Ran in {elapsedMs} ms.</p>
       )}
     </div>
   );
