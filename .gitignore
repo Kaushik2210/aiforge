@@ -18,3 +18,5 @@ test-results/
 next-env.d.ts
 *.tsbuildinfo
 apps/web/AGENTS.md
+apps/web/public/pyodide/
+apps/web/public/runner/
