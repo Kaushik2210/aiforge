@@ -191,6 +191,12 @@ importers:
         specifier: ^3.2.0
         version: 3.2.7(@types/node@22.20.5)(tsx@4.23.15)(yaml@2.9.1)
 
+  packages/games:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+
 packages:
 
   '@esbuild/aix-ppc64@0.28.2':
