@@ -72,3 +72,28 @@
 - Lesson code blocks have no syntax highlighting.
 
 **Tomorrow (Day 4)**: Pyodide Web Worker runner, test harness with timeout and kill, Monaco editor, run the two Gradient Descent challenges in the browser.
+
+## Day 4 (2026-11-09): in-browser Python runner
+
+**Shipped**
+- `@aiforge/runner`: one Python harness that runs each challenge's own `tests.py` exactly as the CLI challenge CI does, an output parser, and `PyRunner` (module Web Worker, hard `terminate()` on timeout, fresh worker on the next run).
+- Parity test against real Pyodide (in Node): every starter fails and every solution passes through the same harness the browser uses, plus syntax-error, wrong-answer and no-state-leak cases.
+- Pyodide is self-hosted: `scripts/sync-runner-assets.mjs` copies the runtime and worker into `apps/web/public` before dev/build (git-ignored, works offline after first load).
+- Challenge metadata (`challenge.yml`), `readChallenges`, validation that each challenge has starter, solution, tests, exactly 3 hints and metadata. Solutions are never sent to the browser.
+- UI: lazy Monaco editor with a plain-textarea fallback (default on phones and touch, toggle for screen-reader users), Challenge panel with Run, Reset, progressive hints, per-test results, draft saved in localStorage.
+- Checked in the browser: starter fails 9/9 with helpful messages; correct solution passes 9/9 in about 0.5 s (first load about 2.5 s); `while True` is killed at 10 s and the page stays responsive; a syntax error shows `SyntaxError: expected ':'`; the next run after a kill recovers.
+
+**Decisions**
+- Module worker, because this Pyodide release ships `pyodide.asm.mjs` (ES module).
+- `allowBuilds` replaces `onlyBuiltDependencies` for pnpm 12 (installs no longer exit non-zero).
+- Monaco's loader fetches editor files from a CDN; self-hosting Monaco is deferred. The plain editor works fully offline.
+
+**TODO-VERIFY / not done**
+- All tests are visible; hidden tests are not implemented yet.
+- Challenge pass/fail does not award XP or save progress yet (engine, Days 6-7).
+- Memory limits are not enforced in the worker (only a time limit).
+- No automated browser test of the worker timeout; verified by hand today (Playwright arrives Days 11-12).
+- `base path` for GitHub Pages hosting is not configured: worker and Pyodide URLs are root-relative.
+- Pyodide itself is about 13 MB on first run.
+
+**Tomorrow (Day 5)**: challenge CI hardening (run in Pyodide too), hidden tests, memory/output limits, and polish of the runner experience.
