@@ -22,7 +22,7 @@ self.onmessage = async (event) => {
 
   if (msg.type === "run") {
     try {
-      const json = runSubmission(msg.code, msg.tests);
+      const json = runSubmission(msg.code, msg.tests, msg.hidden ?? undefined);
       self.postMessage({ type: "result", id: msg.id, json });
     } catch (err) {
       self.postMessage({ type: "error", id: msg.id, message: String(err) });

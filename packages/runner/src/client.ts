@@ -16,15 +16,20 @@ type WorkerMessage =
   | { type: "error"; id: number; message: string }
   | { type: "init-error"; message: string };
 
+function failure(error: string, extra: Partial<RunResult> = {}): RunResult {
+  return { passed: false, tests: [], error, output: "", outputTruncated: false, ...extra };
+}
+
 /**
  * Runs learner Python in a Web Worker so the page never freezes. If a run
- * exceeds the timeout, the worker is terminated and a fresh one is started on
- * the next run: an infinite loop can never hang the UI.
+ * exceeds the timeout, is cancelled, or the worker crashes (for example out of
+ * memory), the worker is terminated and a fresh one starts on the next run.
  */
 export class PyRunner {
   private worker: Worker | null = null;
   private ready: Promise<void> | null = null;
   private nextId = 1;
+  private cancelPending: (() => void) | null = null;
   private readonly timeoutMs: number;
 
   constructor(private readonly opts: PyRunnerOptions) {
@@ -57,39 +62,55 @@ export class PyRunner {
     return this.ready;
   }
 
-  async run(code: string, tests: string): Promise<RunResult> {
+  async run(code: string, tests: string, hiddenTests?: string): Promise<RunResult> {
     await this.warmUp();
     const worker = this.worker;
     if (!worker) throw new Error("The Python worker is not available.");
     const id = this.nextId++;
 
     return new Promise<RunResult>((resolve) => {
+      let settled = false;
       const finish = (r: RunResult) => {
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
         worker.removeEventListener("message", onMessage);
+        worker.removeEventListener("error", onCrash);
+        this.cancelPending = null;
         resolve(r);
       };
       const timer = setTimeout(() => {
         this.dispose(); // hard kill: the only way to stop a tight infinite loop
-        finish({
-          passed: false,
-          tests: [],
-          timedOut: true,
-          error: `Your code ran longer than ${this.timeoutMs / 1000} seconds and was stopped. Check for an infinite loop.`,
-          raw: "",
-        });
+        finish(
+          failure(
+            `Your code ran longer than ${this.timeoutMs / 1000} seconds and was stopped. Check for an infinite loop.`,
+            { timedOut: true },
+          ),
+        );
       }, this.timeoutMs);
 
       const onMessage = (e: MessageEvent<WorkerMessage>) => {
         const m = e.data;
         if (m.type === "result" && m.id === id) finish(parseHarnessOutput(m.json));
-        else if (m.type === "error" && m.id === id) {
-          finish({ passed: false, tests: [], error: m.message, raw: m.message });
-        }
+        else if (m.type === "error" && m.id === id) finish(failure(m.message));
+      };
+      const onCrash = () => {
+        this.dispose();
+        finish(failure("The Python worker crashed, most likely because your code used too much memory. It will restart on the next run."));
+      };
+      this.cancelPending = () => {
+        this.dispose();
+        finish(failure("Run stopped.", { cancelled: true }));
       };
       worker.addEventListener("message", onMessage);
-      worker.postMessage({ type: "run", id, code, tests });
+      worker.addEventListener("error", onCrash);
+      worker.postMessage({ type: "run", id, code, tests, hidden: hiddenTests ?? null });
     });
+  }
+
+  /** Stop the current run (if any) by killing the worker. */
+  cancel(): void {
+    this.cancelPending?.();
   }
 
   dispose(): void {
