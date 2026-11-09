@@ -143,3 +143,27 @@
 - Streak "day counted" rule (step or 5-card review) is enforced by callers, not the engine.
 
 **Tomorrow (Day 7)**: spaced repetition scheduler (FSRS-style), mastery calculation, Dexie persistence with versioned schema and JSON export/import, and wiring XP and streak into the status bar.
+
+## Day 7 (2026-11-09): spaced repetition, mastery and saved progress
+
+**Shipped**
+- Engine: SM-2 spaced repetition (verified against the original description) with an interleaved, seeded review queue; mastery (quiz 25%, retention 35%, boss 40%); a pure progress snapshot with an event reducer (steps, quizzes, challenges, bosses, cards, games), strict import/export validation, migration runner, and merge.
+- Web: IndexedDB persistence with Dexie (single atomic snapshot row, backups, corrupt-data recovery, newer-version protection), a Zustand store with cross-tab sync, and in-memory fallback if storage is blocked.
+- UI: live header HUD (level, rank, XP bar, streak status), XP/level-up toasts, "Mark tier done" depth ladder, topic mastery panel, quiz answers and challenge runs recorded, and a Settings page to export, import (merge or replace) and reset.
+- Tests: engine 180 (46 new for progress, 24 SRS, 16 mastery), web 62 (15 persistence tests using fake-indexeddb: reload, 25 concurrent events, two connections, corruption, newer version, import/export, backups).
+- Checked in the browser: tier done gives +10 XP and a 1-day streak, a correct quiz answer +5, a first challenge pass +40; data survives reload; garbage and tampered files rejected with clear messages and no change; merge works; reset keeps a backup; mobile header compacted (222 px to 181 px), no overflow, all targets at least 44 px.
+- ADR 0005 records storage, SRS and mastery decisions.
+
+**Decisions**
+- SM-2 now, FSRS later (its constants are version-dependent and were not verifiable this session).
+- Streak activity: tier step, challenge pass, or 5+ card review; quiz answers alone do not count.
+- XP merges as the larger total (ledgers cannot be reconciled across devices).
+
+**TODO-VERIFY / not done**
+- Flashcards are not enrolled or reviewable yet: the Review Tavern and Daily Quest come on Day 10, so retention shows 0%.
+- Bosses are not playable yet, so the boss share of mastery stays 0.
+- Tier "done" is a self-report button; there is no check that the tier was read.
+- FSRS constants and the SM-2 interval-uses-updated-EF choice are documented but not verified against another implementation.
+- No Playwright test of persistence yet; verified by hand and with fake-indexeddb.
+
+**Tomorrow (Day 8)**: Phaser 4 integration (dynamic import, lifecycle, typed event bus, seeded RNG) and the world map scene with a list-view fallback.
