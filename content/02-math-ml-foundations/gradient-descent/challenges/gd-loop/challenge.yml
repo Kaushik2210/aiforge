@@ -1,0 +1,2 @@
+title: Write the gradient descent loop
+summary: Implement plain gradient descent on one variable and return every iterate, so you can watch the learning rate decide between converging and blowing up.

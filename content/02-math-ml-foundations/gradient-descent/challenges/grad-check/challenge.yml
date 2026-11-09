@@ -1,0 +1,2 @@
+title: Check a gradient numerically
+summary: Estimate a gradient with the centered difference and compare it with the analytic one using relative error. Then catch a gradient that forgot a term.
