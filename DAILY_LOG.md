@@ -51,3 +51,24 @@
 - Font choices rely on Google Fonts at build time.
 
 **Tomorrow (Day 3)**: MDX pipeline and components (Callout, CoreFundamentals, CoreComplexity, Quiz, Step, Math/KaTeX, Diagram), render the full Gradient Descent lesson.
+
+## Day 3 (2026-11-09): lesson rendering and home redesign
+
+**Shipped**
+- MDX pipeline (`@mdx-js/mdx`, remark-gfm, remark-math, rehype-katex, rehype-slug) rendering the full Gradient Descent lesson with KaTeX.
+- Lesson components: interactive learning-rate demo (tested logic in `lib/gd.ts` reproduces the worked numbers), Callout (text label, never colour alone), "Check yourself" Step, Diagram, and a Quiz that explains why each wrong option is wrong (all 12 items render).
+- `readQuiz` helper in content-schema; quest page renders lesson plus quiz.
+- Home page redesign from established gamified-learning patterns: layered anime skyline hero with Mira, bento grid, winding 23-realm quest map (open vs coming soon; nothing is progress-locked), rank ladder. Scroll reveal and falling petals respect reduced motion and Focus mode.
+- Contrast tests extended to 43 passing checks.
+
+**Decisions**
+- The Awwwards UI listing gave only site names and URLs (no descriptions), so no specific site was imitated; patterns were chosen from common gamified-learning UI (path map, bento, rank ladder, boss bar). If you have favourites from that list, tell me which and I will study them.
+- Copy on the home page marks unbuilt features (in-browser Python, streaks, bosses) as coming or planned, and sample widgets as "Example".
+- Next.js writes `apps/web/AGENTS.md` on dev start; it is git-ignored.
+
+**TODO-VERIFY / not done**
+- Quest map has no real progress yet; the sample streak and boss widgets are static.
+- No axe/Playwright run yet (Days 11-12); checked by hand in light, dark and 375px.
+- Lesson code blocks have no syntax highlighting.
+
+**Tomorrow (Day 4)**: Pyodide Web Worker runner, test harness with timeout and kill, Monaco editor, run the two Gradient Descent challenges in the browser.
