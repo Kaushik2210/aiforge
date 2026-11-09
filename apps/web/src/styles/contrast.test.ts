@@ -42,6 +42,8 @@ const TEXT_PAIRS: [string, string][] = [
   ["accent", "surface"],
   ["success", "surface"],
   ["danger", "surface"],
+  ["success", "surface-2"],
+  ["danger", "surface-2"],
 ];
 const UI_PAIRS: [string, string][] = [
   ["focus", "bg"],
