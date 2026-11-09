@@ -70,6 +70,7 @@ export interface Challenge {
   summary: string;
   starter: string;
   tests: string;
+  hiddenTests?: string;
   hints: string[];
 }
 
@@ -91,9 +92,11 @@ export function readChallenges(dir: string): Challenge[] {
     .map((e) => {
       const c = path.join(root, e.name);
       const meta = ChallengeMetaSchema.parse(readYaml(path.join(c, "challenge.yml")));
+      const hiddenFile = path.join(c, "hidden_tests.py");
       return {
         id: e.name,
         ...meta,
+        ...(fs.existsSync(hiddenFile) ? { hiddenTests: fs.readFileSync(hiddenFile, "utf8") } : {}),
         starter: fs.readFileSync(path.join(c, "starter.py"), "utf8"),
         tests: fs.readFileSync(path.join(c, "tests.py"), "utf8"),
         hints: parseHints(fs.readFileSync(path.join(c, "hints.md"), "utf8")),
@@ -139,9 +142,12 @@ export function validateQuest(dir: string): QuestResult {
     for (const e of fs.readdirSync(chRoot, { withFileTypes: true })) {
       if (!e.isDirectory()) continue;
       const base = path.join(chRoot, e.name);
-      for (const f of ["starter.py", "solution.py", "tests.py", "hints.md", "challenge.yml"]) {
+      for (const f of ["starter.py", "solution.py", "tests.py", "hidden_tests.py", "hints.md", "challenge.yml"]) {
         if (!fs.existsSync(path.join(base, f))) errors.push(`challenges/${e.name}: ${f} is missing`);
       }
+      const mutantDir = path.join(base, "mutants");
+      const mutants = fs.existsSync(mutantDir) ? fs.readdirSync(mutantDir).filter((f) => f.endsWith(".py")) : [];
+      if (mutants.length < 2) errors.push(`challenges/${e.name}: needs at least 2 wrong-answer mutants in mutants/`);
       const hints = fs.existsSync(path.join(base, "hints.md"))
         ? parseHints(fs.readFileSync(path.join(base, "hints.md"), "utf8"))
         : [];

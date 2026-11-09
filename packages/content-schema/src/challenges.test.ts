@@ -19,6 +19,12 @@ describe("challenge loading", () => {
     }
   });
 
+  it("includes hidden checks for every challenge", () => {
+    for (const c of readChallenges(quest)) {
+      expect(c.hiddenTests).toContain("def test_");
+    }
+  });
+
   it("never exposes the solution", () => {
     for (const c of readChallenges(quest)) {
       expect(Object.keys(c)).not.toContain("solution");
