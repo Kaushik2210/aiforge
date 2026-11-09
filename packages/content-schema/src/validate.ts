@@ -5,6 +5,7 @@ import YAML from "yaml";
 import type { ZodType } from "zod";
 import {
   BossSchema,
+  ChallengeMetaSchema,
   CardsSchema,
   InterviewSchema,
   LessonFrontmatterSchema,
@@ -63,6 +64,43 @@ export function readLesson(dir: string): { data: Record<string, unknown>; body: 
   return { data: file.data, body: file.content };
 }
 
+export interface Challenge {
+  id: string;
+  title: string;
+  summary: string;
+  starter: string;
+  tests: string;
+  hints: string[];
+}
+
+/** Numbered lines ("1. ...") of hints.md, in order. */
+export function parseHints(md: string): string[] {
+  return md
+    .split(/\r?\n/)
+    .map((l) => /^\d+\.\s+(.*\S)/.exec(l)?.[1])
+    .filter((h): h is string => Boolean(h));
+}
+
+/** Load every challenge in a quest (solution.py is deliberately not included). */
+export function readChallenges(dir: string): Challenge[] {
+  const root = path.join(dir, "challenges");
+  if (!fs.existsSync(root)) return [];
+  return fs
+    .readdirSync(root, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => {
+      const c = path.join(root, e.name);
+      const meta = ChallengeMetaSchema.parse(readYaml(path.join(c, "challenge.yml")));
+      return {
+        id: e.name,
+        ...meta,
+        starter: fs.readFileSync(path.join(c, "starter.py"), "utf8"),
+        tests: fs.readFileSync(path.join(c, "tests.py"), "utf8"),
+        hints: parseHints(fs.readFileSync(path.join(c, "hints.md"), "utf8")),
+      };
+    });
+}
+
 /** Load and validate a quest's quiz bank. */
 export function readQuiz(dir: string): QuizItem[] {
   return QuizSchema.parse(readYaml(path.join(dir, "quiz.yml")));
@@ -93,6 +131,26 @@ export function validateQuest(dir: string): QuestResult {
     if (boss) {
       for (const id of boss.quizItems) {
         if (!ids.includes(id)) errors.push(`boss.yml: unknown quiz item "${id}"`);
+      }
+    }
+  }
+  const chRoot = path.join(dir, "challenges");
+  if (fs.existsSync(chRoot)) {
+    for (const e of fs.readdirSync(chRoot, { withFileTypes: true })) {
+      if (!e.isDirectory()) continue;
+      const base = path.join(chRoot, e.name);
+      for (const f of ["starter.py", "solution.py", "tests.py", "hints.md", "challenge.yml"]) {
+        if (!fs.existsSync(path.join(base, f))) errors.push(`challenges/${e.name}: ${f} is missing`);
+      }
+      const hints = fs.existsSync(path.join(base, "hints.md"))
+        ? parseHints(fs.readFileSync(path.join(base, "hints.md"), "utf8"))
+        : [];
+      if (hints.length !== 3) errors.push(`challenges/${e.name}: hints.md needs exactly 3 numbered hints`);
+      if (fs.existsSync(path.join(base, "challenge.yml"))) {
+        const res = ChallengeMetaSchema.safeParse(readYaml(path.join(base, "challenge.yml")));
+        if (!res.success) {
+          for (const i of res.error.issues) errors.push(`challenges/${e.name}/challenge.yml: ${i.path.join(".")}: ${i.message}`);
+        }
       }
     }
   }
