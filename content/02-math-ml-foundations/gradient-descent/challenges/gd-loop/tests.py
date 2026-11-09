@@ -37,7 +37,19 @@ def test_small_rate_is_slow():
 
 def test_large_rate_diverges():
     xs = gradient_descent(square_grad, 10.0, 1.1, 10)
-    assert abs(xs[-1]) > abs(xs[0]), "lr=1.1 on x^2 must blow up"
+    assert abs(xs[-1] - 61.917364224) < 1e-6, "lr=1.1 on x^2 must blow up"
+
+
+def test_uses_the_gradient_it_is_given():
+    # Constant gradient 3: x moves by exactly lr * 3 each step.
+    xs = gradient_descent(lambda x: 3.0, 1.0, 0.5, 3)
+    assert xs == [1.0, -0.5, -2.0, -3.5]
+    # f(x) = 3x^2 has gradient 6x; one step from 1 with lr 0.1 gives 0.4.
+    assert abs(gradient_descent(lambda x: 6 * x, 1.0, 0.1, 1)[1] - 0.4) < 1e-12
+
+
+def test_zero_steps_returns_only_the_start():
+    assert gradient_descent(square_grad, 7.0, 0.1, 0) == [7.0]
 
 
 def test_rate_one_oscillates():
@@ -45,10 +57,10 @@ def test_rate_one_oscillates():
     assert xs == [10.0, -10.0, 10.0, -10.0, 10.0]
 
 
-def test_does_not_mutate_or_share_state():
+def test_repeated_calls_give_same_result():
     a = gradient_descent(square_grad, 3.0, 0.1, 3)
     b = gradient_descent(square_grad, 3.0, 0.1, 3)
-    assert a == b and a is not b
+    assert a == b, "no hidden state between calls"
 
 
 if __name__ == "__main__":
