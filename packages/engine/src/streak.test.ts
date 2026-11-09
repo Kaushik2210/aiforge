@@ -441,7 +441,7 @@ describe("randomised: engine agrees with the day-by-day oracle", () => {
       ).toEqual(expected);
       expect(state.activeDays).toEqual([...active].sort());
     }
-  });
+  }, 60_000); // heavy by design: 300 histories x 80 steps, each with Intl calls
 
   it("is deterministic: replaying a history gives an identical state", () => {
     const rnd = mulberry32(99);
