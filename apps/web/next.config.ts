@@ -6,7 +6,7 @@ const config: NextConfig = {
   output: "export",
   images: { unoptimized: true },
   trailingSlash: true,
-  transpilePackages: ["@aiforge/content-schema"],
+  transpilePackages: ["@aiforge/content-schema", "@aiforge/runner"],
   outputFileTracingRoot: path.resolve(__dirname, "../.."),
 };
 

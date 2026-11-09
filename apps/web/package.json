@@ -3,14 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "predev": "node ../../scripts/sync-runner-assets.mjs",
     "dev": "next dev",
+    "prebuild": "node ../../scripts/sync-runner-assets.mjs",
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
     "@aiforge/content-schema": "workspace:*",
+    "@aiforge/runner": "workspace:*",
     "@mdx-js/mdx": "^3.1.1",
+    "@monaco-editor/react": "^4.7.0",
     "katex": "^0.19.1",
     "next": "^16.4.5",
     "react": "^19.3.1",
@@ -31,3 +35,4 @@
     "vitest": "^3.2.0"
   }
 }
+
