@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { readLesson, readQuiz } from "@aiforge/content-schema";
 import { Mira } from "@/components/Mira";
+import { Quiz } from "@/components/mdx/Quiz";
+import { compileLesson, lessonComponents } from "@/lib/mdx";
 import { TIER_LABELS, getQuest, listQuests } from "@/lib/quests";
 
 export function generateStaticParams() {
@@ -16,6 +19,8 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const quest = getQuest(id);
   if (!quest) notFound();
+  const Lesson = await compileLesson(readLesson(quest.dir).body);
+  const quiz = readQuiz(quest.dir);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -61,9 +66,14 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
             </div>
           </section>
 
+          <article className="lesson" aria-label="Lesson">
+            <Lesson components={lessonComponents} />
+          </article>
+
+          <Quiz questions={quiz} />
+
           <p className="rounded-[var(--radius)] bg-surface-2 p-4 text-sm text-text-muted">
-            The full lesson text, quiz and code editor arrive with the MDX components (Day 3) and the Python runner
-            (Days 4-5).
+            The in-browser code editor arrives with the Python runner (Days 4-5).
           </p>
         </div>
       </div>
