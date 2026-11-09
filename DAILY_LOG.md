@@ -119,3 +119,27 @@
 - Content rule applies to every future challenge; Realm 1 challenges will need hidden checks and mutants.
 
 **Tomorrow (Day 6)**: engine package: XP and levels, rank ladder, streak engine (freezes, timezones, DST) with heavy tests.
+
+## Day 6 (2026-11-09): engine, part 1 (XP, ranks, streaks)
+
+**Shipped**
+- `@aiforge/engine` (pure TypeScript, no dependencies): timezone-safe calendar-day primitives, XP curve and rank ladder, per-event XP awards, and the streak engine (freezes, comeback bonus, status, strict import validation, merge).
+- Streak design: store the exact last-activity instant and recompute its local day in the learner's current zone, so travel and DST cannot add or lose a day; day gaps are calendar arithmetic, never 24-hour blocks.
+- 94 tests: day arithmetic and real DST day lengths (23 h and 25 h), midnight edges (including half-hour and 45-minute zones), freeze earning/cap/all-or-nothing, travel east/west and across the date line, clock going backwards, import and merge, and a full year of daily activity in 11 zones (no false breaks).
+- 300 randomised histories compared with an independent day-by-day oracle, with invariants checked at every step.
+- Mutation check: 10 deliberately injected streak bugs (24-hour arithmetic, stale stored zone, freeze misuse, cap off by one, double counting, and more) were all caught; none survived.
+- ADR 0004 records the rules.
+
+**Decisions**
+- Frozen days protect the run but are not counted as practice or shown on the heatmap.
+- Freezes are spent only when they cover the whole gap; otherwise none are spent.
+- Comeback bonus is a flat 25 XP when a streak breaks (never on the first activity).
+- Rank thresholds are by level (1, 5, 10, 20, 35, 50, 75) and are tunable constants.
+
+**TODO-VERIFY / not done**
+- Rank thresholds and XP values are first drafts; tune once real lessons exist.
+- The engine is not wired into the UI yet (needs Dexie persistence, Day 7).
+- Mutation script lives only in the session scratch area (Windows/pnpm-specific); not added to the repo.
+- Streak "day counted" rule (step or 5-card review) is enforced by callers, not the engine.
+
+**Tomorrow (Day 7)**: spaced repetition scheduler (FSRS-style), mastery calculation, Dexie persistence with versioned schema and JSON export/import, and wiring XP and streak into the status bar.
