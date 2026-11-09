@@ -1,0 +1,170 @@
+- id: gradient-direction
+  question: "The gradient of a loss at the current parameters points in which direction?"
+  options:
+    - "The direction of steepest decrease of the loss"
+    - "The direction of steepest increase of the loss"
+    - "Directly toward the global minimum"
+    - "Perpendicular to every contour of the loss"
+  answer: 1
+  explanation: "The gradient is the direction of steepest local increase, which is why we subtract it."
+  whyWrong:
+    "0": "That is the negative gradient, the direction we actually step in."
+    "2": "The gradient is local information; it does not know where the global minimum is."
+    "3": "The gradient is perpendicular to the contour line through that point, not to every contour in general; this option overstates it and is not the key property."
+
+- id: update-sign
+  question: "Which update rule is gradient descent for a parameter x with learning rate lr?"
+  options:
+    - "x = x + lr * grad"
+    - "x = x - lr * grad"
+    - "x = x * lr * grad"
+    - "x = x - grad / lr"
+  answer: 1
+  explanation: "Subtract the scaled gradient so the loss decreases locally."
+  whyWrong:
+    "0": "That is gradient ascent and would increase the loss."
+    "2": "Multiplying has no connection to moving downhill."
+    "3": "Dividing by lr makes a smaller lr give a bigger step, the opposite of intent."
+
+- id: predict-square-0-2
+  kind: predict-output
+  question: "What does this print, rounded to 3 decimals?"
+  code: |
+    x = 10.0
+    for _ in range(10):
+        x = x - 0.2 * (2 * x)
+    print(round(x, 3))
+  options: ["0.0", "0.06", "3.487", "61.917"]
+  answer: 1
+  explanation: "Each step multiplies x by 1 - 2*0.2 = 0.6, so 10 * 0.6^10 is about 0.0605, which rounds to 0.06."
+  whyWrong:
+    "0": "It approaches 0 but is not exactly 0 after ten steps."
+    "2": "That is the result for lr = 0.05, where the factor is 0.9."
+    "3": "That is the divergent result for lr = 1.1."
+
+- id: lr-one-oscillates
+  question: "On f(x) = x^2 with lr = 1.0, starting at x = 3, what happens?"
+  options:
+    - "It converges to 0 in one step"
+    - "It converges slowly to 0"
+    - "It alternates between 3 and -3 forever"
+    - "It diverges to infinity"
+  answer: 2
+  explanation: "The factor is 1 - 2*1 = -1, so the sign flips and the magnitude is unchanged."
+  whyWrong:
+    "0": "One-step convergence on x^2 needs lr = 0.5."
+    "1": "Slow convergence needs a factor between 0 and 1 in magnitude, not exactly -1."
+    "3": "Divergence needs a factor with magnitude above 1, which needs lr above 1."
+
+- id: stability-limit
+  question: "For f(x) = (L/2) x^2 with curvature L = 10, what is the largest learning rate that still converges?"
+  options: ["lr < 0.1", "lr < 0.2", "lr < 1", "lr < 10"]
+  answer: 1
+  explanation: "The factor is 1 - lr*L and must have magnitude below 1, giving lr < 2/L = 0.2."
+  whyWrong:
+    "0": "1/L = 0.1 is the fastest single-step rate for this quadratic, not the stability limit."
+    "2": "That ignores the curvature; with L = 10, lr = 1 gives a factor of -9."
+    "3": "That would multiply the error by -99 each step."
+
+- id: ill-conditioning
+  question: "Why does gradient descent crawl on a loss with curvatures 1 and 100 along two axes?"
+  options:
+    - "The gradient is zero along one axis"
+    - "The steep axis limits the learning rate, so the shallow axis moves very slowly"
+    - "Mini-batches are too small"
+    - "The loss has many local minima"
+  answer: 1
+  explanation: "The stability limit is set by the steepest curvature, so progress along the flat direction is tiny at that rate."
+  whyWrong:
+    "0": "Nothing says the gradient is zero; the problem is scale difference."
+    "2": "Batch size is unrelated; this happens with exact gradients too."
+    "3": "A quadratic with two axes has one minimum; the issue is conditioning."
+
+- id: saddle
+  question: "The gradient is exactly zero at your current point. What can you conclude?"
+  options:
+    - "You are at a minimum"
+    - "You are at a global minimum"
+    - "You are at a critical point, which could be a minimum, maximum or saddle"
+    - "The learning rate is too high"
+  answer: 2
+  explanation: "A zero gradient only marks a critical point; the second derivatives decide which kind."
+  whyWrong:
+    "0": "Maxima and saddles also have zero gradient."
+    "1": "Nothing about a zero gradient says global."
+    "3": "The learning rate does not change where the gradient is zero."
+
+- id: spot-bug-sign
+  kind: spot-bug
+  question: "This loop is meant to minimise f(x) = x^2 but the loss keeps growing. What is the bug?"
+  code: |
+    x = 5.0
+    for _ in range(20):
+        x = x + 0.1 * (2 * x)
+  options:
+    - "The learning rate is too small"
+    - "It adds the gradient instead of subtracting it"
+    - "The gradient 2x is wrong"
+    - "It needs more iterations"
+  answer: 1
+  explanation: "Adding the gradient climbs the loss. The correct update is x = x - 0.1 * (2 * x)."
+  whyWrong:
+    "0": "A small rate would slow progress, not reverse it."
+    "2": "2x is the correct derivative of x^2."
+    "3": "More iterations make this worse; it diverges."
+
+- id: minibatch
+  question: "Why is a mini-batch gradient an acceptable replacement for the full-data gradient?"
+  options:
+    - "It is exactly equal to the full gradient"
+    - "It is a cheap, noisy estimate of the same gradient, and noisy steps still make progress on average"
+    - "It avoids needing a learning rate"
+    - "It guarantees reaching the global minimum"
+  answer: 1
+  explanation: "Examples are correlated, so a small random subset approximates the full gradient and allows many more updates per pass."
+  whyWrong:
+    "0": "It is an estimate, not equal, except by chance."
+    "2": "A learning rate is still needed."
+    "3": "No such guarantee exists."
+
+- id: grad-check
+  question: "Why is the centered difference (f(x+h) - f(x-h)) / 2h preferred for gradient checking?"
+  options:
+    - "It needs half as many function evaluations"
+    - "Its error shrinks like h squared instead of h"
+    - "It is exact for every function"
+    - "It does not need a step h"
+  answer: 1
+  explanation: "The odd-order error terms cancel, leaving an error of order h squared."
+  whyWrong:
+    "0": "It needs two evaluations per coordinate, the same as two one-sided differences, so no saving."
+    "2": "It is only exact for functions up to quadratic, up to rounding."
+    "3": "It still needs h."
+
+- id: relative-error
+  question: "Why compare numerical and analytic gradients with relative error rather than absolute difference?"
+  options:
+    - "Absolute difference cannot be computed"
+    - "A difference of 1e-6 is huge for gradients near 1e-8 and tiny for gradients near 1e4"
+    - "Relative error is always zero for correct code"
+    - "Relative error is faster to compute"
+  answer: 1
+  explanation: "Scale matters: the same absolute gap can be fine or terrible depending on gradient magnitude."
+  whyWrong:
+    "0": "It can be computed; it is just less informative."
+    "2": "Rounding and finite h leave a small non-zero error even for correct code."
+    "3": "Speed is not the reason."
+
+- id: adamw
+  question: "What is the key point of AdamW?"
+  options:
+    - "It removes the learning rate"
+    - "It decouples weight decay from the gradient-based update, because L2 regularisation and weight decay differ under adaptive methods"
+    - "It is plain SGD with momentum"
+    - "It computes second derivatives"
+  answer: 1
+  explanation: "For plain SGD, L2 and weight decay coincide, but with Adam's per-parameter scaling they do not; AdamW applies decay directly to the weights."
+  whyWrong:
+    "0": "It still has a learning rate."
+    "2": "Momentum SGD is a different optimizer."
+    "3": "Adam variants use gradient moment estimates, not second derivatives."
