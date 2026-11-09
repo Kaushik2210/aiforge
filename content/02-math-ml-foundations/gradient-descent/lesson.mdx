@@ -56,8 +56,12 @@ opposite way.
 **The step size.** You also choose how far to walk before checking the slope
 again. That is the *learning rate*, written `η` (eta) or `lr`.
 
-Try it (the interactive version arrives with the Gradient Hiker game on Day 9;
-until then run the numbers):
+Try it: drag the slider and watch what each learning rate does. (The full
+game version, Gradient Hiker, arrives on Day 9.)
+
+<GradientDemo />
+
+The same experiment as a table, for reference:
 
 | learning rate | what happens on `f(x) = x²` starting at `x = 10` |
 |---|---|
@@ -66,10 +70,12 @@ until then run the numbers):
 | 1.0 | bounces between 10 and -10 forever |
 | 1.1 | each bounce is bigger; `|x| ≈ 61.9` after 10 steps |
 
-**An analogy that does not mislead.** A hiker in fog feeling the slope is good
-for step size and direction. It misleads in one way: a real hiker sees the
-cliff edge coming. Gradient descent only sees the slope exactly where it
-stands, so a big stride can land somewhere the slope said nothing about.
+<Callout type="warn" title="Where the hiker analogy breaks">
+A hiker in fog feeling the slope is a good picture for direction and step
+size. It misleads in one way: a real hiker sees the cliff edge coming.
+Gradient descent only sees the slope exactly where it stands, so a big stride
+can land somewhere the slope said nothing about.
+</Callout>
 
 ---
 
@@ -77,9 +83,11 @@ stands, so a big stride can land somewhere the slope said nothing about.
 
 **The update rule.**
 
-```
-x_next = x - lr * ∇f(x)
-```
+$$
+x_{t+1} = x_t - \eta \, \nabla f(x_t)
+$$
+
+In code: `x_next = x - lr * grad(x)`.
 
 **Worked by hand on `f(x) = x²`.** The derivative is `f'(x) = 2x`, so
 
@@ -111,8 +119,9 @@ of the same gradient. With `B = 1` the method is classic stochastic gradient
 descent (SGD); people also say "SGD" for mini-batches generally. Typical `B`
 values are 32 to 256 and are mostly chosen by memory.
 
-**Check yourself.** For `f(x) = 3x²`, starting at `x = 1` with `lr = 0.1`,
-what is `x` after one step? (Gradient is `6x = 6`, so `1 - 0.6 = 0.4`.)
+<Step prompt="for f(x) = 3x², starting at x = 1 with lr = 0.1, what is x after one step?">
+The gradient is `6x = 6` at `x = 1`, so the new value is `1 - 0.1 · 6 = 0.4`.
+</Step>
 
 ---
 
@@ -176,18 +185,6 @@ found, and how to set learning rates and schedules as models scale (revisited
 in Realm 6).
 
 ---
-
-## Core Fundamentals
-
-Be able to explain from memory: the update rule, why we step *against* the
-gradient, what the learning rate does at each extreme, and why mini-batches
-are acceptable.
-
-## Core Complexity
-
-The `2/L` stability limit, ill-conditioning and why one learning rate cannot
-suit every axis, saddle points, the gap between "gradient is correct" and
-"objective is right", and Adam versus AdamW.
 
 ## Game: Gradient Hiker
 
