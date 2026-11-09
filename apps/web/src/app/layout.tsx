@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import "katex/dist/katex.min.css";
 import "../styles/globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ProgressInit } from "@/components/progress/ProgressInit";
 
 const display = Dela_Gothic_One({ weight: "400", subsets: ["latin"], variable: "--font-display", display: "swap" });
 const body = Nunito_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <a href="#main" className="skip-link">Skip to main content</a>
         <SiteHeader />
+        <ProgressInit />
         <main id="main" tabIndex={-1}>{children}</main>
         <footer className="mx-auto max-w-6xl px-4 py-8 text-sm text-text-muted">
           Code MIT. Lessons CC BY-SA 4.0. All characters and art are original to AIForge.

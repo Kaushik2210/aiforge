@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Hud } from "./progress/Hud";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function SiteHeader() {
@@ -13,7 +14,9 @@ export function SiteHeader() {
           <Link href="/quests/gradient-descent/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">
             First quest
           </Link>
+          <Link href="/settings/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Settings</Link>
         </nav>
+        <Hud />
         <ThemeToggle />
       </div>
     </header>
