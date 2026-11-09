@@ -11,6 +11,7 @@ import {
   MistakesSchema,
   QuizSchema,
   SourcesSchema,
+  type QuizItem,
 } from "./schemas";
 
 export interface QuestResult {
@@ -60,6 +61,11 @@ export function readLesson(dir: string): { data: Record<string, unknown>; body: 
     engines: { yaml: (s: string) => YAML.parse(s) as object },
   });
   return { data: file.data, body: file.content };
+}
+
+/** Load and validate a quest's quiz bank. */
+export function readQuiz(dir: string): QuizItem[] {
+  return QuizSchema.parse(readYaml(path.join(dir, "quiz.yml")));
 }
 
 export function validateQuest(dir: string): QuestResult {
