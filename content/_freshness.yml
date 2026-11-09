@@ -1,0 +1,9 @@
+# Facts that can go stale. A weekly job flags entries older than maxAgeDays.
+maxAgeDays: 90
+items:
+  - quest: gradient-descent
+    claim: "Optimizer references (Adam, AdamW, Ruder survey) and their arXiv IDs"
+    verifiedOn: 2026-11-09
+  - quest: _platform
+    claim: "Package versions in docs/adr/0001-stack.md"
+    verifiedOn: 2026-11-09

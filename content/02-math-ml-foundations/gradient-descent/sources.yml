@@ -1,0 +1,34 @@
+- title: "An overview of gradient descent optimization algorithms (Ruder)"
+  url: "https://arxiv.org/abs/1609.04747"
+  type: paper
+  primary: true
+  verifiedOn: 2026-11-09
+  readFor: "The map of batch, stochastic and mini-batch variants and why adaptive methods exist."
+
+- title: "Adam: A Method for Stochastic Optimization (Kingma and Ba)"
+  url: "https://arxiv.org/abs/1412.6980"
+  type: paper
+  primary: true
+  verifiedOn: 2026-11-09
+  readFor: "The original description of Adam's moment estimates and bias correction."
+
+- title: "Decoupled Weight Decay Regularization (Loshchilov and Hutter)"
+  url: "https://arxiv.org/abs/1711.05101"
+  type: paper
+  primary: true
+  verifiedOn: 2026-11-09
+  readFor: "Why L2 regularisation and weight decay differ for adaptive optimizers."
+
+- title: "CS231n: Optimization (Stanford)"
+  url: "https://cs231n.github.io/optimization-1/"
+  type: course
+  primary: true
+  verifiedOn: 2026-11-09
+  readFor: "Gradient as steepest ascent, numerical versus analytic gradients and gradient checking."
+
+- title: "Dive into Deep Learning: Gradient Descent"
+  url: "https://d2l.ai/chapter_optimization/gd.html"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-09
+  readFor: "One-dimensional demos of learning-rate failure modes and the idea of preconditioning."
