@@ -1,0 +1,31 @@
+- question: "Explain gradient descent and why we subtract the gradient."
+  modelAnswer: "Gradient descent minimises a differentiable loss by repeatedly updating parameters. The gradient points toward the steepest local increase, so subtracting it, scaled by a learning rate, lowers the loss locally. Repeat until the loss stops improving."
+  followUps: ["What happens if you add it instead?", "Why only locally?"]
+
+- question: "What happens when the learning rate is too large or too small?"
+  modelAnswer: "Too small makes progress slow and can look like convergence. Too large overshoots the minimum, causing oscillation or divergence. On x squared, the update multiplies x by 1 minus 2 lr, so lr above 1 diverges and lr near 1 oscillates."
+  followUps: ["How would you find a good value in practice?", "What does a learning-rate schedule add?"]
+
+- question: "Why does gradient descent behave badly on ill-conditioned problems?"
+  modelAnswer: "Curvature differs across directions. The steepest direction caps the stable step size at 2 over its curvature, so movement along flat directions is tiny at that rate. The path zig-zags across the steep axis while crawling along the flat one. Rescaling inputs, momentum or adaptive optimizers help."
+  followUps: ["What is a condition number?", "How does Adam help?"]
+
+- question: "Is a zero gradient enough to say you found a minimum?"
+  modelAnswer: "No. A zero gradient marks a critical point, which could be a minimum, a maximum or a saddle. Second-order information tells them apart, and in high-dimensional networks saddles and plateaus are common, so stalls do not mean optimal."
+  followUps: ["How can SGD noise help escape a saddle?", "What do you monitor during training?"]
+
+- question: "Batch, mini-batch and stochastic gradient descent: how do they differ and which do you use?"
+  modelAnswer: "Batch uses all data per update, giving exact but expensive gradients. Stochastic uses one example, giving cheap noisy steps. Mini-batch uses a small subset, balancing noise and hardware efficiency, and is what people usually mean by SGD. Batch size is mostly chosen by memory and interacts with the learning rate."
+  followUps: ["What changes when you double the batch size?", "Why are powers of two common?"]
+
+- question: "How would you verify a hand-written gradient is correct?"
+  modelAnswer: "Run gradient checking: estimate each partial derivative with a centered difference using a small h, and compare with the analytic gradient using relative error. Do it on a tiny input and expect a very small value. It confirms the code matches the maths, not that the loss is the right objective."
+  followUps: ["Why centered rather than one-sided?", "Why relative error?"]
+
+- question: "Adam versus SGD with momentum: when and why?"
+  modelAnswer: "Adam keeps running estimates of the first and second moments of the gradient and scales each parameter's step accordingly, which usually works with little tuning and is common for transformers. SGD with momentum is simpler and often generalises well in vision with careful tuning. The right answer is empirical, so run both on a validation set."
+  followUps: ["What is bias correction?", "Why did people argue about Adam generalisation?"]
+
+- question: "What is the difference between L2 regularisation and weight decay, and why does AdamW exist?"
+  modelAnswer: "For plain SGD they are equivalent up to a rescaling. With an adaptive optimizer like Adam, L2 enters the gradient and then gets rescaled per parameter, so the effective decay differs from true weight decay. AdamW applies decay directly to the weights, separate from the gradient step, which makes the best decay less dependent on the learning rate and improves generalisation."
+  followUps: ["How would you test the claim empirically?", "Which do PyTorch optimizers implement?"]
