@@ -53,13 +53,18 @@ export function findQuestDirs(root: string): string[] {
   return out;
 }
 
+/** Read a quest's raw lesson frontmatter and markdown body. */
+export function readLesson(dir: string): { data: Record<string, unknown>; body: string } {
+  // Use the same YAML 1.2 parser as the .yml files so dates stay strings.
+  const file = matter(fs.readFileSync(path.join(dir, "lesson.mdx"), "utf8"), {
+    engines: { yaml: (s: string) => YAML.parse(s) as object },
+  });
+  return { data: file.data, body: file.content };
+}
+
 export function validateQuest(dir: string): QuestResult {
   const errors: string[] = [];
-  const lessonFile = path.join(dir, "lesson.mdx");
-  // Use the same YAML 1.2 parser as the .yml files so dates stay strings.
-  const fm = matter(fs.readFileSync(lessonFile, "utf8"), {
-    engines: { yaml: (s: string) => YAML.parse(s) as object },
-  }).data;
+  const fm = readLesson(dir).data;
   const parsed = LessonFrontmatterSchema.safeParse(fm);
   if (!parsed.success) {
     for (const i of parsed.error.issues) {
