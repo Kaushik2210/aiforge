@@ -117,6 +117,11 @@ export const BossSchema = z.object({
   interleaveFrom: z.array(slug).default([]),
 });
 
+export const ChallengeMetaSchema = z.object({
+  title: z.string().min(5),
+  summary: z.string().min(20),
+});
+
 export type LessonFrontmatter = z.infer<typeof LessonFrontmatterSchema>;
 export type QuizItem = z.infer<typeof QuizItemSchema>;
 export type Boss = z.infer<typeof BossSchema>;
