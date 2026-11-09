@@ -3,6 +3,7 @@
 import type { RunResult } from "@aiforge/runner";
 import { useEffect, useRef, useState } from "react";
 import { getRunner } from "@/lib/runner";
+import { useProgress } from "@/lib/progress-store";
 import { CodeEditor } from "./CodeEditor";
 
 export interface ChallengeData {
@@ -19,7 +20,8 @@ type Phase = "idle" | "loading" | "running";
 
 const draftKey = (id: string) => `aiforge-draft-${id}`;
 
-export function Challenge({ challenge }: { challenge: ChallengeData }) {
+export function Challenge({ challenge, questId }: { challenge: ChallengeData; questId: string }) {
+  const dispatch = useProgress((s) => s.dispatch);
   const [code, setCode] = useState(challenge.starter);
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<RunResult | null>(null);
@@ -53,6 +55,9 @@ export function Challenge({ challenge }: { challenge: ChallengeData }) {
       const r = await runner.run(code, challenge.tests, challenge.hiddenTests);
       setElapsedMs(Math.round(performance.now() - t0));
       setResult(r);
+      if (!r.timedOut && !r.cancelled) {
+        void dispatch({ type: "challenge-run", id: `${questId}:${challenge.id}`, passed: r.passed, hintsUsed: hintsShown });
+      }
     } catch (err) {
       setResult({
         passed: false,

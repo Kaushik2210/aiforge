@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useProgress } from "@/lib/progress-store";
 
 export interface QuizQuestion {
   id: string;
@@ -19,7 +20,8 @@ const KIND_LABEL: Record<QuizQuestion["kind"], string> = {
   "spot-bug": "Spot the bug",
 };
 
-function Question({ q, index, onResult }: { q: QuizQuestion; index: number; onResult: (id: string, ok: boolean) => void }) {
+function Question({ q, index, topicId, onResult }: { q: QuizQuestion; index: number; topicId: string; onResult: (id: string, ok: boolean) => void }) {
+  const dispatch = useProgress((s) => s.dispatch);
   const [picked, setPicked] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
   const correct = picked === q.answer;
@@ -28,6 +30,7 @@ function Question({ q, index, onResult }: { q: QuizQuestion; index: number; onRe
     if (picked === null) return;
     setChecked(true);
     onResult(q.id, picked === q.answer);
+    void dispatch({ type: "quiz-answer", topicId, itemId: q.id, correct: picked === q.answer });
   }
 
   return (
@@ -92,7 +95,7 @@ function Question({ q, index, onResult }: { q: QuizQuestion; index: number; onRe
   );
 }
 
-export function Quiz({ questions }: { questions: QuizQuestion[] }) {
+export function Quiz({ questions, topicId }: { questions: QuizQuestion[]; topicId: string }) {
   const [results, setResults] = useState<Record<string, boolean>>({});
   const answered = Object.keys(results).length;
   const right = Object.values(results).filter(Boolean).length;
@@ -106,7 +109,7 @@ export function Quiz({ questions }: { questions: QuizQuestion[] }) {
         </p>
       </div>
       {questions.map((q, i) => (
-        <Question key={q.id} q={q} index={i} onResult={(id, ok) => setResults((r) => ({ ...r, [id]: ok }))} />
+        <Question key={q.id} q={q} index={i} topicId={topicId} onResult={(id, ok) => setResults((r) => ({ ...r, [id]: ok }))} />
       ))}
     </section>
   );
