@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.turbo/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+playwright-report/
+test-results/
