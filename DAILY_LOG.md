@@ -27,3 +27,27 @@
 - Pin and compatibility-test TypeScript, Vitest and pnpm majors with Next.js on Day 2 (content-schema currently uses TypeScript 5.9 and Vitest 3).
 
 **Tomorrow (Day 2)**: Next.js app shell, arcade-anime design system tokens (light and dark), first original guide character (Mira), lesson page layout.
+
+## Day 2 (2026-11-09): app shell and design system
+
+**Shipped**
+- Next.js 16 app in `apps/web` with static export, Tailwind 4 and next/font (Dela Gothic One display, Nunito Sans body, JetBrains Mono code).
+- "Midnight arcade academy" design tokens: semantic colours, spacing and type scales, light and dark themes, speed-line and XP-shine accents, reduced-motion and Focus mode (no animation, no speed lines).
+- 32 automated WCAG contrast checks over every text and UI token pair in both themes (all pass).
+- Mira, the first original guide character (SVG, three moods), XP/streak status bar, header with theme toggle and Focus mode, skip link.
+- Home page and a quest page that reads the validated Gradient Descent frontmatter at build time (depth ladder, Core Fundamentals, Core Complexity, explain-it-back).
+- Checked in the browser: dark and light themes, 375px mobile width, no horizontal overflow, no tap target under 44px, one h1 per page.
+- CI now also builds the web app.
+
+**Decisions**
+- Kept TypeScript 5.9 and Vitest 3: the stack ADR listed newer majors; compatibility with Next.js was not tested, so deferred.
+- Raw tokens are `--c-*` and mapped to Tailwind via `@theme inline` (same-name mapping is circular).
+- The UI skill's search script was not installed, so the palette and font pairing were chosen by hand following its rules.
+
+**TODO-VERIFY / not done**
+- Lesson body, quiz and editor are not rendered yet (MDX components Day 3, runner Days 4-5).
+- Status bar shows preview values, not real progress.
+- No automated axe/Playwright run yet (planned Days 11-12); manual checks only so far.
+- Font choices rely on Google Fonts at build time.
+
+**Tomorrow (Day 3)**: MDX pipeline and components (Callout, CoreFundamentals, CoreComplexity, Quiz, Step, Math/KaTeX, Diagram), render the full Gradient Descent lesson.
