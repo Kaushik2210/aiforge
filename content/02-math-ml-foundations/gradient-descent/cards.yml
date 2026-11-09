@@ -1,0 +1,17 @@
+- { id: c-gradient, front: "What does the gradient point toward?", back: "The direction of steepest local increase of the function." }
+- { id: c-update, front: "Gradient descent update rule?", back: "x_next = x - lr * grad f(x)" }
+- { id: c-lr, front: "What does the learning rate control?", back: "How far you step along the negative gradient each update." }
+- { id: c-lr-small, front: "Symptom of a learning rate that is too small?", back: "Very slow progress; the loss barely moves." }
+- { id: c-lr-large, front: "Symptom of a learning rate that is too large?", back: "Overshooting: oscillation, a rising loss, or NaN." }
+- { id: c-quad-factor, front: "For f(x)=x^2, by what factor does each step scale x?", back: "1 - 2*lr." }
+- { id: c-stability, front: "Stability limit of lr for curvature L?", back: "lr < 2/L." }
+- { id: c-condition, front: "What is the condition number (informally)?", back: "The ratio of largest to smallest curvature; large means ill-conditioned and slow descent." }
+- { id: c-saddle, front: "Does a zero gradient mean a minimum?", back: "No. It is a critical point: minimum, maximum or saddle." }
+- { id: c-minibatch, front: "Why mini-batches?", back: "A cheap noisy estimate of the full gradient allows many more updates per pass over the data." }
+- { id: c-sgd, front: "What does SGD usually mean in practice?", back: "Mini-batch stochastic gradient descent; strictly, batch size 1." }
+- { id: c-numgrad, front: "Centered-difference gradient formula?", back: "(f(x+h) - f(x-h)) / (2h), with error of order h squared." }
+- { id: c-relerr, front: "How to compare numerical and analytic gradients?", back: "Relative error |a-b| / max(|a|,|b|, tiny), not absolute difference." }
+- { id: c-momentum, front: "What does momentum fix?", back: "It smooths zig-zag oscillation in narrow valleys by averaging recent gradients." }
+- { id: c-adam, front: "What does Adam adapt?", back: "A per-parameter step size, from running estimates of the first and second gradient moments." }
+- { id: c-adamw, front: "AdamW in one line?", back: "Adam with weight decay applied directly to the weights, decoupled from the gradient step." }
+- { id: c-clip, front: "Why clip gradients?", back: "To cap the norm so a rare huge gradient cannot wreck training." }
