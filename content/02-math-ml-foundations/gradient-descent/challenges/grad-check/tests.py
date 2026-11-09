@@ -34,11 +34,33 @@ def test_output_shape_and_input_untouched():
 
 
 def test_centered_beats_one_sided():
-    # The centered difference is exact for quadratics up to rounding; a
-    # one-sided difference with h=1e-5 would be off by about h * curvature.
+    # The centered difference is exact for quadratics up to rounding. A
+    # one-sided difference with h=1e-3 would be off by roughly h * curvature
+    # (about 1e-3), so this tolerance also proves h is honoured and used.
     p = [0.3, 0.7]
     g = numerical_gradient(f, p, h=1e-3)
     assert relative_error(g, analytic(p)) < 1e-8
+
+
+def test_relative_error_is_relative():
+    # Same scale of disagreement matters differently at different magnitudes.
+    assert abs(relative_error([1e-8], [2e-8]) - 0.5) < 1e-9
+    assert relative_error([1e4], [1e4 + 1e-3]) < 1e-6
+
+
+def test_relative_error_takes_the_worst_coordinate():
+    a = [1.0, 1.0, 1.0]
+    b = [1.0, 1.1, 1.0]
+    err = relative_error(a, b)
+    assert abs(err - 0.1 / 1.1) < 1e-12, "use the max, not mean or sum"
+
+
+def test_relative_error_rejects_length_mismatch():
+    try:
+        relative_error([1.0, 2.0], [1.0])
+    except (ValueError, AssertionError):
+        return
+    raise AssertionError("mismatched lengths should raise ValueError")
 
 
 def test_detects_a_wrong_gradient():

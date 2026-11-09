@@ -11,7 +11,8 @@ def numerical_gradient(f, x, h=1e-5):
 def relative_error(a, b):
     """Largest relative difference between two gradient lists.
 
-    For each pair use |a - b| / max(|a|, |b|, 1e-12).
+    For each pair use |a - b| / max(|a|, |b|, 1e-12). Raise ValueError if
+    the lists have different lengths.
     """
     # TODO
     raise NotImplementedError("implement relative_error")

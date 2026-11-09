@@ -12,6 +12,8 @@ def numerical_gradient(f, x, h=1e-5):
 
 def relative_error(a, b):
     """Largest per-coordinate relative difference between two gradients."""
+    if len(a) != len(b):
+        raise ValueError("gradients must have the same length")
     worst = 0.0
     for p, q in zip(a, b):
         denom = max(abs(p), abs(q), 1e-12)
