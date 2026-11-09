@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { readLesson, readQuiz } from "@aiforge/content-schema";
+import { readChallenges, readLesson, readQuiz } from "@aiforge/content-schema";
 import { Mira } from "@/components/Mira";
+import { Challenge } from "@/components/challenge/Challenge";
 import { Quiz } from "@/components/mdx/Quiz";
 import { compileLesson, lessonComponents } from "@/lib/mdx";
 import { TIER_LABELS, getQuest, listQuests } from "@/lib/quests";
@@ -21,6 +22,7 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
   if (!quest) notFound();
   const Lesson = await compileLesson(readLesson(quest.dir).body);
   const quiz = readQuiz(quest.dir);
+  const challenges = readChallenges(quest.dir);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -70,11 +72,18 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
             <Lesson components={lessonComponents} />
           </article>
 
+          <section aria-labelledby="build-heading">
+            <h2 id="build-heading" className="text-2xl">Build it: challenges</h2>
+            <p className="mt-1 text-text-muted">
+              Write real Python. It runs in your browser and is graded by the same tests our CI uses.
+            </p>
+            {challenges.map((c) => (
+              <Challenge key={c.id} challenge={c} />
+            ))}
+          </section>
+
           <Quiz questions={quiz} />
 
-          <p className="rounded-[var(--radius)] bg-surface-2 p-4 text-sm text-text-muted">
-            The in-browser code editor arrives with the Python runner (Days 4-5).
-          </p>
         </div>
       </div>
     </div>
