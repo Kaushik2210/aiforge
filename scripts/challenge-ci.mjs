@@ -1,5 +1,9 @@
-// Challenge CI: for every challenge folder, the starter must fail its tests
-// and the solution must pass them.
+// Challenge CI. For every challenge folder:
+//   - the starter must FAIL the visible tests
+//   - the solution must PASS the visible tests and the hidden checks
+//   - every mutant (a plausible wrong answer in mutants/) must FAIL at least one
+//     of them, so the tests cannot be satisfied by a wrong solution.
+// The same rules run through real Pyodide in packages/runner (browser parity).
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -18,9 +22,9 @@ function findChallenges(dir, out = []) {
   return out;
 }
 
-function run(challenge, file) {
-  return spawnSync(python, ["-I", path.join(challenge, "tests.py"), path.join(challenge, file)], {
-    env: { ...process.env, SUBMISSION: path.join(challenge, file) },
+function run(challenge, testsFile, submission) {
+  return spawnSync(python, ["-I", path.join(challenge, testsFile), submission], {
+    env: { ...process.env, SUBMISSION: submission },
     encoding: "utf8",
     timeout: 30_000,
   });
@@ -30,17 +34,36 @@ let failed = 0;
 const challenges = findChallenges(root);
 for (const c of challenges) {
   const rel = path.relative(root, c);
-  const starter = run(c, "starter.py");
-  const solution = run(c, "solution.py");
-  const starterFails = starter.status !== 0;
-  const solutionPasses = solution.status === 0;
-  if (starterFails && solutionPasses) {
-    console.log(`ok    ${rel}`);
+  const problems = [];
+  const hasHidden = fs.existsSync(path.join(c, "hidden_tests.py"));
+
+  if (run(c, "tests.py", path.join(c, "starter.py")).status === 0) {
+    problems.push("starter passes its tests (it must fail)");
+  }
+
+  const solution = path.join(c, "solution.py");
+  const sv = run(c, "tests.py", solution);
+  if (sv.status !== 0) problems.push(`solution fails visible tests:\n${sv.stdout}${sv.stderr}`);
+  if (hasHidden) {
+    const sh = run(c, "hidden_tests.py", solution);
+    if (sh.status !== 0) problems.push(`solution fails hidden checks:\n${sh.stdout}${sh.stderr}`);
+  }
+
+  const mutantDir = path.join(c, "mutants");
+  const mutants = fs.existsSync(mutantDir) ? fs.readdirSync(mutantDir).filter((f) => f.endsWith(".py")) : [];
+  for (const m of mutants) {
+    const file = path.join(mutantDir, m);
+    const caught =
+      run(c, "tests.py", file).status !== 0 || (hasHidden && run(c, "hidden_tests.py", file).status !== 0);
+    if (!caught) problems.push(`mutant ${m} passes every test (tests are too weak)`);
+  }
+
+  if (problems.length === 0) {
+    console.log(`ok    ${rel}  (hidden: ${hasHidden ? "yes" : "no"}, mutants caught: ${mutants.length})`);
   } else {
     failed++;
     console.log(`FAIL  ${rel}`);
-    if (!starterFails) console.log("        starter passes its tests (it must fail)");
-    if (!solutionPasses) console.log(`        solution fails:\n${solution.stdout}${solution.stderr}`);
+    for (const p of problems) console.log(`        ${p}`);
   }
 }
 console.log(`\n${challenges.length} challenge(s) checked, ${failed} failed`);
