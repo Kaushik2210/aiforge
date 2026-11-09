@@ -1,0 +1,16 @@
+{
+  "name": "aiforge",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Open-source, gamified academy for becoming a production-ready AI engineer.",
+  "license": "MIT",
+  "packageManager": "pnpm@12.18.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "content:validate": "pnpm --filter @aiforge/content-schema validate",
+    "challenges:ci": "node scripts/challenge-ci.mjs",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "verify": "pnpm typecheck && pnpm test && pnpm content:validate && pnpm challenges:ci"
+  }
+}
