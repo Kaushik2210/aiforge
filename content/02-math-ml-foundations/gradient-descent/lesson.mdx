@@ -16,7 +16,7 @@ coreFundamentals:
 coreComplexity:
   - "For a quadratic with curvature L along an axis, gradient descent is only stable when the learning rate is below 2/L, so the steepest direction caps the step size for every other direction."
   - "Ill-conditioned problems (very different curvatures per axis) make plain gradient descent zig-zag and crawl; this is the reason momentum and adaptive optimizers exist."
-  - "A zero gradient does not mean a minimum: in high dimensions most critical points are saddles, and a flat region can stall progress without being optimal."
+  - "A zero gradient does not mean a minimum: in high-dimensional models saddle points and flat plateaus are common enough to stall training without being optimal (how common is debated; TODO-VERIFY a primary source)."
   - "A hand-derived gradient is easy to get subtly wrong; gradient checking with a centered difference and relative error is the safety net, and it only tells you the code matches the maths, not that the maths is right for your goal."
   - "Adam with L2 regularisation is not the same as weight decay; AdamW decouples them."
 explainItBack:

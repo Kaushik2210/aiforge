@@ -3,7 +3,7 @@
   followUps: ["What happens if you add it instead?", "Why only locally?"]
 
 - question: "What happens when the learning rate is too large or too small?"
-  modelAnswer: "Too small makes progress slow and can look like convergence. Too large overshoots the minimum, causing oscillation or divergence. On x squared, the update multiplies x by 1 minus 2 lr, so lr above 1 diverges and lr near 1 oscillates."
+  modelAnswer: "Too small makes progress slow and can look like convergence. Too large overshoots the minimum, causing oscillation or divergence. On x squared, the update multiplies x by 1 minus 2 lr, so lr above 1 diverges, lr exactly 1 oscillates forever, and lr between 0.5 and 1 oscillates while still converging."
   followUps: ["How would you find a good value in practice?", "What does a learning-rate schedule add?"]
 
 - question: "Why does gradient descent behave badly on ill-conditioned problems?"

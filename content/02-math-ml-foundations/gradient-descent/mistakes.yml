@@ -12,7 +12,7 @@
 
 - mistake: "Trusting a hand-derived gradient without checking it."
   why: "Missing terms (such as a cross term) or wrong shapes produce plausible-looking but wrong updates."
-  detect: "Run a centered-difference gradient check on a tiny input and look at relative error; around 1e-6 or below is typical for a correct implementation."
+  detect: "Run a centered-difference gradient check on a tiny input and look at relative error; CS231n treats about 1e-7 or below as good and about 1e-2 or above as probably wrong."
 
 - mistake: "Using an absolute tolerance when gradient checking."
   why: "The same absolute gap is negligible for large gradients and enormous for tiny ones."
