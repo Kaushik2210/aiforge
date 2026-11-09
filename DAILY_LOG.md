@@ -97,3 +97,25 @@
 - Pyodide itself is about 13 MB on first run.
 
 **Tomorrow (Day 5)**: challenge CI hardening (run in Pyodide too), hidden tests, memory/output limits, and polish of the runner experience.
+
+## Day 5 (2026-11-09): runner hardening and challenge quality gate
+
+**Shipped**
+- Hidden checks (`hidden_tests.py`): run in the same harness, reported as counts only (no names or messages), required for an overall pass.
+- Mutation-style challenge CI: every challenge needs 2+ `mutants/` (plausible wrong solutions); CI requires starter fails, solution passes visible and hidden, and every mutant is rejected. Same rules run through real Pyodide (33 runner tests). Real finding: the `ignores_h` mutant passes all visible tests and is caught only by a hidden check.
+- Harness guard rails: output capped (about 8 KB head, last 30 lines, PASS/FAIL always kept), stdin closed so `input()` raises EOFError, a crashed hidden file counts as a failure.
+- `PyRunner`: Stop (`cancel`), crash recovery (worker `error` event replaces the worker).
+- UI: Stop button, Ctrl/Cmd+Enter to run, hidden-check summary, collapsible program output, run time.
+- ADR 0003 documents the runner design and its limits honestly.
+- Checked in the browser: hidden check rejects the visible-passing mutant, Stop works, a 10**10 allocation fails cleanly and the next run recovers, a 100000-line print flood still lets a correct solution pass.
+
+**Decisions**
+- Hidden checks are not a security boundary: they ship to the browser (static, local-first site). They stop answers that only fit the examples; do not use them for private assessment.
+- WebAssembly memory is not capped; a large allocation fails with an error but is not limited up front.
+
+**TODO-VERIFY / not done**
+- No automated browser (Playwright) test of Stop/timeout yet; verified by hand (Days 11-12).
+- Pass/fail still awards no XP and is not stored (engine Days 6-7).
+- Content rule applies to every future challenge; Realm 1 challenges will need hidden checks and mutants.
+
+**Tomorrow (Day 6)**: engine package: XP and levels, rank ladder, streak engine (freezes, timezones, DST) with heavy tests.
