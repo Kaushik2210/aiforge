@@ -4,6 +4,8 @@ import { readChallenges, readLesson, readQuiz } from "@aiforge/content-schema";
 import { Mira } from "@/components/Mira";
 import { Challenge } from "@/components/challenge/Challenge";
 import { Quiz } from "@/components/mdx/Quiz";
+import { MasteryPanel } from "@/components/progress/MasteryPanel";
+import { TierChecklist } from "@/components/progress/TierChecklist";
 import { compileLesson, lessonComponents } from "@/lib/mdx";
 import { TIER_LABELS, getQuest, listQuests } from "@/lib/quests";
 
@@ -31,17 +33,13 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
       <p className="mt-2 text-text-muted">About {quest.estimatedMinutes} minutes. Verified {quest.verifiedOn}.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[16rem_1fr]">
-        <nav aria-label="Depth ladder" className="h-fit rounded-[var(--radius)] border border-border bg-surface p-4">
-          <h2 className="text-lg">Depth ladder</h2>
-          <ol className="mt-3 space-y-2">
-            {quest.tiers.map((t) => (
-              <li key={t} className="rounded-lg bg-surface-2 p-3">
-                <span className="font-semibold">{t} &middot; {TIER_LABELS[t]?.name}</span>
-                <span className="block text-sm text-text-muted">{TIER_LABELS[t]?.blurb}</span>
-              </li>
-            ))}
-          </ol>
-        </nav>
+        <div className="space-y-4">
+          <TierChecklist
+            questId={quest.id}
+            tiers={quest.tiers.map((t) => ({ id: t, name: TIER_LABELS[t]?.name ?? t, blurb: TIER_LABELS[t]?.blurb ?? "" }))}
+          />
+          <MasteryPanel questId={quest.id} bossId={quest.bossId} />
+        </div>
 
         <div className="space-y-6">
           <section aria-labelledby="fund" className="rounded-[var(--radius)] border-2 border-accent bg-surface p-5">
@@ -78,11 +76,11 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
               Write real Python. It runs in your browser and is graded by the same tests our CI uses.
             </p>
             {challenges.map((c) => (
-              <Challenge key={c.id} challenge={c} />
+              <Challenge key={c.id} challenge={c} questId={quest.id} />
             ))}
           </section>
 
-          <Quiz questions={quiz} />
+          <Quiz questions={quiz} topicId={quest.id} />
 
         </div>
       </div>
