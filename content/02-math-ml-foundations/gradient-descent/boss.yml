@@ -1,0 +1,16 @@
+id: gradient-descent-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - update-sign
+  - predict-square-0-2
+  - lr-one-oscillates
+  - stability-limit
+  - ill-conditioning
+  - spot-bug-sign
+  - grad-check
+  - adamw
+challenges:
+  - gd-loop
+  - grad-check
+interleaveFrom: []
