@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Dela_Gothic_One, JetBrains_Mono, Nunito_Sans } from "next/font/google";
 import type { ReactNode } from "react";
+import "katex/dist/katex.min.css";
 import "../styles/globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 

@@ -199,3 +199,41 @@ a, button {
   transition-duration: 0.01ms !important;
 }
 :root[data-focus="on"] .speed-lines { background-image: none; }
+
+/* Lesson typography: readable measure, clear hierarchy. */
+.lesson { max-width: 72ch; }
+.lesson h1 { display: none; } /* the page supplies the title */
+.lesson h2 { font-size: var(--text-2xl); margin-top: var(--space-12); scroll-margin-top: var(--space-8); }
+.lesson h3 { font-size: var(--text-xl); margin-top: var(--space-8); }
+.lesson p, .lesson li { margin-top: var(--space-3); }
+.lesson ul, .lesson ol { padding-left: var(--space-6); }
+.lesson ul { list-style: disc; }
+.lesson ol { list-style: decimal; }
+.lesson a { color: var(--c-accent); text-decoration: underline; text-underline-offset: 3px; }
+.lesson hr { border: 0; border-top: 1px solid var(--c-border); margin-top: var(--space-8); }
+.lesson blockquote {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--c-accent);
+  background: var(--c-surface);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.lesson :not(pre) > code {
+  background: var(--c-surface-2);
+  padding: 0.1em 0.4em;
+  border-radius: 0.4em;
+  font-size: 0.92em;
+}
+.lesson pre {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: var(--text-sm);
+}
+.lesson table { margin-top: var(--space-4); border-collapse: collapse; display: block; overflow-x: auto; }
+.lesson th, .lesson td { border: 1px solid var(--c-border); padding: var(--space-2) var(--space-3); text-align: left; }
+.lesson th { background: var(--c-surface-2); }
+.lesson .katex-display { overflow-x: auto; overflow-y: hidden; padding: var(--space-2) 0; }
