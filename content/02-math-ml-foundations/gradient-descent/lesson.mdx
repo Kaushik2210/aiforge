@@ -1,0 +1,195 @@
+---
+id: gradient-descent
+title: Gradient Descent
+realm: 2
+zone: Calculus for learning
+prerequisites: []
+estimatedMinutes: 120
+verifiedOn: 2026-11-09
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "The gradient of a function points in the direction of steepest increase; stepping against it lowers the function locally."
+  - "Training a model means choosing parameters that minimise a loss; gradient descent does this by repeating: compute gradient, take a small step against it."
+  - "The learning rate sets the step size. Too small is slow, too large overshoots, oscillates or diverges."
+  - "Mini-batch gradients are noisy but cheap estimates of the full-data gradient, which is why they work in practice."
+coreComplexity:
+  - "For a quadratic with curvature L along an axis, gradient descent is only stable when the learning rate is below 2/L, so the steepest direction caps the step size for every other direction."
+  - "Ill-conditioned problems (very different curvatures per axis) make plain gradient descent zig-zag and crawl; this is the reason momentum and adaptive optimizers exist."
+  - "A zero gradient does not mean a minimum: in high dimensions most critical points are saddles, and a flat region can stall progress without being optimal."
+  - "A hand-derived gradient is easy to get subtly wrong; gradient checking with a centered difference and relative error is the safety net, and it only tells you the code matches the maths, not that the maths is right for your goal."
+  - "Adam with L2 regularisation is not the same as weight decay; AdamW decouples them."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain to a friend why gradient descent can fail to converge even though the gradient points downhill, and what you would change."
+  rubric:
+    - "Says the gradient only describes the function locally, so a big enough step can overshoot."
+    - "Names the learning rate as the control and gives a symptom (oscillation or growing loss)."
+    - "Mentions at least one fix: smaller step, schedule, momentum or adaptive optimizer, or rescaling inputs."
+miniGame: gradient-hiker
+bossId: gradient-descent-boss
+---
+
+# Gradient Descent
+
+> **Realm 2, Mathematics & ML Foundations.** Guide: *Mira*, the lantern-bearer
+> of the Loss Mountains (an original AIForge character).
+
+You are standing on a foggy mountain. You cannot see the valley, but you can
+feel the slope under your feet. Walk downhill, repeatedly, and you will reach
+low ground. That is the whole algorithm. The rest of this quest is learning
+when that picture lies to you.
+
+---
+
+## L1. Intuition
+
+**The mental model.** A model has numbers inside it (parameters). A *loss*
+function turns those numbers into one score: how wrong the model is. Training
+is moving the parameters so the loss goes down.
+
+**The slope.** In one dimension the derivative `f'(x)` is the slope at `x`. If
+the slope is positive, the function rises to the right, so you go left. If it
+is negative, go right. In many dimensions the *gradient* `∇f` collects one
+slope per parameter. It points toward the steepest *increase*, so we walk the
+opposite way.
+
+**The step size.** You also choose how far to walk before checking the slope
+again. That is the *learning rate*, written `η` (eta) or `lr`.
+
+Try it (the interactive version arrives with the Gradient Hiker game on Day 9;
+until then run the numbers):
+
+| learning rate | what happens on `f(x) = x²` starting at `x = 10` |
+|---|---|
+| 0.05 | creeps toward 0; after 10 steps `x ≈ 3.49` |
+| 0.2 | converges quickly; after 10 steps `x ≈ 0.06` |
+| 1.0 | bounces between 10 and -10 forever |
+| 1.1 | each bounce is bigger; `|x| ≈ 61.9` after 10 steps |
+
+**An analogy that does not mislead.** A hiker in fog feeling the slope is good
+for step size and direction. It misleads in one way: a real hiker sees the
+cliff edge coming. Gradient descent only sees the slope exactly where it
+stands, so a big stride can land somewhere the slope said nothing about.
+
+---
+
+## L2. Mechanics
+
+**The update rule.**
+
+```
+x_next = x - lr * ∇f(x)
+```
+
+**Worked by hand on `f(x) = x²`.** The derivative is `f'(x) = 2x`, so
+
+```
+x_next = x - lr * 2x = (1 - 2·lr) · x
+```
+
+Every step multiplies `x` by the same factor `r = 1 - 2·lr`.
+
+- `lr = 0.2` gives `r = 0.6`. After 10 steps: `10 · 0.6¹⁰ ≈ 0.0605`.
+- `lr = 0.05` gives `r = 0.9`. After 10 steps: `10 · 0.9¹⁰ ≈ 3.487`.
+- `lr = 1.0` gives `r = -1`. The sign flips and the size never shrinks.
+- `lr = 1.1` gives `r = -1.2`. The size grows by 20% every step.
+
+It converges exactly when `|r| < 1`, i.e. `0 < lr < 1`. For a general
+quadratic with curvature `L` along one axis (`f(x) = (L/2)·x²`), the factor is
+`1 - lr·L` and the stability limit is `lr < 2/L`.
+
+**Two dimensions.** Take `f(x₁, x₂) = x₁² + 2·x₂²`. The gradient is
+`(2x₁, 4x₂)`. The curvatures are 2 and 4, so we need `lr < 2/4 = 0.5`. Using
+`lr = 0.4`: the `x₁` factor is `1 - 0.8 = 0.2` (fast) and the `x₂` factor is
+`1 - 1.6 = -0.6` (slower, and flipping sign). One global `lr` cannot suit both
+axes. The ratio of the curvatures (here 2) is the *condition number*; when it
+is large, progress is dominated by the worst axis.
+
+**Mini-batches.** For a loss that is an average over `N` examples, the exact
+gradient needs all `N`. A random batch of `B` examples gives a noisy estimate
+of the same gradient. With `B = 1` the method is classic stochastic gradient
+descent (SGD); people also say "SGD" for mini-batches generally. Typical `B`
+values are 32 to 256 and are mostly chosen by memory.
+
+**Check yourself.** For `f(x) = 3x²`, starting at `x = 1` with `lr = 0.1`,
+what is `x` after one step? (Gradient is `6x = 6`, so `1 - 0.6 = 0.4`.)
+
+---
+
+## L3. Build it
+
+Two short challenges. Run them in the browser editor (Pyodide) once the runner
+lands on Day 4; until then run `python tests.py <file>` locally.
+
+1. **`gd-loop`**: write `gradient_descent(grad, x0, lr, steps)` that returns all
+   iterates. Tests check the numbers from L2 and the divergence cases.
+2. **`grad-check`**: write a centered-difference `numerical_gradient` and a
+   `relative_error`. Use them to catch a gradient that forgot a cross term.
+
+**Why the centered difference.** `(f(x+h) - f(x)) / h` has error proportional
+to `h`. `(f(x+h) - f(x-h)) / 2h` has error proportional to `h²`, so it is far
+more accurate for the same `h`. Use relative error, not absolute, so the check
+works for both tiny and huge gradients.
+
+---
+
+## L4. Production reality
+
+- **Pick the learning rate first.** It is the most sensitive hyperparameter.
+  When the loss goes up or becomes `NaN`, suspect the rate (or a bad
+  gradient) before anything else.
+- **Schedules.** Real training warms up, then decays the rate. A constant rate
+  that works at the start is often too large near the end.
+- **Scale your inputs.** Features on wildly different scales produce an
+  ill-conditioned loss; normalising inputs is a cheap fix for slow descent.
+- **Optimizers.** Momentum smooths the zig-zag. Adam adapts a step size per
+  parameter from running estimates of the gradient's first and second moments.
+  AdamW applies weight decay separately from the gradient step, which matters
+  because L2 regularisation and weight decay differ under Adam.
+- **Gradient clipping.** Cap the gradient norm to survive occasional huge
+  gradients.
+- **Failure at 3 a.m.** Loss is `NaN` after hours of training: check for a
+  divergent learning rate, `log(0)`, or an overflow in softmax. Loss is flat
+  from step one: check that gradients are non-zero and that parameters are
+  actually in the optimizer.
+- **Batch size is a lever on noise, not just speed.** Smaller batches give
+  noisier steps; doubling the batch size often calls for re-tuning the rate.
+
+---
+
+## L5. Frontier
+
+Read, in this order, and look for the stated thing:
+
+1. Ruder, *An overview of gradient descent optimization algorithms*
+   (arXiv 1609.04747): the map of variants; read for *why* each variant
+   exists.
+2. Kingma & Ba, *Adam* (arXiv 1412.6980): read for the two moment estimates
+   and the bias correction.
+3. Loshchilov & Hutter, *Decoupled Weight Decay Regularization*
+   (arXiv 1711.05101): read for the claim that L2 and weight decay are not
+   equivalent for adaptive methods.
+
+Open problems you will meet later: why large over-parameterised networks
+generalise despite perfect fits, how optimizer choice shapes which solution is
+found, and how to set learning rates and schedules as models scale (revisited
+in Realm 6).
+
+---
+
+## Core Fundamentals
+
+Be able to explain from memory: the update rule, why we step *against* the
+gradient, what the learning rate does at each extreme, and why mini-batches
+are acceptable.
+
+## Core Complexity
+
+The `2/L` stability limit, ill-conditioning and why one learning rate cannot
+suit every axis, saddle points, the gap between "gradient is correct" and
+"objective is right", and Adam versus AdamW.
+
+## Game: Gradient Hiker
+
+Roll a ball down a loss landscape, tune the learning rate and watch it
+overshoot or oscillate. Spec in `packages/games/gradient-hiker/SPEC.md`.
