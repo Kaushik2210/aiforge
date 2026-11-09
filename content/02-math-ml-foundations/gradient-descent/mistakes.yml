@@ -1,0 +1,27 @@
+- mistake: "Adding the gradient instead of subtracting it."
+  why: "Gradient ascent and descent differ by a single sign, which is easy to flip when moving between loss and reward framings."
+  detect: "The loss rises steadily from the first step. Print the loss for three steps and check the sign of the change."
+
+- mistake: "Using one learning rate found on a toy problem for the real one."
+  why: "The stable range depends on the curvature of the loss, which changes with data scale, model size and batch size."
+  detect: "Loss spikes, oscillates or turns NaN. Run a quick sweep of rates over a few hundred steps and plot the loss."
+
+- mistake: "Treating a zero or tiny gradient as proof of convergence."
+  why: "Saddles and flat plateaus also have near-zero gradient, and a too-small rate also yields tiny steps."
+  detect: "Training loss is still high when updates stall. Compare against a baseline and inspect the gradient norm over time."
+
+- mistake: "Trusting a hand-derived gradient without checking it."
+  why: "Missing terms (such as a cross term) or wrong shapes produce plausible-looking but wrong updates."
+  detect: "Run a centered-difference gradient check on a tiny input and look at relative error; around 1e-6 or below is typical for a correct implementation."
+
+- mistake: "Using an absolute tolerance when gradient checking."
+  why: "The same absolute gap is negligible for large gradients and enormous for tiny ones."
+  detect: "The check passes on one parameter and fails on another for no reason. Switch to relative error."
+
+- mistake: "Not scaling input features."
+  why: "Features on very different scales create very different curvatures per axis, so descent zig-zags."
+  detect: "Loss decreases very slowly along some weights. Compare per-weight update sizes or standardise the inputs and retry."
+
+- mistake: "Assuming L2 regularisation and weight decay are the same under Adam."
+  why: "They coincide for plain SGD only; Adam's per-parameter scaling changes the effective decay."
+  detect: "Tuned decay values transfer poorly when the learning rate changes. Try AdamW and see whether the best decay becomes less dependent on the learning rate."
