@@ -7,3 +7,4 @@ export * from "./map/layout";
 export * from "./map/map-types";
 export * from "./map/world-map";
 export * from "./hiker/logic";
+export * from "./hiker/session";
