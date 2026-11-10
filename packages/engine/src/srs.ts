@@ -116,6 +116,11 @@ export interface QueueOptions {
   maxNew?: number;
   /** Seed for the topic order, so a session is reproducible. */
   seed?: number;
+  /**
+   * Top the session up with the cards coming due soonest until it has at least this
+   * many (extra practice, never more than `limit`). Reviewing a card early is fine in SM-2.
+   */
+  fillTo?: number;
 }
 
 /**
@@ -139,6 +144,15 @@ export function buildReviewQueue(cards: readonly Card[], today: DateKey, opts: Q
     newCount += 1;
     return newCount <= maxNew;
   });
+
+  // Optional extra practice: pull in the cards that will be due next.
+  const want = Math.min(limit, Math.max(0, opts.fillTo ?? 0));
+  if (pool.length < want) {
+    const upcoming = cards
+      .filter((c) => !isDue(c, today))
+      .sort((a, b) => dayDiff(b.due, a.due) || a.id.localeCompare(b.id));
+    pool.push(...upcoming.slice(0, want - pool.length));
+  }
 
   const byTopic = new Map<string, Card[]>();
   for (const c of pool) {

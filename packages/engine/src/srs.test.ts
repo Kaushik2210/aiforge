@@ -210,6 +210,25 @@ describe("buildReviewQueue", () => {
     expect(JSON.stringify(cards)).toBe(snapshot);
   });
 
+  it("fillTo tops a short session up with the cards due soonest", () => {
+    const cards = [
+      mk("due1", "t", today), mk("due2", "t", "2026-02-01"),
+      mk("soon", "t", "2026-02-11"), mk("later", "t", "2026-02-20"), mk("latest", "t", "2026-03-30"),
+    ];
+    const plain = buildReviewQueue(cards, today);
+    expect(plain.map((c) => c.id).sort()).toEqual(["due1", "due2"]);
+    const topped = buildReviewQueue(cards, today, { fillTo: 4 });
+    expect(topped).toHaveLength(4);
+    expect(topped.map((c) => c.id).sort()).toEqual(["due1", "due2", "later", "soon"]);
+  });
+
+  it("fillTo adds nothing when enough are already due, and respects the limit and a small deck", () => {
+    const many = Array.from({ length: 8 }, (_, i) => mk(`d${i}`, "t", "2026-02-01"));
+    expect(buildReviewQueue(many, today, { fillTo: 5 })).toHaveLength(8);
+    expect(buildReviewQueue([mk("a", "t", "2026-03-01")], today, { fillTo: 5 })).toHaveLength(1);
+    expect(buildReviewQueue([mk("a", "t", "2026-03-01"), mk("b", "t", "2026-03-02")], today, { fillTo: 9, limit: 1 })).toHaveLength(1);
+  });
+
   it("returns nothing when nothing is due", () => {
     expect(buildReviewQueue([mk("a", "t", "2026-03-01")], today)).toEqual([]);
     expect(buildReviewQueue([], today)).toEqual([]);
