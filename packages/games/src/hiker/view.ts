@@ -91,3 +91,16 @@ export function markerShape(stepIndex: number): MarkerShape {
 export function overshot(losses: readonly number[]): boolean {
   return losses.length >= 2 && losses.at(-1)! > losses.at(-2)!;
 }
+
+/** Local minima of a 1-D landscape on the view (where the ball can settle), left to right. */
+export function valleys1D(level: Level, bounds: Bounds, samples = 400): Pt[] {
+  const pts = Array.from({ length: samples + 1 }, (_, i) => {
+    const x = bounds.xMin + (i * (bounds.xMax - bounds.xMin)) / samples;
+    return { x, y: level.landscape.loss([x]) };
+  });
+  const out: Pt[] = [];
+  for (let i = 1; i < pts.length - 1; i++) {
+    if (pts[i]!.y < pts[i - 1]!.y && pts[i]!.y <= pts[i + 1]!.y) out.push(pts[i]!);
+  }
+  return out;
+}

@@ -12,6 +12,8 @@ export interface GameContext {
   seed: number;
   reducedMotion: boolean;
   onComplete(result: GameResult): void;
+  /** Called if the game cannot start (for example no WebGL), so the page can offer an alternative. */
+  onError?(message: string): void;
 }
 
 /** Every mini-game implements this so games are hot-swappable. */

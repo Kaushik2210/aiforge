@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LEVEL_IDS, getLevel } from "./logic";
-import { contours, curve1D, makeProjector, markerShape, overshot, viewBounds } from "./view";
+import { contours, curve1D, makeProjector, markerShape, overshot, valleys1D, viewBounds } from "./view";
 
 describe("viewBounds", () => {
   it("always contains the start point and is non-degenerate", () => {
@@ -95,5 +95,23 @@ describe("markers and overshoot", () => {
     expect(overshot([50, 100])).toBe(true);
     expect(overshot([5])).toBe(false);
     expect(overshot([])).toBe(false);
+  });
+});
+
+describe("valleys1D", () => {
+  it("finds the two valleys on level 4, the left one deeper", () => {
+    const level = getLevel(4);
+    const v = valleys1D(level, viewBounds(level));
+    expect(v).toHaveLength(2);
+    expect(v[0]!.x).toBeCloseTo(-2.1, 1);
+    expect(v[1]!.x).toBeCloseTo(1.9, 1);
+    expect(v[0]!.y).toBeLessThan(v[1]!.y);
+  });
+
+  it("finds exactly one valley on a plain parabola, at the origin", () => {
+    const level = getLevel(1);
+    const v = valleys1D(level, viewBounds(level));
+    expect(v).toHaveLength(1);
+    expect(v[0]!.x).toBeCloseTo(0, 1);
   });
 });
