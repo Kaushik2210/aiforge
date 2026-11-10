@@ -44,7 +44,9 @@
 - Raw tokens are `--c-*` and mapped to Tailwind via `@theme inline` (same-name mapping is circular).
 - The UI skill's search script was not installed, so the palette and font pairing were chosen by hand following its rules.
 
-**TODO-VERIFY / not done**
+**- Added keyboard tests (skip link, visible focus, no trap) and reduced-motion and Focus-mode tests (no infinite animations; home has 13 without them).
+
+TODO-VERIFY / not done**
 - Lesson body, quiz and editor are not rendered yet (MDX components Day 3, runner Days 4-5).
 - Status bar shows preview values, not real progress.
 - No automated axe/Playwright run yet (planned Days 11-12); manual checks only so far.
@@ -264,10 +266,10 @@ Done
 - Fixed what it found: Monaco comment colour under AA contrast (custom light and dark themes), a second h1 on quest pages (lesson "# Title" now renders as h2), and skill-tree link names that did not match their visible text.
 
 TODO-VERIFY / not done
-- Keyboard-path, reduced-motion and Focus-mode e2e tests are not written yet; only axe and landmark checks run in CI.
+- Keyboard-path tests cover the skip link and visible focus on every page; user-flow e2e (quest, Tavern, Daily Quest, game, map) is still unwritten.
 - axe covers roughly a third of WCAG issues; a manual screen-reader pass is still owed.
 - The Phaser canvas is not covered by axe.
 - CI e2e job has not run on GitHub yet (local run used installed Chrome).
 
 Tomorrow
-- Keyboard, reduced-motion and Focus-mode e2e, then deploy pipeline and README polish (Day 12).
+- User-flow e2e, then deploy pipeline and README polish (Day 12).
