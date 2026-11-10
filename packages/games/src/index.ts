@@ -9,3 +9,4 @@ export * from "./map/world-map";
 export * from "./hiker/logic";
 export * from "./hiker/session";
 export * from "./hiker/view";
+export * from "./hiker/hiker-game";
