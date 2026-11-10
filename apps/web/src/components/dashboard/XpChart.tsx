@@ -34,7 +34,7 @@ export function XpChart() {
       </p>
 
       <div className="mt-3 overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="max-w-full" role="img" aria-label={`Line chart of total XP over the last ${DAYS} days, now ${snapshot.xpTotal}. A table follows.`}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full max-w-[640px]" role="img" aria-label={`Line chart of total XP over the last ${DAYS} days, now ${snapshot.xpTotal}. A table follows.`}>
           {ticks(max, 4).map((t) => (
             <g key={t}>
               <line x1={M.left} x2={W - M.right} y1={y(t)} y2={y(t)} stroke="var(--c-border)" strokeWidth={0.5} />
