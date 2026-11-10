@@ -1,0 +1,50 @@
+# The skill tree: every topic AIForge plans to teach, with the topics that make it
+# easier. Prerequisites here are a RECOMMENDED order, never a lock: learners can
+# open any topic. A topic counts as "available" when a quest with the same id
+# exists under content/; everything else is planned.
+# Validated by `pnpm content:validate` (no cycles, no unknown prerequisites, a
+# prerequisite never comes from a later realm).
+topics:
+  # Realm 1: Programming fundamentals
+  - { id: python-basics, title: "Python basics", realm: 1, prerequisites: [] }
+  - { id: git-and-github, title: "Git and GitHub", realm: 1, prerequisites: [] }
+  - { id: linux-and-cli, title: "Linux and the command line", realm: 1, prerequisites: [] }
+  - { id: python-functions-and-modules, title: "Functions and modules", realm: 1, prerequisites: [python-basics] }
+  - { id: python-oop-and-errors, title: "Classes and exceptions", realm: 1, prerequisites: [python-functions-and-modules] }
+  - { id: generators-and-iterators, title: "Generators and iterators", realm: 1, prerequisites: [python-oop-and-errors] }
+  - { id: async-and-concurrency, title: "Async and concurrency", realm: 1, prerequisites: [generators-and-iterators] }
+  - { id: data-structures-and-algorithms, title: "Data structures and algorithms", realm: 1, prerequisites: [python-functions-and-modules] }
+  - { id: http-and-rest, title: "HTTP and REST APIs", realm: 1, prerequisites: [python-basics] }
+
+  # Realm 2: Maths and ML foundations
+  - { id: linear-algebra, title: "Linear algebra", realm: 2, prerequisites: [python-basics] }
+  - { id: derivatives-and-gradients, title: "Derivatives and gradients", realm: 2, prerequisites: [] }
+  - { id: gradient-descent, title: "Gradient descent", realm: 2, prerequisites: [derivatives-and-gradients] }
+  - { id: probability-and-statistics, title: "Probability and statistics", realm: 2, prerequisites: [] }
+  - { id: ml-fundamentals, title: "Machine learning fundamentals", realm: 2, prerequisites: [gradient-descent, probability-and-statistics, linear-algebra] }
+
+  # Realm 3: Data engineering
+  - { id: numpy-and-vectorization, title: "NumPy and vectorization", realm: 3, prerequisites: [python-basics, linear-algebra] }
+  - { id: pandas-and-data-cleaning, title: "pandas and data cleaning", realm: 3, prerequisites: [numpy-and-vectorization] }
+  - { id: sql-and-postgres, title: "SQL and PostgreSQL", realm: 3, prerequisites: [] }
+  - { id: data-leakage-and-splits, title: "Data leakage and splits", realm: 3, prerequisites: [ml-fundamentals, pandas-and-data-cleaning] }
+
+  # Realm 4: Deep learning
+  - { id: backpropagation, title: "Backpropagation", realm: 4, prerequisites: [gradient-descent, linear-algebra] }
+  - { id: neural-networks, title: "Neural networks from scratch", realm: 4, prerequisites: [backpropagation, numpy-and-vectorization] }
+  - { id: optimizers, title: "Optimizers: momentum, Adam, AdamW", realm: 4, prerequisites: [gradient-descent, neural-networks] }
+  - { id: attention-and-transformers, title: "Attention and transformers", realm: 4, prerequisites: [neural-networks, linear-algebra] }
+
+  # Realm 5: Deep learning frameworks
+  - { id: pytorch-basics, title: "PyTorch basics", realm: 5, prerequisites: [neural-networks, numpy-and-vectorization] }
+
+  # Realm 6: LLM fundamentals
+  - { id: tokenization, title: "Tokenization", realm: 6, prerequisites: [python-basics] }
+  - { id: llm-fundamentals, title: "How large language models work", realm: 6, prerequisites: [attention-and-transformers, tokenization] }
+
+  # Realm 7: LLM APIs
+  - { id: llm-apis, title: "Working with LLM APIs", realm: 7, prerequisites: [http-and-rest, llm-fundamentals] }
+
+  # Realm 9 and 10: embeddings and RAG
+  - { id: embeddings-and-vector-search, title: "Embeddings and vector search", realm: 9, prerequisites: [linear-algebra, llm-fundamentals] }
+  - { id: retrieval-augmented-generation, title: "Retrieval-augmented generation", realm: 10, prerequisites: [llm-apis, embeddings-and-vector-search] }
