@@ -5,3 +5,4 @@ export * from "./host";
 export * from "./map/biomes";
 export * from "./map/layout";
 export * from "./map/map-types";
+export * from "./map/world-map";
