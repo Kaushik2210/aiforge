@@ -8,7 +8,8 @@
     "prebuild": "node ../../scripts/sync-runner-assets.mjs",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@aiforge/content-schema": "workspace:*",
@@ -29,6 +30,8 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.0",
     "@tailwindcss/postcss": "^4.3.5",
     "@types/katex": "^0.16.8",
     "@types/node": "^22.0.0",
