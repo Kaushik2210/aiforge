@@ -193,3 +193,34 @@
 - Device pixel ratio / crispness on high-DPI screens was not checked.
 
 **Tomorrow (Day 9)**: skill-tree view and the Gradient Hiker mini-game (pure `step(state, lr)` logic with tests, Phaser scene, accessible non-game alternative).
+
+## Day 9 (2026-11-10): Gradient Hiker and the skill tree
+
+**Shipped**
+- Gradient Hiker, all five levels, per `packages/games/gradient-hiker/SPEC.md`: pure logic (the lesson's update rule plus optional momentum), a session object, drawing maths, a Phaser scene in the cel-shaded anime style (original lantern-bearer hiker, shape-coded numbered trail, goal zone, speed lines and sparkles that respect reduced motion), a `MiniGame` wrapper, and the `/games/gradient-hiker` page with a log-scale learning-rate slider, momentum slider, live feedback, a table of every step and a text-only mode. First wins award XP; levels show "(cleared)".
+- Levels tuned by measurement, not feel: level 3 cannot be won by any plain learning rate but 152 of 1,520 momentum settings win it; the boss ravine is generated only if momentum-winnable and not plain-winnable (80 seeds checked).
+- Stability limit 2(1+momentum)/curvature verified against real simulations just under and over the limit.
+- Skill tree: `content/_skilltree.yml` (28 topics, 9 realms), schema with cycle, unknown-prerequisite and later-realm checks, a consistency check against real quests wired into `content:validate`, a tested left-to-right layout in the engine (barycentre crossing reduction), and the `/skills` page (SVG with mastery bars, hover and focus highlighting, plus an equivalent text list).
+- Tests: games 128 (51 new for the Hiker), engine 195 (15 new), content-schema 28 (15 new), web 67 (5 new).
+- Mutation check on the Hiker logic: 13 injected bugs; the first run missed one (`<` vs `<=` at the goal), fixed, now all caught.
+- ADR 0007 records the design.
+
+**Real bugs found by running it**
+- The Hiker's canvas never appeared: the mount effect ran before its container existed and never re-ran, with no error. Found in the browser; fixed by waiting for the game to be ready.
+- Switching to text-only hid the canvas but left Phaser running; added `unmount()`.
+- A type-name clash and a test-arithmetic slip were caught by typecheck and tests.
+- A batched shell command failed to parse and created nothing; redone with the file tool.
+
+**Decisions**
+- Hiker rules live in a pure session; Phaser only draws. The canvas takes no input so the page keeps scrolling and keyboard behaviour.
+- Skill-tree prerequisites are a recommended order, never a lock.
+- Level 4 counts any valley as a win and scores the deeper one higher (keeps it always solvable).
+
+**TODO-VERIFY / not done**
+- Skill-tree topics beyond Gradient Descent are planned, not built; their prerequisites are my judgment of a sensible order and should be reviewed as each quest is written.
+- The Phaser picture has no automated test; checked by hand (dark, light, 375px, theme and text-only switches). Playwright is Days 11-12.
+- The map nodes still do not show progress, and the Hiker's `game-result` XP uses one id per level.
+- Not checked: crispness on high-DPI screens; the dev build animates slowly in the preview pane.
+- Skill-tree mastery covers built quests only.
+
+**Tomorrow (Day 10)**: dashboard (heatmap calendar, XP over time, mastery radar), Daily Quest generator, and the Review Tavern (flashcards through the SM-2 queue).
