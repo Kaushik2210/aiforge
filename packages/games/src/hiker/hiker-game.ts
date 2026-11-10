@@ -20,8 +20,16 @@ export class GradientHiker implements MiniGame {
   private host: GameHost<NoEvents, NoEvents> | null = null;
   private offComplete: (() => void) | null = null;
 
-  constructor(private readonly opts: GradientHikerOptions) {
+  private theme: MapTheme;
+
+  constructor(opts: GradientHikerOptions) {
+    this.theme = opts.theme;
     this.session = new HikerSession(opts);
+  }
+
+  /** Use new colours the next time the picture is mounted. The play-through is kept. */
+  setTheme(theme: MapTheme) {
+    this.theme = theme;
   }
 
   mount(container: HTMLElement, ctx: GameContext): void {
@@ -42,7 +50,7 @@ export class GradientHiker implements MiniGame {
       const fontFamily = getComputedStyle(document.body).fontFamily || "system-ui, sans-serif";
       const scene = new HikerScene({
         session: this.session,
-        theme: this.opts.theme,
+        theme: this.theme,
         reducedMotion: ctx.reducedMotion,
         seed: String(ctx.seed),
         fontFamily,
@@ -52,7 +60,7 @@ export class GradientHiker implements MiniGame {
         parent: el,
         width: Math.max(320, el.clientWidth || 640),
         height: Math.max(240, el.clientHeight || 360),
-        backgroundColor: this.opts.theme.bg,
+        backgroundColor: this.theme.bg,
         scale: { mode: Phaser.Scale.RESIZE },
         banner: false,
         audio: { noAudio: true },

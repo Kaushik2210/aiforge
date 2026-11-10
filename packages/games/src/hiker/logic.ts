@@ -296,3 +296,19 @@ export function getLevel(id: LevelId, seed: number | string = 1): Level {
   if (id === 5) return bossLevel(seed);
   return makeLevel(id);
 }
+
+/* ----------------------------------------------------------- slider maths */
+
+export const SLIDER_STEPS = 1000;
+
+/** Learning-rate slider position (0 to 1000) to a rate, on a log scale so small and large rates both get room. */
+export function lrFromSlider(position: number): number {
+  const t = Math.min(1, Math.max(0, position / SLIDER_STEPS));
+  return LR_MIN * Math.pow(LR_MAX / LR_MIN, t);
+}
+
+/** Inverse of lrFromSlider. */
+export function sliderFromLr(lr: number): number {
+  const clamped = Math.min(LR_MAX, Math.max(LR_MIN, lr));
+  return Math.round((Math.log(clamped / LR_MIN) / Math.log(LR_MAX / LR_MIN)) * SLIDER_STEPS);
+}

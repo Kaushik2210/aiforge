@@ -7,11 +7,16 @@ import {
   getLevel,
   inGlobalBasin,
   initialState,
+  LR_MAX,
+  LR_MIN,
+  lrFromSlider,
   lrGrid,
   maxStableLr,
   momentumGrid,
   runToEnd,
   scoreFor,
+  sliderFromLr,
+  SLIDER_STEPS,
   step,
   winningSettings,
   type Level,
@@ -339,5 +344,30 @@ describe("grids", () => {
     expect(g.at(-1)).toBeCloseTo(2, 10);
     expect(momentumGrid()[0]).toBe(0);
     expect(momentumGrid().at(-1)).toBe(MOMENTUM_MAX);
+  });
+});
+
+describe("log-scale learning-rate slider", () => {
+  it("runs from the minimum to the maximum rate", () => {
+    expect(lrFromSlider(0)).toBeCloseTo(LR_MIN, 12);
+    expect(lrFromSlider(SLIDER_STEPS)).toBeCloseTo(LR_MAX, 12);
+    expect(lrFromSlider(-50)).toBeCloseTo(LR_MIN, 12);
+    expect(lrFromSlider(5000)).toBeCloseTo(LR_MAX, 12);
+  });
+
+  it("is strictly increasing and gives small rates real room (middle is about 0.1)", () => {
+    let prev = 0;
+    for (let i = 0; i <= SLIDER_STEPS; i += 10) {
+      const v = lrFromSlider(i);
+      expect(v).toBeGreaterThan(prev);
+      prev = v;
+    }
+    expect(lrFromSlider(SLIDER_STEPS / 2)).toBeCloseTo(Math.sqrt(LR_MIN * LR_MAX), 10);
+  });
+
+  it("round-trips within one slider step", () => {
+    for (const lr of [0.005, 0.02, 0.1, 0.2, 0.5, 1, 2]) {
+      expect(Math.abs(lrFromSlider(sliderFromLr(lr)) / lr - 1)).toBeLessThan(0.01);
+    }
   });
 });
