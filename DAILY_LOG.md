@@ -256,3 +256,18 @@
 - The quest catalog is read at build time.
 
 **Tomorrow (Day 11)**: accessibility pass (keyboard, focus order, headings, landmarks), reduced-motion and Focus-mode audit, and Playwright with axe in CI.
+
+## Day 11: Accessibility checks in a real browser
+
+Done
+- Playwright and axe-core run against the static export (`pnpm --filter @aiforge/web test:e2e`): every page in light and dark, WCAG 2.2 AA tags, plus one h1, one main landmark and a skip link per page. Runs in CI after the build.
+- Fixed what it found: Monaco comment colour under AA contrast (custom light and dark themes), a second h1 on quest pages (lesson "# Title" now renders as h2), and skill-tree link names that did not match their visible text.
+
+TODO-VERIFY / not done
+- Keyboard-path, reduced-motion and Focus-mode e2e tests are not written yet; only axe and landmark checks run in CI.
+- axe covers roughly a third of WCAG issues; a manual screen-reader pass is still owed.
+- The Phaser canvas is not covered by axe.
+- CI e2e job has not run on GitHub yet (local run used installed Chrome).
+
+Tomorrow
+- Keyboard, reduced-motion and Focus-mode e2e, then deploy pipeline and README polish (Day 12).
