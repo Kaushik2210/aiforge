@@ -16,6 +16,7 @@ export function SiteHeader() {
           </Link>
           <Link href="/map/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Map</Link>
           <Link href="/skills/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Skills</Link>
+          <Link href="/review/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Review</Link>
           <Link href="/games/gradient-hiker/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Game</Link>
           <Link href="/settings/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Settings</Link>
         </nav>
