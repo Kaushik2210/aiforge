@@ -9,10 +9,11 @@ interface Tier {
 }
 
 /** The depth ladder: mark each tier done as you finish it (a "step" for XP and streaks). */
-export function TierChecklist({ questId, tiers }: { questId: string; tiers: Tier[] }) {
+export function TierChecklist({ questId, tiers, cardIds }: { questId: string; tiers: Tier[]; cardIds: string[] }) {
   const steps = useProgress((s) => s.snapshot.steps);
   const status = useProgress((s) => s.status);
   const dispatch = useProgress((s) => s.dispatch);
+  const hasDeck = useProgress((s) => Object.values(s.snapshot.cards).some((c) => c.topicId === questId));
   const done = tiers.filter((t) => `${questId}:${t.id}` in steps).length;
 
   return (
@@ -34,7 +35,11 @@ export function TierChecklist({ questId, tiers }: { questId: string; tiers: Tier
                 <button
                   type="button"
                   disabled={status === "loading" || status === "read-only"}
-                  onClick={() => void dispatch({ type: "step-complete", id: `${questId}:${t.id}` })}
+                  onClick={async () => {
+                    await dispatch({ type: "step-complete", id: `${questId}:${t.id}` });
+                    // Finishing a first tier puts this quest's flashcards in your Review Tavern deck.
+                    if (!hasDeck && cardIds.length > 0) await dispatch({ type: "enroll-cards", topicId: questId, cardIds });
+                  }}
                   className="tap mt-1 rounded-[var(--radius)] border-2 border-border bg-surface px-3 text-sm font-semibold disabled:opacity-60"
                 >
                   Mark tier done

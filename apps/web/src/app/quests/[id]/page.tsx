@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { readChallenges, readLesson, readQuiz } from "@aiforge/content-schema";
+import { readCards, readChallenges, readLesson, readQuiz } from "@aiforge/content-schema";
 import { Mira } from "@/components/Mira";
 import { Challenge } from "@/components/challenge/Challenge";
 import { Quiz } from "@/components/mdx/Quiz";
@@ -25,6 +25,7 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
   const Lesson = await compileLesson(readLesson(quest.dir).body);
   const quiz = readQuiz(quest.dir);
   const challenges = readChallenges(quest.dir);
+  const cardIds = readCards(quest.dir).map((c) => `${quest.id}/${c.id}`);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -36,6 +37,7 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
         <div className="space-y-4">
           <TierChecklist
             questId={quest.id}
+            cardIds={cardIds}
             tiers={quest.tiers.map((t) => ({ id: t, name: TIER_LABELS[t]?.name ?? t, blurb: TIER_LABELS[t]?.blurb ?? "" }))}
           />
           <MasteryPanel questId={quest.id} bossId={quest.bossId} />
