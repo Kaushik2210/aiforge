@@ -7,7 +7,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": { "phaser": "^4.2.1" },
   "devDependencies": {
     "typescript": "^5.9.0"
   }
 }
+
