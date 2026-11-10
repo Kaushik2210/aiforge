@@ -1,13 +1,18 @@
 import Link from "next/link";
+import { TodayPanel } from "@/components/dashboard/TodayPanel";
 import { Bento } from "@/components/home/Bento";
 import { HeroScene } from "@/components/home/HeroScene";
 import { RankLadder } from "@/components/home/RankLadder";
 import { RealmPath } from "@/components/home/RealmPath";
+import { getCatalog } from "@/lib/catalog";
 
 export default function Home() {
   return (
     <>
       <HeroScene />
+      <div className="mx-auto max-w-5xl px-4 pt-10">
+        <TodayPanel catalog={getCatalog().catalog} />
+      </div>
       <Bento />
       <RealmPath />
       <RankLadder />

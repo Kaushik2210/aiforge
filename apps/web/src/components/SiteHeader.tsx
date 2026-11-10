@@ -14,6 +14,7 @@ export function SiteHeader() {
           <Link href="/quests/gradient-descent/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">
             First quest
           </Link>
+          <Link href="/dashboard/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Dashboard</Link>
           <Link href="/map/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Map</Link>
           <Link href="/skills/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Skills</Link>
           <Link href="/review/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Review</Link>
