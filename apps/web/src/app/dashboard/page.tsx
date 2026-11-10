@@ -22,7 +22,7 @@ export default function DashboardPage() {
         </p>
       </div>
       <TodayPanel catalog={catalog} />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <XpChart />
         <MasteryRadar topics={topics} />
       </div>
