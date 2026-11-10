@@ -6,3 +6,4 @@ export * from './mastery';
 export * from './progress';
 export * from "./skilltree";
 export * from "./activity";
+export * from "./dailyquest";

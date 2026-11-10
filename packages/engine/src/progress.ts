@@ -1,3 +1,4 @@
+import { evaluateDailyQuest } from "./dailyquest";
 import { isDateKey, localDateKey } from "./dates";
 import { levelFromXp, rankForLevel, xpFor } from "./xp";
 import { REVIEW_SESSION_MIN_CARDS, MAX_INTERVAL_DAYS, MIN_EASE, newCard, review, type Card, type Rating } from "./srs";
@@ -94,7 +95,9 @@ export type ProgressEvent =
   | { type: "boss-result"; id: string; score: number }
   | { type: "enroll-cards"; topicId: string; cardIds: string[] }
   | { type: "review-session"; reviews: { cardId: string; rating: Rating }[] }
-  | { type: "game-result"; id: string; won: boolean };
+  | { type: "game-result"; id: string; won: boolean }
+  /** Pay the Daily Quest bonus, once a day, only if all three goals were done today. */
+  | { type: "daily-quest-claim" };
 
 export interface ReduceResult {
   snapshot: ProgressSnapshot;
@@ -197,6 +200,11 @@ export function applyEvent(prev: ProgressSnapshot, event: ProgressEvent, nowMs: 
       }
       award("review", xpFor({ type: "review", cards: done }), `${done} cards`);
       if (done >= REVIEW_SESSION_MIN_CARDS) activity = true;
+      break;
+    }
+    case "daily-quest-claim": {
+      const status = evaluateDailyQuest(prev, today, zone);
+      if (status.complete && !status.claimed) award("daily-quest", xpFor({ type: "daily-quest" }), today);
       break;
     }
     case "game-result": {
