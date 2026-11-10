@@ -86,6 +86,11 @@ export class GradientHiker implements MiniGame {
     });
   }
 
+  /** Remove the picture (and stop Phaser) but keep the play-through, for example in text-only mode. */
+  unmount(): void {
+    this.destroyView();
+  }
+
   private destroyView() {
     this.offComplete?.();
     this.offComplete = null;
