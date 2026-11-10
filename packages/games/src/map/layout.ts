@@ -136,3 +136,35 @@ export function stepFocus(current: number, delta: number, count: number): number
   if (count < 1) return 0;
   return Math.min(count - 1, Math.max(0, current + delta));
 }
+
+export interface Pt {
+  x: number;
+  y: number;
+}
+
+/**
+ * Smooth curve through the realm nodes (Catmull-Rom spline), sampled into
+ * points for drawing. The curve passes exactly through every node.
+ */
+export function pathPoints(nodes: readonly Pt[], samplesPerSegment = 14): Pt[] {
+  if (nodes.length === 0) return [];
+  if (nodes.length === 1) return [{ x: nodes[0]!.x, y: nodes[0]!.y }];
+  const pts: Pt[] = [];
+  for (let i = 0; i < nodes.length - 1; i++) {
+    const p0 = nodes[Math.max(0, i - 1)]!;
+    const p1 = nodes[i]!;
+    const p2 = nodes[i + 1]!;
+    const p3 = nodes[Math.min(nodes.length - 1, i + 2)]!;
+    for (let s = 0; s < samplesPerSegment; s++) {
+      const t = s / samplesPerSegment;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const cr = (a: number, b: number, c: number, d: number) =>
+        0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      pts.push({ x: cr(p0.x, p1.x, p2.x, p3.x), y: cr(p0.y, p1.y, p2.y, p3.y) });
+    }
+  }
+  const last = nodes[nodes.length - 1]!;
+  pts.push({ x: last.x, y: last.y });
+  return pts;
+}

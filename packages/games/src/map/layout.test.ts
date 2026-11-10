@@ -10,6 +10,7 @@ import {
   hitTestNode,
   layoutDecor,
   layoutRealms,
+  pathPoints,
   stepFocus,
 } from "./layout";
 
@@ -196,5 +197,36 @@ describe("biomes and colour", () => {
         expect(Math.abs(((c >> shift) & 255) - ((theme.bg >> shift) & 255))).toBeLessThan(75);
       }
     }
+  });
+});
+
+describe("pathPoints", () => {
+  const { nodes } = layoutRealms(23);
+
+  it("passes exactly through every node", () => {
+    const samples = 14;
+    const pts = pathPoints(nodes, samples);
+    nodes.forEach((n, i) => {
+      const p = i === nodes.length - 1 ? pts.at(-1)! : pts[i * samples]!;
+      expect(p.x).toBeCloseTo(n.x, 6);
+      expect(p.y).toBeCloseTo(n.y, 6);
+    });
+  });
+
+  it("has the expected number of points and only finite coordinates", () => {
+    const pts = pathPoints(nodes, 10);
+    expect(pts).toHaveLength((nodes.length - 1) * 10 + 1);
+    expect(pts.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true);
+  });
+
+  it("always moves downward, so the path never doubles back", () => {
+    const pts = pathPoints(nodes, 14);
+    for (let i = 1; i < pts.length; i++) expect(pts[i]!.y).toBeGreaterThanOrEqual(pts[i - 1]!.y - 1e-9);
+  });
+
+  it("handles zero, one and two nodes", () => {
+    expect(pathPoints([])).toEqual([]);
+    expect(pathPoints([{ x: 1, y: 2 }])).toEqual([{ x: 1, y: 2 }]);
+    expect(pathPoints([{ x: 0, y: 0 }, { x: 10, y: 100 }], 4)).toHaveLength(5);
   });
 });
