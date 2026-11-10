@@ -170,8 +170,9 @@ export class WorldMapScene extends Phaser.Scene {
     const { theme, reducedMotion } = this.opts;
     const node = this.layout.nodes[this.focusedIndex]!;
     this.ring.clear();
-    // Two rings (light over dark) so the focus mark has contrast on any biome colour.
-    this.ring.lineStyle(10, theme.bg, 1).strokeCircle(node.x, node.y, NODE_RADIUS + 12);
+    // Two rings: the text colour (always contrasts with the page background in
+    // both themes) with the gold accent on top, so focus is visible on any biome.
+    this.ring.lineStyle(11, theme.text, 1).strokeCircle(node.x, node.y, NODE_RADIUS + 12);
     this.ring.lineStyle(5, theme.xp, 1).strokeCircle(node.x, node.y, NODE_RADIUS + 12);
     if (!reducedMotion) {
       this.tweens.add({ targets: this.ring, alpha: { from: 0.5, to: 1 }, duration: 220 });
@@ -323,7 +324,7 @@ export class WorldMapScene extends Phaser.Scene {
         .text(lx, node.y + 8 + (title.height > 30 ? title.height - 24 : 0), `${realm.open ? "Open now" : "Coming soon"}  ·  ${realm.blurb}`, {
           fontFamily,
           fontSize: "14px",
-          color: css(realm.open ? theme.xp : theme.textMuted),
+          color: css(realm.open ? theme.primary : theme.textMuted),
           wordWrap: { width: 230 },
           align: onRight ? "left" : "right",
         })
