@@ -37,6 +37,12 @@ npm `latest` at the time), so the notes match the version we ship.
 - Keyboard: Phaser listens on `window` by default. We turn Phaser's keyboard
   off and forward keys from the focused page element, so arrow keys never get
   hijacked page-wide and keyboard behaviour is accessible and testable.
+- `Game#destroy()` completes on the engine's next frame (observed in a browser: for
+  a moment the old and new canvases coexist). Frames do not run in a hidden tab, so
+  the game wrapper also removes the canvas element immediately.
+- Colours read back from CSS custom properties may be minified to shorthand
+  (`#ffffff` becomes `#fff`); the parser accepts both. This crashed the light
+  theme until a browser run caught it (a unit test now guards it).
 - The package declares agent skills; `pnpm` asks to approve them. We do not
   approve or use them.
 
