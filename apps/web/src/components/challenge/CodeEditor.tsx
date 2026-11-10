@@ -64,7 +64,12 @@ export function CodeEditor({ value, onChange, label }: Props) {
           <Monaco
             height="360px"
             language="python"
-            theme={dark ? "vs-dark" : "light"}
+            beforeMount={(m) => {
+              // Built-in comment greens fall just under WCAG AA on the editor background.
+              m.editor.defineTheme("aiforge-dark", { base: "vs-dark", inherit: true, rules: [{ token: "comment", foreground: "8fbf7a" }], colors: {} });
+              m.editor.defineTheme("aiforge-light", { base: "vs", inherit: true, rules: [{ token: "comment", foreground: "2f6b1f" }], colors: {} });
+            }}
+            theme={dark ? "aiforge-dark" : "aiforge-light"}
             value={value}
             onChange={(v) => onChange(v ?? "")}
             options={{ minimap: { enabled: false }, fontSize: 14, scrollBeyondLastLine: false, ariaLabel: label, tabSize: 4 }}
