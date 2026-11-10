@@ -167,3 +167,29 @@
 - No Playwright test of persistence yet; verified by hand and with fake-indexeddb.
 
 **Tomorrow (Day 8)**: Phaser 4 integration (dynamic import, lifecycle, typed event bus, seeded RNG) and the world map scene with a list-view fallback.
+
+## Day 8 (2026-11-10): Phaser 4 integration and the world map
+
+**Shipped**
+- Read Phaser's own v3-to-v4 migration guide and type definitions from the installed `phaser@4.2.1` (resolves the Day 1 TODO-VERIFY); notes in `research/08-phaser-4.md`. ES build has named exports, so `await import("phaser")` works.
+- `@aiforge/games`: `GameHost` (lazy start, one game at a time, safe teardown), `TypedEmitter` event bus, seeded `Rng`, 23 original biomes, pure map layout (nodes, bands, scenery, spline path, camera fit), the Phaser `WorldMapScene`, and a factory that loads Phaser on demand.
+- Web: `/map` page with a Map/List toggle (list is the accessible fallback and the phone default), keyboard control, a details panel with a live region, header link.
+- Tests: 58 in the games package (lifecycle races, layout invariants, RNG, event bus, colours, spline). Browser-verified: dark and light rendering, click, drag, keyboard, teardown, production bundle sizes.
+- Real bugs found by running it: light theme crashed on CSS-minified `#fff`; scenery could land half a pixel inside its clearance zone; yellow text and a cream focus ring were unreadable in light mode; the old canvas lingered a frame after a restart (now removed immediately).
+- ADR 0006 records the design.
+
+**Measured (production build)**: home page 8 scripts, 577 KB, no Phaser; `/map` fetches the 1.3 MB Phaser chunk only when the map is shown.
+
+**Decisions**
+- Own tiny seeded RNG instead of Phaser's, so game logic stays pure and version-independent.
+- Phaser keyboard off; keys are forwarded from a real focusable element.
+- Fog over unbuilt realms is cosmetic; nothing is locked (gamification never blocks learning).
+
+**TODO-VERIFY / not done**
+- Map text is tiny on phones (min zoom 0.4); UI offers the list. A narrow-screen layout is future work.
+- Realm progress (completed/mastery ring on nodes) is not drawn yet; needs wiring to the progress store.
+- Skill-tree view (topic prerequisites graph) is not built; scheduled with Gradient Hiker on Day 9.
+- No Playwright test of the canvas yet (Days 11-12).
+- Device pixel ratio / crispness on high-DPI screens was not checked.
+
+**Tomorrow (Day 9)**: skill-tree view and the Gradient Hiker mini-game (pure `step(state, lr)` logic with tests, Phaser scene, accessible non-game alternative).
