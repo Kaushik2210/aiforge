@@ -13,12 +13,14 @@ export interface RadarTopic {
   available: boolean;
 }
 
-const SIZE = 340;
-const C = SIZE / 2;
-const R = 112;
+const W = 440;
+const H = 330;
+const CX = W / 2;
+const CY = H / 2;
+const R = 108;
 
-/** First two words of a realm's name, enough to label an axis. */
-const shortName = (realm: number) => (REALMS[realm - 1]?.name ?? `Realm ${realm}`).split(" ").slice(0, 2).join(" ");
+/** The first word of a realm's name: enough to label an axis (the table has the full names). */
+const shortName = (realm: number) => (REALMS[realm - 1]?.name ?? `Realm ${realm}`).split(" ")[0]!;
 
 /** Mastery by realm, plus the topics most worth a visit next. */
 export function MasteryRadar({ topics }: { topics: RadarTopic[] }) {
@@ -42,23 +44,23 @@ export function MasteryRadar({ topics }: { topics: RadarTopic[] }) {
       </p>
 
       <div className="mt-3 flex flex-wrap items-start gap-6">
-        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="max-w-full" role="img" aria-label="Radar chart of mastery by realm. A table with the same numbers follows.">
+        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full max-w-[440px]" role="img" aria-label="Radar chart of mastery by realm. A table with the same numbers follows.">
           {[25, 50, 75, 100].map((ring) => (
-            <polygon key={ring} points={radarPolygon(realms.map(() => ring), C, C, R)} fill="none" stroke="var(--c-border)" strokeWidth={ring === 100 ? 1.5 : 0.6} />
+            <polygon key={ring} points={radarPolygon(realms.map(() => ring), CX, CY, R)} fill="none" stroke="var(--c-border)" strokeWidth={ring === 100 ? 1.5 : 0.6} />
           ))}
           {realms.map((_, i) => {
-            const end = radarPoint(100, i, realms.length, C, C, R);
-            return <line key={i} x1={C} y1={C} x2={end.x} y2={end.y} stroke="var(--c-border)" strokeWidth={0.6} />;
+            const end = radarPoint(100, i, realms.length, CX, CY, R);
+            return <line key={i} x1={CX} y1={CY} x2={end.x} y2={end.y} stroke="var(--c-border)" strokeWidth={0.6} />;
           })}
-          <polygon points={radarPolygon(values, C, C, R)} fill="color-mix(in srgb, var(--c-accent) 30%, transparent)" stroke="var(--c-accent)" strokeWidth={2.5} strokeLinejoin="round" />
+          <polygon points={radarPolygon(values, CX, CY, R)} fill="color-mix(in srgb, var(--c-accent) 30%, transparent)" stroke="var(--c-accent)" strokeWidth={2.5} strokeLinejoin="round" />
           {values.map((v, i) => {
-            const p = radarPoint(v, i, realms.length, C, C, R);
+            const p = radarPoint(v, i, realms.length, CX, CY, R);
             return <circle key={i} cx={p.x} cy={p.y} r={3.5} fill="var(--c-primary)" />;
           })}
           {realms.map((r, i) => {
             const a = axisAngle(i, realms.length);
-            const lx = C + Math.cos(a) * (R + 16);
-            const ly = C + Math.sin(a) * (R + 16);
+            const lx = CX + Math.cos(a) * (R + 14);
+            const ly = CY + Math.sin(a) * (R + 14);
             const anchor = Math.abs(Math.cos(a)) < 0.2 ? "middle" : Math.cos(a) > 0 ? "start" : "end";
             return (
               <text key={r} x={lx} y={ly + 4} fontSize={11} textAnchor={anchor} fill="var(--c-text)">
