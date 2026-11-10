@@ -62,7 +62,11 @@ export function worldMapFactory(config: WorldMapConfig): GameFactory<MapEvents, 
     return {
       destroy(removeCanvas: boolean) {
         container.removeEventListener("wheel", onWheel);
+        const canvas = game.canvas;
         game.destroy(removeCanvas);
+        // Phaser finishes destroying on its next frame, which never comes in a
+        // hidden tab. Remove the canvas now so a replaced map never lingers.
+        if (removeCanvas) canvas?.remove();
       },
       snapshot: () => (game.scene.isActive("world-map") ? scene.getSnapshot() : null),
     } satisfies WorldMapGame;
