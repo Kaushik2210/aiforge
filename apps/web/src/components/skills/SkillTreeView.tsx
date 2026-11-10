@@ -112,11 +112,11 @@ export function SkillTreeView({ layout, topics }: { layout: TreeLayout; topics: 
                   strokeDasharray={topic.available ? undefined : "6 5"}
                 />
                 <text x={12} y={18} fontSize={11} fontWeight={700} fill="var(--c-text-muted)">
-                  REALM {n.realm}
+                  REALM {n.realm}{" "}
                 </text>
                 {lines.map((line, i) => (
                   <text key={i} x={12} y={36 + i * 15} fontSize={14} fontWeight={700} fill="var(--c-text)">
-                    {line}
+                    {line}{" "}
                   </text>
                 ))}
                 {topic.available ? (
@@ -124,7 +124,7 @@ export function SkillTreeView({ layout, topics }: { layout: TreeLayout; topics: 
                     <rect x={12} y={NODE_H - 10} width={NODE_W - 24} height={5} rx={2.5} fill="var(--c-surface-2)" />
                     <rect x={12} y={NODE_H - 10} width={((NODE_W - 24) * m.percent) / 100} height={5} rx={2.5} fill="var(--c-accent)" />
                     <text x={NODE_W - 12} y={18} fontSize={11} fontWeight={700} textAnchor="end" fill="var(--c-primary)">
-                      {m.percent}%
+                      {m.percent}%{" "}
                     </text>
                   </>
                 ) : (
@@ -138,7 +138,7 @@ export function SkillTreeView({ layout, topics }: { layout: TreeLayout; topics: 
               <a
                 key={n.id}
                 href={`/quests/${n.id}/`}
-                aria-label={`${topic.title}, realm ${n.realm}, ${m.percent}% ${m.label}. Open the quest.`}
+                aria-label={`Realm ${n.realm} ${topic.title} ${m.percent}% ${m.label}. Open the quest.`}
                 onFocus={() => setActive(n.id)}
                 onBlur={() => setActive(null)}
               >
