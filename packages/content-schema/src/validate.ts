@@ -201,3 +201,14 @@ export function checkSkillTreeAgainstQuests(
   }
   return errors;
 }
+
+export interface FlashcardContent {
+  id: string;
+  front: string;
+  back: string;
+}
+
+/** Load and validate a quest's flashcards (cards.yml). */
+export function readCards(dir: string): FlashcardContent[] {
+  return CardsSchema.parse(readYaml(path.join(dir, "cards.yml")));
+}

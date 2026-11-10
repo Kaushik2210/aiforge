@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseHints, readChallenges } from "./validate";
+import { parseHints, readCards, readChallenges } from "./validate";
 
 const quest = path.resolve(__dirname, "../../../content/02-math-ml-foundations/gradient-descent");
 
@@ -28,6 +28,18 @@ describe("challenge loading", () => {
   it("never exposes the solution", () => {
     for (const c of readChallenges(quest)) {
       expect(Object.keys(c)).not.toContain("solution");
+    }
+  });
+});
+
+describe("flashcard loading", () => {
+  it("loads the quest's cards with unique ids", () => {
+    const cards = readCards(quest);
+    expect(cards.length).toBeGreaterThanOrEqual(15);
+    expect(new Set(cards.map((c) => c.id)).size).toBe(cards.length);
+    for (const c of cards) {
+      expect(c.front.length).toBeGreaterThan(2);
+      expect(c.back.length).toBeGreaterThan(2);
     }
   });
 });
