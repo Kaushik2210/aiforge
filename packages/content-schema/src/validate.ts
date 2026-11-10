@@ -11,7 +11,9 @@ import {
   LessonFrontmatterSchema,
   MistakesSchema,
   QuizSchema,
+  SkillTreeSchema,
   SourcesSchema,
+  type SkillTree,
   type QuizItem,
 } from "./schemas";
 
@@ -168,4 +170,34 @@ export function validateQuest(dir: string): QuestResult {
     }
   }
   return { dir, errors };
+}
+
+/** Load and validate content/_skilltree.yml. Throws a readable error if it is invalid. */
+export function readSkillTree(contentRoot: string): SkillTree {
+  const res = SkillTreeSchema.safeParse(readYaml(path.join(contentRoot, "_skilltree.yml")));
+  if (!res.success) {
+    throw new Error(res.error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; "));
+  }
+  return res.data;
+}
+
+/** Errors found when comparing the skill tree with the real quests (empty means consistent). */
+export function checkSkillTreeAgainstQuests(
+  tree: SkillTree,
+  quests: readonly { id: string; realm: number; prerequisites: readonly string[] }[],
+): string[] {
+  const errors: string[] = [];
+  const byId = new Map(tree.topics.map((t) => [t.id, t]));
+  for (const q of quests) {
+    const topic = byId.get(q.id);
+    if (!topic) {
+      errors.push(`quest "${q.id}" has no entry in _skilltree.yml`);
+      continue;
+    }
+    if (topic.realm !== q.realm) errors.push(`quest "${q.id}" is realm ${q.realm} but the skill tree says realm ${topic.realm}`);
+    for (const p of q.prerequisites) {
+      if (!topic.prerequisites.includes(p)) errors.push(`quest "${q.id}" requires "${p}" but the skill tree does not list it`);
+    }
+  }
+  return errors;
 }

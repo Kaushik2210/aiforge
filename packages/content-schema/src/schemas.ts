@@ -122,6 +122,67 @@ export const ChallengeMetaSchema = z.object({
   summary: z.string().min(20),
 });
 
+export const SkillTopicSchema = z.object({
+  id: slug,
+  title: z.string().min(3),
+  realm: z.number().int().min(1).max(23),
+  prerequisites: z.array(slug).default([]),
+});
+
+/** Find one dependency cycle, if any, as a list of ids that starts and ends on the same topic. */
+export function findCycle(topics: readonly { id: string; prerequisites: readonly string[] }[]): string[] | null {
+  const byId = new Map(topics.map((t) => [t.id, t]));
+  const state = new Map<string, 1 | 2>(); // 1 = on the current path, 2 = finished
+  const path: string[] = [];
+  const visit = (id: string): string[] | null => {
+    if (state.get(id) === 2) return null;
+    if (state.get(id) === 1) return [...path.slice(path.indexOf(id)), id];
+    state.set(id, 1);
+    path.push(id);
+    for (const p of byId.get(id)?.prerequisites ?? []) {
+      if (!byId.has(p)) continue; // unknown ids are reported separately
+      const found = visit(p);
+      if (found) return found;
+    }
+    path.pop();
+    state.set(id, 2);
+    return null;
+  };
+  for (const t of topics) {
+    const found = visit(t.id);
+    if (found) return found;
+  }
+  return null;
+}
+
+export const SkillTreeSchema = z
+  .object({ topics: z.array(SkillTopicSchema).min(1) })
+  .superRefine((tree, ctx) => {
+    const ids = new Set<string>();
+    const realmOf = new Map(tree.topics.map((t) => [t.id, t.realm]));
+    tree.topics.forEach((t, i) => {
+      if (ids.has(t.id)) ctx.addIssue({ code: "custom", message: `duplicate topic id "${t.id}"`, path: ["topics", i, "id"] });
+      ids.add(t.id);
+    });
+    tree.topics.forEach((t, i) => {
+      const seen = new Set<string>();
+      for (const p of t.prerequisites) {
+        if (p === t.id) ctx.addIssue({ code: "custom", message: `"${t.id}" lists itself as a prerequisite`, path: ["topics", i, "prerequisites"] });
+        else if (!realmOf.has(p)) ctx.addIssue({ code: "custom", message: `"${t.id}" needs unknown topic "${p}"`, path: ["topics", i, "prerequisites"] });
+        else if (realmOf.get(p)! > t.realm) {
+          ctx.addIssue({ code: "custom", message: `"${t.id}" (realm ${t.realm}) needs "${p}" from a later realm (${realmOf.get(p)})`, path: ["topics", i, "prerequisites"] });
+        }
+        if (seen.has(p)) ctx.addIssue({ code: "custom", message: `"${t.id}" lists "${p}" twice`, path: ["topics", i, "prerequisites"] });
+        seen.add(p);
+      }
+    });
+    const cycle = findCycle(tree.topics);
+    if (cycle) ctx.addIssue({ code: "custom", message: `prerequisite cycle: ${cycle.join(" -> ")}`, path: ["topics"] });
+  });
+
+export type SkillTopic = z.infer<typeof SkillTopicSchema>;
+export type SkillTree = z.infer<typeof SkillTreeSchema>;
+
 export type LessonFrontmatter = z.infer<typeof LessonFrontmatterSchema>;
 export type QuizItem = z.infer<typeof QuizItemSchema>;
 export type Boss = z.infer<typeof BossSchema>;
