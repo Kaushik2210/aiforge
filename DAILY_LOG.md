@@ -224,3 +224,35 @@
 - Skill-tree mastery covers built quests only.
 
 **Tomorrow (Day 10)**: dashboard (heatmap calendar, XP over time, mastery radar), Daily Quest generator, and the Review Tavern (flashcards through the SM-2 queue).
+
+## Day 10 (2026-11-10): dashboard, Daily Quest and Review Tavern
+
+**Shipped**
+- Review Tavern (`/review`): flashcards through the SM-2 queue with interleaved topics, keyboard sittings (1 to 4), the real next-review interval on each button, "Again" retried once with only the first rating counting, a 10-new-cards-per-sitting cap, early "Practice 5 cards" top-up, and a summary (cards, XP, streak, next due). A quest's flashcards join your deck when you finish its first tier.
+- Daily Quest: three goals a day (step, 5-card review set, build or play), chosen deterministically from the date, completion read from the XP ledger, and a once-a-day +25 XP claim; shown on the home page and the dashboard.
+- Dashboard (`/dashboard`): today's quest and streak, a 26-week practice calendar, 30-day XP chart, mastery radar by realm with "worth a visit next", all as hand-built SVG with text or table equivalents.
+- Engine: `activity` (daily XP, heatmap, XP series), `dailyquest`, `reviewsession`, an extra-practice option in the queue, a `daily-quest-claim` progress event. Content: `readCards`.
+- Tests: engine 246 (+51), web 80 (+13), content-schema 29 (+1).
+- Checked in a real browser: auto-enrolment of 17 cards, a full keyboard sitting (10 cards, 20 XP), quest goals flipping to 3 of 3 after winning a Hiker level, the +25 claim (once; persists after reload), phone width on dashboard and review, every radar label inside its chart.
+- ADR 0008 records the rules and limits.
+
+**Bugs found by testing and by running it**
+- `xpSeries` reported a trimmed ledger as complete (reversed date arguments). A test caught it.
+- The Tavern said "Review 17 cards" but the sitting held 10 (the new-card cap); the label now shows the real size and explains the cap.
+- The XP chart's fixed width pushed the dashboard grid past the screen and the radar's labels were clipped; both are responsive now and every label was verified inside the SVG.
+- The game goal named a specific level but any win counted; the text now says so.
+- A typing error and a shell command that failed to parse earlier in the week were fixed (no lasting effect).
+
+**Decisions**
+- Completion is derived from what you did, not from the plan; claiming is idempotent through the ledger, so no schema change was needed.
+- Only the first rating counts for scheduling, so a lapse is never erased by a lucky retry.
+- Early practice is allowed so the review goal and streak are always reachable.
+
+**TODO-VERIFY / not done**
+- The XP chart and calendar intensity only reach back as far as the ledger (latest 300 awards); older days show as present but not weighted, and the chart says so.
+- No boss component in mastery yet (bosses are not playable); retention is a heuristic.
+- The first-interval buttons all read "1 day" for a brand-new card, which is what SM-2 does; a friendlier preview may be worth designing.
+- No Playwright test yet; the Tavern, quest claim and charts were verified by hand and with engine tests (Days 11 and 12).
+- The quest catalog is read at build time.
+
+**Tomorrow (Day 11)**: accessibility pass (keyboard, focus order, headings, landmarks), reduced-motion and Focus-mode audit, and Playwright with axe in CI.
