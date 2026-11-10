@@ -10,7 +10,10 @@ import { GradientDemo } from "@/components/mdx/GradientDemo";
 import { Step } from "@/components/mdx/Step";
 
 /** Components every lesson can use without importing them. */
-export const lessonComponents = { Callout, Diagram, GradientDemo, Step };
+/** The quest page owns the single h1, so a lesson's own "# Title" renders as an h2. */
+const LessonTitle = (props: React.ComponentPropsWithoutRef<"h2">) => <h2 {...props} />;
+
+export const lessonComponents = { Callout, Diagram, GradientDemo, Step, h1: LessonTitle };
 
 /** Compile lesson MDX (frontmatter already removed) into a React component. */
 export async function compileLesson(source: string) {
