@@ -37,6 +37,7 @@ export class HikerScene extends Phaser.Scene {
   private staticLayer!: Phaser.GameObjects.Graphics;
   private dynLayer!: Phaser.GameObjects.Graphics;
   private hud!: Phaser.GameObjects.Text;
+  private hudPlate!: Phaser.GameObjects.Graphics;
   private labels: Phaser.GameObjects.Text[] = [];
   private bounds!: Bounds;
   private proj!: ReturnType<typeof makeProjector>;
@@ -54,6 +55,7 @@ export class HikerScene extends Phaser.Scene {
   create() {
     this.staticLayer = this.add.graphics().setDepth(0);
     this.dynLayer = this.add.graphics().setDepth(5);
+    this.hudPlate = this.add.graphics().setDepth(9);
     this.hud = this.add
       .text(14, 10, "", { fontFamily: this.opts.fontFamily, fontSize: "16px", fontStyle: "bold", color: css(this.opts.theme.text), lineSpacing: 4 })
       .setDepth(10);
@@ -280,6 +282,8 @@ export class HikerScene extends Phaser.Scene {
     const s = snap.state;
     const status = s.status === "running" ? "" : s.status === "won" ? "  Goal reached!" : s.status === "diverged" ? "  Flew off the map" : "  Out of steps";
     this.hud.setText(`Level ${snap.level.id}: ${snap.level.title}\nStep ${s.steps}/${snap.level.budget}   Loss ${s.losses.at(-1)!.toFixed(2)}${status}`);
+    // A backing plate keeps the text readable wherever the landscape passes behind it.
+    this.hudPlate.clear().fillStyle(theme.bg, 0.82).fillRoundedRect(8, 5, this.hud.width + 12, this.hud.height + 10, 8);
   }
 
   private marker(g: Phaser.GameObjects.Graphics, x: number, y: number, i: number) {
