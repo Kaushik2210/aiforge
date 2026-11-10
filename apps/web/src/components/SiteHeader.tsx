@@ -14,6 +14,7 @@ export function SiteHeader() {
           <Link href="/quests/gradient-descent/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">
             First quest
           </Link>
+          <Link href="/map/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Map</Link>
           <Link href="/settings/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Settings</Link>
         </nav>
         <div className="order-2 sm:order-3">
