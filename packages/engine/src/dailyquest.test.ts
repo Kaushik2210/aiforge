@@ -100,10 +100,11 @@ describe("generateDailyQuest", () => {
     for (let i = 0; i < 20; i++) expect(generateDailyQuest(catalog, passed, addDays(DAY, i), Z).goals[2].title).toMatch(/^Play /);
   });
 
-  it("names a game level within the game's range", () => {
+  it("suggests a game level within the game's range, and says any win counts", () => {
     for (let i = 0; i < 40; i++) {
       const g = generateDailyQuest({ quests: [], games: catalog.games }, snap, addDays(DAY, i), Z).goals[2];
-      const level = Number(/level (\d+)/.exec(g.title)![1]);
+      expect(g.title).toBe("Play Gradient Hiker");
+      const level = Number(/suggestion: level (\d+)/.exec(g.detail)![1]);
       expect(level).toBeGreaterThanOrEqual(1);
       expect(level).toBeLessThanOrEqual(5);
     }

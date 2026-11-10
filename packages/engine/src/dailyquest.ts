@@ -143,7 +143,7 @@ export function generateDailyQuest(catalog: Catalog, snap: ProgressSnapshot, tod
   }
   for (const g of catalog.games) {
     const level = (hash(`${today}:${g.id}`) % g.levels) + 1;
-    options.push({ kind: "build", title: `Play ${g.title}, level ${level}`, detail: "A few minutes with a learning rate.", href: g.href });
+    options.push({ kind: "build", title: `Play ${g.title}`, detail: `Win any level. Today's suggestion: level ${level}.`, href: g.href });
   }
   const build: QuestGoal = options.length
     ? pickFor(options, today, "build")
