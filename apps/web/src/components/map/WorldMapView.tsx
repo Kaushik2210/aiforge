@@ -22,13 +22,19 @@ export function WorldMapView() {
   const [view, setView] = useState<View | null>(null);
   const [focused, setFocused] = useState<number>(2);
   const [error, setError] = useState<string | null>(null);
+  const [narrow, setNarrow] = useState(false);
   const realms = useMemo(() => MAP_REALMS, []);
 
   // Choose the starting view once, on the client: the saved choice, else the map on roomy screens.
   useEffect(() => {
     let saved: string | null = null;
     try { saved = localStorage.getItem(STORAGE_KEY); } catch { /* storage blocked */ }
-    setView(saved === "map" || saved === "list" ? saved : window.matchMedia("(min-width: 640px)").matches ? "map" : "list");
+    const wide = window.matchMedia("(min-width: 640px)");
+    setNarrow(!wide.matches);
+    setView(saved === "map" || saved === "list" ? saved : wide.matches ? "map" : "list");
+    const onChange = () => setNarrow(!wide.matches);
+    wide.addEventListener("change", onChange);
+    return () => wide.removeEventListener("change", onChange);
   }, []);
 
   function choose(next: View) {
@@ -71,6 +77,15 @@ export function WorldMapView() {
 
       {view === "map" && (
         <div className="mt-4">
+          {narrow && (
+            <p className="mb-2 rounded-[var(--radius)] bg-surface-2 p-3 text-sm">
+              The map is drawn for larger screens, so its text is small here. The list shows the same realms at a
+              readable size.{" "}
+              <button type="button" onClick={() => choose("list")} className="tap font-semibold text-accent underline">
+                Switch to the list
+              </button>
+            </p>
+          )}
           <MapCanvas realms={realms} onFocus={setFocused} onSelect={onSelect} onError={onError} />
           <p className="mt-2 text-sm text-text-muted">
             Drag or scroll to explore. Click a realm, or focus the map and use the arrow keys and Enter.
