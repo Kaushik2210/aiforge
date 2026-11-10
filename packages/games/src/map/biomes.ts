@@ -49,11 +49,15 @@ export function biomeFor(realm: number): Biome {
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
-/** "#rrggbb" to a 24-bit number. */
+/**
+ * "#rrggbb" or the shorthand "#rgb" to a 24-bit number. Shorthand matters:
+ * CSS minifiers rewrite "#ffffff" as "#fff", and we read colours back from CSS.
+ */
 export function hexToNumber(hex: string): number {
-  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim());
-  if (!m) throw new RangeError(`not a #rrggbb colour: ${hex}`);
-  return parseInt(m[1]!, 16);
+  const m = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex.trim());
+  if (!m) throw new RangeError(`not a #rgb or #rrggbb colour: ${hex}`);
+  const digits = m[1]!.length === 3 ? [...m[1]!].map((c) => c + c).join("") : m[1]!;
+  return parseInt(digits, 16);
 }
 
 /** Blend two 24-bit colours; t = 0 gives a, t = 1 gives b. */

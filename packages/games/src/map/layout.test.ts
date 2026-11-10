@@ -179,6 +179,12 @@ describe("biomes and colour", () => {
     expect(hexToNumber("#ff0000")).toBe(0xff0000);
     expect(hexToNumber("0d1020")).toBe(0x0d1020);
     expect(() => hexToNumber("red")).toThrow(RangeError);
+    // CSS minifiers shorten colours; we read them back from CSS, so shorthand must parse.
+    expect(hexToNumber("#fff")).toBe(0xffffff);
+    expect(hexToNumber("#0f8")).toBe(0x00ff88);
+    expect(hexToNumber("  #ABC ")).toBe(0xaabbcc);
+    expect(() => hexToNumber("#ffff")).toThrow(RangeError);
+    expect(() => hexToNumber("#ggg")).toThrow(RangeError);
     expect(mixColor(0x000000, 0xffffff, 0)).toBe(0x000000);
     expect(mixColor(0x000000, 0xffffff, 1)).toBe(0xffffff);
     expect(mixColor(0x000000, 0xffffff, 0.5)).toBe(0x808080);
