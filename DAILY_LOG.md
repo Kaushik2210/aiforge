@@ -45,8 +45,11 @@
 - The UI skill's search script was not installed, so the palette and font pairing were chosen by hand following its rules.
 
 **- Added keyboard tests (skip link, visible focus, no trap) and reduced-motion and Focus-mode tests (no infinite animations; home has 13 without them).
+- The flow tests found a real hydration error on the dashboard (React #418): the heatmap and XP chart rendered dates at build time. They now wait for loaded data like the Today panel.
+- Vitest is limited to `src/` so it ignores the Playwright specs.
 
-TODO-VERIFY / not done**
+TODO-VERIFY / not done
+- Every page requests `__next.<route>.__PAGE__.txt` prefetch files that 404 on my static server (the export has them in a folder). Harmless prefetches, but check how the real host serves them.**
 - Lesson body, quiz and editor are not rendered yet (MDX components Day 3, runner Days 4-5).
 - Status bar shows preview values, not real progress.
 - No automated axe/Playwright run yet (planned Days 11-12); manual checks only so far.
@@ -266,10 +269,10 @@ Done
 - Fixed what it found: Monaco comment colour under AA contrast (custom light and dark themes), a second h1 on quest pages (lesson "# Title" now renders as h2), and skill-tree link names that did not match their visible text.
 
 TODO-VERIFY / not done
-- Keyboard-path tests cover the skip link and visible focus on every page; user-flow e2e (quest, Tavern, Daily Quest, game, map) is still unwritten.
+- Keyboard-path tests cover the skip link and visible focus on every page; flow tests cover a tier, a Tavern sitting by keyboard, the map list view, and dashboard/settings without page errors. The Daily Quest claim and the game are not covered by e2e yet.
 - axe covers roughly a third of WCAG issues; a manual screen-reader pass is still owed.
 - The Phaser canvas is not covered by axe.
 - CI e2e job has not run on GitHub yet (local run used installed Chrome).
 
 Tomorrow
-- User-flow e2e, then deploy pipeline and README polish (Day 12).
+- Daily Quest and game e2e, then deploy pipeline and README polish (Day 12).
