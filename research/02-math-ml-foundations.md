@@ -61,3 +61,20 @@ two axes. This is the ill-conditioning story (condition number 2 here).
   error, not absolute difference.
 - Version info: none of these are version-dependent, except that optimizer
   defaults in frameworks change; Day 5 should verify PyTorch defaults.
+
+## Library: minitorch (Day 13)
+
+Accessed 2026-11-11. Paraphrased.
+
+1. **PyTorch docs, "Autograd mechanics"** https://pytorch.org/docs/stable/notes/autograd.html
+   Autograd is reverse-mode automatic differentiation: operations are recorded as a
+   directed acyclic graph whose leaves are inputs and roots are outputs, and gradients
+   come from tracing that graph from roots to leaves with the chain rule.
+2. **Karpathy, micrograd** https://github.com/karpathy/micrograd (MIT)
+   A tiny scalar autograd engine over a dynamically built graph, with a small
+   PyTorch-like neural-net layer on top; its tests compare gradients with PyTorch.
+   minitorch uses the same idea over n-d tensors and adds broadcasting.
+
+TODO-VERIFY: the claim that PyTorch defines the ReLU gradient at exactly 0 as 0 is from
+memory and was not checked in a source this session.
+
