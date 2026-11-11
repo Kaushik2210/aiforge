@@ -32,9 +32,9 @@ Fetched 2026-11-11. All points paraphrased. verifiedOn: 2026-11-11.
      guarantee; system_fingerprint identifies backend config; matching seed, params
      and fingerprint should give mostly identical outputs.
    - Anthropic, https://platform.claude.com/docs/en/api/messages and
-     /api/python/messages/create : the fetched parameter lists (max_tokens, system,
-     thinking, tool_choice, etc.) did not show a `temperature` entry, and no
-     determinism guarantee was found. TODO-VERIFY what Anthropic docs claim for
+     /api/python/messages/create : the pages fetched this session were incomplete and
+     did not show a `temperature` entry or any determinism claim. That says nothing
+     about whether the parameter exists; read the current Anthropic docs directly. TODO-VERIFY what Anthropic docs claim for
      temperature 0 (likely "not fully deterministic"; do not state until read).
 
 4. **Weinberger et al. 2009, "Feature Hashing for Large Scale Multitask Learning"**

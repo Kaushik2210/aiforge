@@ -27,13 +27,13 @@ const probs = topP(softmax([3, 2, 1, 0], 0.7), 0.9); // temperature, then nucleu
 ```
 
 ## What is inside
-- `softmax(logits, temperature)`, `topK`, `topP`, `sampleIndex`, `shapeDistribution`: real sampling math.
-- `MockLLM`: first matching rule wins; string, regex or function matchers; reply variants chosen by a seeded hash; tool-call replies; `maxTokens` truncation with `finishReason: "length"`; `stream()`; `calls` records every request.
+- `softmax(logits, temperature)`, `topK`, `topP`, `sampleIndex`, `shapeDistribution`: real sampling math. Bad input (NaN, all-zero or negative probabilities, an empty vector) throws a `RangeError` instead of returning NaN.
+- `MockLLM`: first matching rule wins; string, regex or function matchers; reply variants chosen by a seeded hash; tool-call replies; `maxTokens` truncation with `finishReason: "length"`; `stream()` (text replies only; a tool-call reply throws, use `chat()`); `calls` records every request. A reply cut by `maxTokens` stops on a word boundary and can be empty if the first word is longer than the budget.
 - `HashingEmbedder` and `cosine`: deterministic word-hashing vectors (the hashing trick).
 - `VectorStore`: exact cosine search over a few hundred documents.
 
 ## Limits you should know
-- The embedder sees shared words, not meaning.
+- The embedder sees shared words, not meaning, and ignores punctuation.
 - Token counts come from a simple tokenizer and do not match any real model's.
 - The response shape is our own, only loosely like provider APIs.
 - A real model at temperature 0 is not guaranteed to be deterministic; this one is.
