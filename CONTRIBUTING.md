@@ -8,7 +8,16 @@ corrections, new quiz/flashcard items, new quests, then code.
 ```bash
 pnpm install
 pnpm verify   # typecheck, unit tests, content validation, challenge CI
+pnpm --filter @aiforge/web dev
 ```
+
+## Interface changes
+
+Pages must pass the browser tests: build, then `pnpm --filter @aiforge/web test:e2e`
+(see the README). They scan every page in light and dark with axe, check keyboard
+focus, reduced motion and Focus mode, and walk the main learning flows. Plain
+`<a href>`, `fetch` and worker URLs must go through `withBase` (`apps/web/src/lib/base-path.ts`)
+so the site works under a sub-path such as GitHub Pages.
 
 ## Writing a quest
 

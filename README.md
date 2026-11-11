@@ -6,8 +6,11 @@ browser, anime-flavoured arcade mini-games that make hard ideas tangible, and
 real depth: intuition, mechanics, build-it-yourself, production failure modes,
 and the research frontier.
 
-> Status: early scaffolding (Day 1). The first reference quest, *Gradient
-> Descent*, is the quality benchmark for everything that follows.
+> Status: early. One reference quest (*Gradient Descent*) is built end to end and
+> is the quality benchmark for the rest: lesson, in-browser Python challenges,
+> quiz, flashcards, a playable mini-game, a world map, a skill tree, a Review
+> Tavern, a Daily Quest and a dashboard. The 23-realm syllabus is planned in
+> [PLAN.md](PLAN.md); progress is logged in [DAILY_LOG.md](DAILY_LOG.md).
 
 ## What makes it different
 
@@ -26,12 +29,12 @@ and the research frontier.
 
 | Path | Purpose |
 |---|---|
-| `apps/web` | Next.js app shell (coming Day 2) |
+| `apps/web` | Next.js static site, Playwright + axe tests in `e2e/` |
 | `packages/content-schema` | Zod schemas and the `content:validate` CLI |
 | `packages/engine` | XP, streak, SRS, mastery (pure TypeScript) |
 | `packages/runner` | Pyodide worker and test harness |
-| `packages/minitorch` | Teaching tensor/autograd library |
-| `packages/mockllm` | Deterministic LLM simulator for offline lessons |
+| `packages/minitorch` | Teaching tensor/autograd library (planned) |
+| `packages/mockllm` | Deterministic LLM simulator for offline lessons (planned) |
 | `packages/games` | Phaser mini-games |
 | `content/` | Lessons, quizzes, cards, challenges |
 | `research/` | Source notes behind each lesson |
@@ -41,10 +44,26 @@ and the research frontier.
 
 ```bash
 pnpm install
-pnpm verify
+pnpm verify                         # typecheck, unit tests, content validation, challenge CI
+pnpm --filter @aiforge/web dev      # run the site locally
 ```
 
-Requires Node 22 or newer.
+Requires Node 22 or newer and Python 3.12 (the challenge CI runs the solutions).
+
+Browser tests (accessibility with axe, keyboard, reduced motion, user flows):
+
+```bash
+pnpm --filter @aiforge/web build
+pnpm --filter @aiforge/web exec playwright install chromium
+pnpm --filter @aiforge/web test:e2e
+```
+
+## Deploying
+
+The site is a static export, so any static host works. For GitHub Pages, turn on
+Pages (Source: GitHub Actions) in the repository settings and run the `deploy`
+workflow. It builds with `NEXT_PUBLIC_BASE_PATH=/<repository name>`. For a custom
+domain at the root, build without it.
 
 ## Contributing
 
