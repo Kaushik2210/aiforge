@@ -4,6 +4,7 @@ import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import { withBase } from "@/lib/base-path";
 import { Callout } from "@/components/mdx/Callout";
 import { Diagram } from "@/components/mdx/Diagram";
 import { GradientDemo } from "@/components/mdx/GradientDemo";
@@ -11,9 +12,12 @@ import { Step } from "@/components/mdx/Step";
 
 /** Components every lesson can use without importing them. */
 /** The quest page owns the single h1, so a lesson's own "# Title" renders as an h2. */
+/** Plain anchors do not get the base path from Next, so internal links are prefixed here. */
+const LessonLink = ({ href, ...rest }: React.ComponentPropsWithoutRef<"a">) => <a href={href ? withBase(href) : href} {...rest} />;
+
 const LessonTitle = (props: React.ComponentPropsWithoutRef<"h2">) => <h2 {...props} />;
 
-export const lessonComponents = { Callout, Diagram, GradientDemo, Step, h1: LessonTitle };
+export const lessonComponents = { Callout, Diagram, GradientDemo, Step, h1: LessonTitle, a: LessonLink };
 
 /** Compile lesson MDX (frontmatter already removed) into a React component. */
 export async function compileLesson(source: string) {

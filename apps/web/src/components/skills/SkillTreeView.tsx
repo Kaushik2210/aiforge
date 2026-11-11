@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useProgress } from "@/lib/progress-store";
 import { wrapTitle } from "@/lib/wrap";
+import { withBase } from "@/lib/base-path";
 
 export interface SkillTopicView {
   id: string;
@@ -137,7 +138,7 @@ export function SkillTreeView({ layout, topics }: { layout: TreeLayout; topics: 
             return topic.available ? (
               <a
                 key={n.id}
-                href={`/quests/${n.id}/`}
+                href={withBase(`/quests/${n.id}/`)}
                 aria-label={`Realm ${n.realm} ${topic.title} ${m.percent}% ${m.label}. Open the quest.`}
                 onFocus={() => setActive(n.id)}
                 onBlur={() => setActive(null)}

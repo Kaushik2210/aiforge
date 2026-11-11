@@ -5,6 +5,7 @@ import { axisAngle, radarPoint, radarPolygon } from "@/lib/chart-geometry";
 import { localZone, scoreTopics } from "@/lib/mastery";
 import { useProgress } from "@/lib/progress-store";
 import { REALMS } from "@/lib/realms";
+import { withBase } from "@/lib/base-path";
 
 export interface RadarTopic {
   id: string;
@@ -92,7 +93,7 @@ export function MasteryRadar({ topics }: { topics: RadarTopic[] }) {
           <ul className="mt-2 space-y-1">
             {built.map((t) => (
               <li key={t.id}>
-                <a href={`/quests/${t.id}/`} className="font-semibold text-accent underline">{t.title}</a>{" "}
+                <a href={withBase(`/quests/${t.id}/`)} className="font-semibold text-accent underline">{t.title}</a>{" "}
                 <span className="text-text-muted">{t.percent}% {t.label}</span>
               </li>
             ))}
