@@ -5,6 +5,8 @@ import { extname, join, normalize, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..", "out");
 const port = Number(process.argv[2] || 3300);
+// Optional third argument: serve the export under a base path, like GitHub Pages does.
+const base = (process.argv[3] || "").replace(/\/$/, "");
 const types = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript",
@@ -19,7 +21,11 @@ const types = {
 
 createServer(async (req, res) => {
   try {
-    let path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname));
+    let path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replaceAll("\\", "/");
+    if (base) {
+      if (path !== base && !path.startsWith(base + "/")) throw new Error("outside base path");
+      path = path.slice(base.length) || "/";
+    }
     let file = join(root, path);
     if (!file.startsWith(root)) throw new Error("outside root");
     if ((await stat(file).catch(() => null))?.isDirectory()) file = join(file, "index.html");
