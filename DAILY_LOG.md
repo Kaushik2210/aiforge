@@ -276,3 +276,20 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Deploy pipeline and README polish (Day 12).
+
+## Day 12: Deploy path and docs
+
+Done
+- The site works under a base path (`NEXT_PUBLIC_BASE_PATH`, default empty): `withBase` helper with tests, applied to plain anchors, MDX lesson links and the Python worker URLs. Checked by hand under `/aiforge/` in Chrome: Pyodide runs the starter (0 of 9 pass), no failed requests, no unprefixed links.
+- Manual `deploy` workflow for GitHub Pages (ADR 0009). It has never run.
+- README and CONTRIBUTING updated: real status, how to run browser tests, deploying, the `withBase` rule.
+- The e2e static server can serve under a base path (`node e2e/serve.mjs <port> /aiforge`).
+
+TODO-VERIFY / not done
+- Pages is not enabled and the repository is private; the deploy workflow is untested on GitHub.
+- The Playwright suite does not run under a base path in CI.
+- The CI e2e job from Day 11 has still not run on GitHub.
+- Prefetch `__next.*.txt` 404s, Monaco CDN, Phaser canvas coverage and a manual screen-reader pass remain open.
+
+Tomorrow
+- Day 13: minitorch v1 (tensor and autograd for teaching).
