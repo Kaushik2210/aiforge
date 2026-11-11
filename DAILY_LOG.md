@@ -293,3 +293,25 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 13: minitorch v1 (tensor and autograd for teaching).
+
+## Day 13: minitorch v1
+
+Done
+- `packages/minitorch`: n-d `Tensor` with broadcasting and reverse-mode autograd (iterative backward, accumulating gradients), elementwise ops, `sum`/`mean` with axes, `reshape`, `.T`, 2-d `matmul`; `nn` (Linear, ReLU, Tanh, Sequential, mse_loss, log_softmax, cross_entropy); `optim.SGD` with momentum; `grad_check`.
+- 35 unit tests: every op against numerical gradients, broadcasting, shared and diamond graphs, a 3000-deep graph, learning a line and XOR, stable softmax, 30 random expressions against NumPy when installed.
+- The same tests pass inside real Pyodide with no NumPy (`packages/runner`), and run in `pnpm verify`.
+- Mutation check: 11 injected bugs, all caught (a 12th pattern did not apply).
+- ADR 0010 (pure Python, not NumPy). README corrected.
+
+Sources used
+- PyTorch autograd mechanics docs and the micrograd README (fetched 2026-11-11), noted in `research/02-math-ml-foundations.md`. No code copied.
+
+TODO-VERIFY / not done
+- The ReLU-gradient-at-0 convention matching PyTorch is from memory.
+- No lesson, challenge or quiz uses minitorch yet; it is a library only.
+- Speed is untested for anything but tiny sizes; no benchmark.
+- Missing: batched matmul, slicing, concatenation, Adam, dropout.
+- Reviewer subagent findings are listed below if any were confirmed.
+
+Tomorrow
+- Day 14: MockLLM v1 (deterministic LLM simulator for offline lessons).
