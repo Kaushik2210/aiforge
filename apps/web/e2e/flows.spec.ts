@@ -63,3 +63,51 @@ test("the Dashboard and Settings load without errors and show the empty state ki
   }
   expect(errors).toEqual([]);
 });
+
+test("a game level can be won from the keyboard and is saved", async ({ page }) => {
+  await page.goto("/games/gradient-hiker/");
+  await page.locator("#lr").focus();
+  for (let i = 0; i < 25; i++) await page.keyboard.press("ArrowRight");
+  await page.getByRole("button", { name: /^Run/ }).click();
+  await expect(page.getByText("Result saved to your progress.")).toBeVisible();
+  await expect(page.getByRole("button", { name: /^1\./ })).toContainText("(cleared)");
+  await page.reload();
+  await expect(page.getByRole("button", { name: /^1\./ })).toContainText("(cleared)");
+});
+
+test("the Daily Quest bonus is claimed once after all three goals", async ({ page }) => {
+  // 1. a step (this also adds the flashcards to the deck)
+  await page.goto("/quests/gradient-descent/");
+  const ladder = page.getByRole("navigation", { name: "Depth ladder" });
+  await ladder.getByRole("button", { name: "Mark tier done" }).first().click();
+  await expect(ladder.getByText("Done").first()).toBeVisible();
+
+  // 2. a review set
+  await page.goto("/review/");
+  await page.getByRole("button", { name: /^Review \d+ card/ }).click();
+  const total = Number(/of (\d+)/.exec((await page.getByText(/^Card \d+ of \d+/).textContent()) ?? "")![1]);
+  for (let i = 0; i < total; i++) {
+    await page.getByRole("button", { name: "Show answer" }).focus();
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("3");
+  }
+  await expect(page.getByText("How did it go?")).toBeHidden();
+
+  // 3. play and win a level
+  await page.goto("/games/gradient-hiker/");
+  await page.locator("#lr").focus();
+  for (let i = 0; i < 25; i++) await page.keyboard.press("ArrowRight");
+  await page.getByRole("button", { name: /^Run/ }).click();
+  await expect(page.getByText("Result saved to your progress.")).toBeVisible();
+
+  // claim
+  await page.goto("/dashboard/");
+  await expect(page.getByText("3 of 3 done")).toBeVisible();
+  const claim = page.getByRole("button", { name: /^Claim \+\d+ XP/ });
+  await claim.click();
+  await expect(page.getByText("Bonus claimed. Well played.")).toBeVisible();
+  await expect(claim).toBeHidden();
+
+  await page.reload();
+  await expect(page.getByText("Bonus claimed. Well played.")).toBeVisible();
+});
