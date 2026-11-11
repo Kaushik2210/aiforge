@@ -101,6 +101,20 @@ class Values(unittest.TestCase):
         x.relu().sum().backward()
         self.assertEqual(x.grad, [0.0])
 
+    def test_nan_and_inf_are_not_hidden_by_zeros_in_matmul(self):
+        self.assertTrue(math.isnan((mt.tensor([[0.0]]) @ mt.tensor([[float("nan")]])).data[0]))
+        self.assertTrue(math.isnan((mt.tensor([[0.0]]) @ mt.tensor([[float("inf")]])).data[0]))
+
+    def test_pow_edge_cases(self):
+        self.assertTrue(math.isnan((mt.tensor([-1.0]) ** 0.5).data[0]))  # not a complex number
+        self.assertEqual((mt.tensor([-2.0]) ** 3).data[0], -8.0)
+        x = mt.tensor([0.0], True)
+        (x ** 0.5).sum().backward()  # slope is unbounded at 0, not an exception
+        self.assertEqual(x.grad, [math.inf])
+        y = mt.tensor([0.0], True)
+        (y ** 0).sum().backward()
+        self.assertEqual(y.grad, [0.0])
+
     def test_sigmoid_is_stable(self):
         s = mt.tensor([-1000.0, 1000.0]).sigmoid().tolist()
         self.assertEqual(s, [0.0, 1.0])
