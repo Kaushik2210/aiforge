@@ -245,8 +245,8 @@ class Tensor:
         if isinstance(p, Tensor):
             raise TypeError("only a plain number is supported as an exponent")
         p = float(p)
-        out = Tensor([x ** p for x in self.data], _shape=self.shape)
-        return out._record((self,), "pow", lambda g: [[gi * p * (x ** (p - 1.0)) for gi, x in zip(g, self.data)]])
+        out = Tensor([_pow(x, p) for x in self.data], _shape=self.shape)
+        return out._record((self,), "pow", lambda g: [[gi * _pow_grad(x, p) for gi, x in zip(g, self.data)]])
 
     # -- elementwise functions
     def _unary(self, op: str, f: Callable[[float], float], df: Callable[[float, float], float]) -> "Tensor":
@@ -329,13 +329,27 @@ class Tensor:
     __matmul__ = matmul
 
 
+def _pow(x: float, p: float) -> float:
+    """x ** p as a float: a negative base with a fractional exponent is nan, not a complex number."""
+    if x < 0.0 and p != math.floor(p):
+        return math.nan
+    return x ** p
+
+
+def _pow_grad(x: float, p: float) -> float:
+    """d/dx x**p = p * x**(p-1), with the usual limits at x = 0 instead of an error."""
+    if p == 0.0:
+        return 0.0
+    if x == 0.0 and p < 1.0:
+        return math.inf  # slope of x**0.5 at 0 is unbounded
+    return p * _pow(x, p - 1.0)
+
+
 def _mm(a: list[float], b: list[float], n: int, k: int, m: int) -> list[float]:
     out = [0.0] * (n * m)
     for i in range(n):
         for p in range(k):
-            av = a[i * k + p]
-            if av == 0.0:
-                continue
+            av = a[i * k + p]  # no shortcut for zeros: 0 * nan must stay nan
             row = p * m
             base = i * m
             for j in range(m):
