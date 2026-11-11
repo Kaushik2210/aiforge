@@ -65,9 +65,9 @@ export function CodeEditor({ value, onChange, label }: Props) {
             height="360px"
             language="python"
             beforeMount={(m) => {
-              // Built-in comment greens fall just under WCAG AA on the editor background.
-              m.editor.defineTheme("aiforge-dark", { base: "vs-dark", inherit: true, rules: [{ token: "comment", foreground: "8fbf7a" }], colors: {} });
-              m.editor.defineTheme("aiforge-light", { base: "vs", inherit: true, rules: [{ token: "comment", foreground: "2f6b1f" }], colors: {} });
+              // Built-in comment greens and dimmed line numbers fall under WCAG AA on the editor background.
+              m.editor.defineTheme("aiforge-dark", { base: "vs-dark", inherit: true, rules: [{ token: "comment", foreground: "8fbf7a" }], colors: { "editorLineNumber.foreground": "#a8a8a8", "editorLineNumber.dimmedForeground": "#a8a8a8" } });
+              m.editor.defineTheme("aiforge-light", { base: "vs", inherit: true, rules: [{ token: "comment", foreground: "2f6b1f" }], colors: { "editorLineNumber.foreground": "#595959", "editorLineNumber.dimmedForeground": "#595959" } });
             }}
             theme={dark ? "aiforge-dark" : "aiforge-light"}
             value={value}
