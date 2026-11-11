@@ -21,6 +21,7 @@ export class HashingEmbedder {
   embed(text: string): number[] {
     const v = new Array<number>(this.dim).fill(0);
     for (const token of tokenize(text)) {
+      if (!/[\p{L}\p{N}]/u.test(token)) continue; // punctuation carries no topic, so it is skipped
       const h = hashString(token);
       const bucket = h % this.dim;
       // A second, independent bit of the hash picks the sign so collisions tend to cancel.
@@ -44,5 +45,6 @@ export function cosine(a: readonly number[], b: readonly number[]): number {
     na += x * x;
     nb += y * y;
   }
-  return na === 0 || nb === 0 ? 0 : dot / (Math.sqrt(na) * Math.sqrt(nb));
+  if (na === 0 || nb === 0) return 0;
+  return Math.max(-1, Math.min(1, dot / (Math.sqrt(na) * Math.sqrt(nb)))); // clamp float error
 }
