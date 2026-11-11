@@ -269,10 +269,10 @@ Done
 - Fixed what it found: Monaco comment colour under AA contrast (custom light and dark themes), a second h1 on quest pages (lesson "# Title" now renders as h2), and skill-tree link names that did not match their visible text.
 
 TODO-VERIFY / not done
-- Keyboard-path tests cover the skip link and visible focus on every page; flow tests cover a tier, a Tavern sitting by keyboard, the map list view, and dashboard/settings without page errors. The Daily Quest claim and the game are not covered by e2e yet.
+- Keyboard-path tests cover the skip link and visible focus on every page; flow tests cover a tier, a Tavern sitting by keyboard, the map list view, and dashboard/settings without page errors. A game win by keyboard and the full Daily Quest (step, review set, level win, one claim) are covered too.
 - axe covers roughly a third of WCAG issues; a manual screen-reader pass is still owed.
 - The Phaser canvas is not covered by axe.
 - CI e2e job has not run on GitHub yet (local run used installed Chrome).
 
 Tomorrow
-- Daily Quest and game e2e, then deploy pipeline and README polish (Day 12).
+- Deploy pipeline and README polish (Day 12).
