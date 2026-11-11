@@ -315,3 +315,28 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 14: MockLLM v1 (deterministic LLM simulator for offline lessons).
+
+## Day 14: MockLLM v1
+
+Done
+- `packages/mockllm` (TypeScript, no runtime dependencies): real sampling math (`softmax` with temperature, `topK`, `topP`, `sampleIndex`, seeded RNG); a scripted `MockLLM` (first matching rule wins, string/regex/function matchers, seeded reply variants, tool-call replies, `maxTokens` cut with `finishReason: "length"`, text streaming, a call log); a word-hashing `HashingEmbedder` and an exact cosine `VectorStore`.
+- 65 unit tests, wired into `pnpm verify` through the workspace test script. Sampling checks use hand-computed values and seeded empirical frequencies.
+- ADR 0011 (why TypeScript and what the package does not claim), README, `research/03-llm-fundamentals.md`.
+
+Sources used
+- Holtzman et al. 2019 (top-p, top-k, temperature), Hinton et al. 2015 (softmax with temperature), Weinberger et al. 2009 (feature hashing), OpenAI docs on non-determinism and the seed parameter. Fetched 2026-11-11, paraphrased. The arXiv text came through ar5iv summaries, not verbatim reads.
+
+Review
+- A separate reviewer found 9 bugs, all reproduced and fixed with tests: softmax returned NaN for NaN/Infinity logits and tiny temperatures; topK/topP/sampleIndex accepted all-zero input; a falsy non-boolean matcher result counted as a match; tool-call replies were shared by reference; `stream()` of a tool call yielded nothing silently; combining marks split tokens; punctuation made unrelated texts look similar; cosine could exceed 1. Its surviving-mutation suggestions are now covered (the float epsilon in topP was checked by removing it).
+- Its remaining notes are documented, not changed: an over-long first word with a tiny `maxTokens` gives empty content.
+
+TODO-VERIFY / not done
+- What Anthropic's docs say about temperature 0 and determinism: not read. The note says so.
+- Cosine similarity has no primary source fetched. The Fan et al. top-k wording came from a summary only.
+- The reply shape is our own; check before any lesson says it matches a provider's format.
+- Nothing uses the package yet (no lesson, challenge or game). The embedder understands words, not meaning.
+- Not built: beam search, repetition penalties, a toy n-gram generator, injected rate limits and errors.
+- Deploys are still manual (Pages is on and the site is live; the Day 14 code is not in the web app, so no redeploy is needed).
+
+Tomorrow
+- Day 15: start Realm 1 (Programming): first Python-foundations quest.
