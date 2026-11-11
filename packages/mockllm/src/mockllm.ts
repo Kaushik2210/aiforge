@@ -71,7 +71,8 @@ export class MockLLM {
     const reply = this.resolve(input);
 
     if (typeof reply !== "string") {
-      return { content: "", toolCall: reply.toolCall, finishReason: "tool_call", usage: { promptTokens, completionTokens: 0 } };
+      // Copy so a caller changing the arguments cannot alter the rule and break replay.
+      return { content: "", toolCall: structuredClone(reply.toolCall), finishReason: "tool_call", usage: { promptTokens, completionTokens: 0 } };
     }
     let content = reply;
     let finishReason: ChatResult["finishReason"] = "stop";
@@ -89,9 +90,10 @@ export class MockLLM {
     return { content, finishReason, usage: { promptTokens, completionTokens: tokenize(content).length } };
   }
 
-  /** Yields the reply a word at a time. Joining the chunks gives exactly the text chat() would return. */
+  /** Yields the reply a word at a time. Joining the chunks gives exactly the text chat() would return. Throws for a tool-call reply. */
   async *stream(messages: readonly Message[], opts: ChatOptions = {}): AsyncGenerator<string> {
     const result = await this.chat(messages, opts);
+    if (result.toolCall) throw new Error("stream() yields text only; this reply is a tool call, use chat()");
     for (const chunk of chunkForStreaming(result.content)) yield chunk;
   }
 
@@ -122,7 +124,7 @@ function lastUserMessage(messages: readonly Message[]): string {
 function matchRule(rule: Rule, input: string): boolean | RegExpMatchArray {
   const { match } = rule;
   if (typeof match === "string") return input.toLowerCase().includes(match.toLowerCase());
-  if (typeof match === "function") return match(input);
+  if (typeof match === "function") return Boolean(match(input));
   // Avoid state leaking between calls when a rule uses the g or y flag.
   const re = new RegExp(match.source, match.flags.replace(/[gy]/g, ""));
   return input.match(re) ?? false;
