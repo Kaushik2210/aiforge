@@ -14,6 +14,16 @@ const DAYS = 30;
 export function XpChart() {
   const snapshot = useProgress((s) => s.snapshot);
   const status = useProgress((s) => s.status);
+  // Dates and zones only exist in the browser, so render nothing time-based until the data has loaded
+  // (the same on the server and on first paint, which keeps hydration consistent).
+  if (status === "loading") {
+    return (
+      <section aria-labelledby="xp-h" className="rounded-[var(--radius)] border border-border bg-surface p-5">
+        <h2 id="xp-h" className="text-xl">XP over 30 days</h2>
+        <p className="mt-1 text-text-muted">Loading...</p>
+      </section>
+    );
+  }
   const zone = localZone();
   const today = localDateKey(Date.now(), zone);
   const series = xpSeries(snapshot.ledger, snapshot.xpTotal, zone, today, DAYS);
@@ -30,7 +40,7 @@ export function XpChart() {
     <section aria-labelledby="xp-h" className="rounded-[var(--radius)] border border-border bg-surface p-5">
       <h2 id="xp-h" className="text-xl">XP over 30 days</h2>
       <p className="mt-1 text-text-muted">
-        {status === "loading" ? "Loading..." : `${snapshot.xpTotal} XP in total, ${gained} earned in this window.`}
+        {`${snapshot.xpTotal} XP in total, ${gained} earned in this window.`}
       </p>
 
       <div className="mt-3 overflow-x-auto">

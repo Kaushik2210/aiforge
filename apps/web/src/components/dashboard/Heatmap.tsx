@@ -23,6 +23,16 @@ const FILL = [
 export function Heatmap() {
   const snapshot = useProgress((s) => s.snapshot);
   const status = useProgress((s) => s.status);
+  // Dates and zones only exist in the browser, so render nothing time-based until the data has loaded
+  // (the same on the server and on first paint, which keeps hydration consistent).
+  if (status === "loading") {
+    return (
+      <section aria-labelledby="heat-h" className="rounded-[var(--radius)] border border-border bg-surface p-5">
+        <h2 id="heat-h" className="text-xl">Practice calendar</h2>
+        <p className="mt-1 text-text-muted">Loading...</p>
+      </section>
+    );
+  }
   const zone = localZone();
   const today = localDateKey(Date.now(), zone);
   const map = buildHeatmap(snapshot.streak.activeDays, dailyXp(snapshot.ledger, zone), today, WEEKS);
@@ -34,9 +44,7 @@ export function Heatmap() {
     <section aria-labelledby="heat-h" className="rounded-[var(--radius)] border border-border bg-surface p-5">
       <h2 id="heat-h" className="text-xl">Practice calendar</h2>
       <p className="mt-1 text-text-muted">
-        {status === "loading"
-          ? "Loading..."
-          : `${map.activeDays} active day${map.activeDays === 1 ? "" : "s"} in the last ${WEEKS} weeks. Darker means more XP that day.`}
+        {`${map.activeDays} active day${map.activeDays === 1 ? "" : "s"} in the last ${WEEKS} weeks. Darker means more XP that day.`}
       </p>
 
       <div className="mt-3 overflow-x-auto">
