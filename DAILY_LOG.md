@@ -298,7 +298,7 @@ Tomorrow
 
 Done
 - `packages/minitorch`: n-d `Tensor` with broadcasting and reverse-mode autograd (iterative backward, accumulating gradients), elementwise ops, `sum`/`mean` with axes, `reshape`, `.T`, 2-d `matmul`; `nn` (Linear, ReLU, Tanh, Sequential, mse_loss, log_softmax, cross_entropy); `optim.SGD` with momentum; `grad_check`.
-- 35 unit tests: every op against numerical gradients, broadcasting, shared and diamond graphs, a 3000-deep graph, learning a line and XOR, stable softmax, 30 random expressions against NumPy when installed.
+- 37 unit tests: every op against numerical gradients, broadcasting, shared and diamond graphs, a 3000-deep graph, learning a line and XOR, stable softmax, 30 random expressions against NumPy when installed.
 - The same tests pass inside real Pyodide with no NumPy (`packages/runner`), and run in `pnpm verify`.
 - Mutation check: 11 injected bugs, all caught (a 12th pattern did not apply).
 - ADR 0010 (pure Python, not NumPy). README corrected.
@@ -311,7 +311,7 @@ TODO-VERIFY / not done
 - No lesson, challenge or quiz uses minitorch yet; it is a library only.
 - Speed is untested for anything but tiny sizes; no benchmark.
 - Missing: batched matmul, slicing, concatenation, Adam, dropout.
-- Reviewer subagent findings are listed below if any were confirmed.
+- Reviewer (a separate agent) found no autograd bugs and three edge cases, all fixed with tests: matmul skipped zeros and hid nan/inf, a negative base with a fractional power gave a complex number, and the power gradient raised at 0. Not fixed (minor): mean of an empty tensor and mean(axis) out of range raise different errors; cross_entropy with logits near 1e308 gives nan.
 
 Tomorrow
 - Day 14: MockLLM v1 (deterministic LLM simulator for offline lessons).
