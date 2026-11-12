@@ -200,6 +200,50 @@ a, button {
 }
 :root[data-focus="on"] .speed-lines { background-image: none; }
 
+/* Anime cut-in banner (components/fx/CutIn.tsx): slides in with overshoot, holds, slides out. */
+.cutin {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cutin-band {
+  position: relative;
+  padding: var(--space-6) var(--space-4);
+  background: var(--c-primary);
+  color: var(--c-on-primary);
+  border-block: 4px solid var(--c-text);
+  transform: skewY(-3deg);
+  animation: cutin-slide var(--cutin-ms, 1800ms) both;
+}
+.cutin-text { position: relative; transform: skewY(3deg); text-align: center; }
+.cutin-title { margin: 0; font-size: var(--text-3xl); line-height: 1.05; letter-spacing: 0.04em; }
+.cutin-sub { margin: var(--space-1) 0 0; font-size: var(--text-lg); font-weight: 700; }
+/* Speed lines sit only at the sides, so no line is ever behind the words. */
+.cutin-lines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--c-on-primary) 45%, transparent) 0 2px, transparent 2px 18px);
+  -webkit-mask-image: linear-gradient(90deg, #000 0 22%, transparent 32% 68%, #000 78% 100%);
+  mask-image: linear-gradient(90deg, #000 0 22%, transparent 32% 68%, #000 78% 100%);
+  animation: cutin-lines 0.17s steps(2) infinite; /* a new drawing every other frame: "on twos" */
+}
+@keyframes cutin-slide {
+  0% { transform: translateX(-110%) skewY(-3deg); }
+  14% { transform: translateX(2.5%) skewY(-3deg); }
+  20% { transform: translateX(0) skewY(-3deg); }
+  80% { transform: translateX(0) skewY(-3deg); }
+  100% { transform: translateX(110%) skewY(-3deg); }
+}
+@keyframes cutin-lines {
+  from { background-position: 0 0; }
+  to { background-position: 18px 0; }
+}
+@media (max-width: 480px) { .cutin-title { font-size: var(--text-2xl); } }
+
 /* Lesson typography: readable measure, clear hierarchy. */
 .lesson { max-width: 72ch; }
 .lesson h1 { display: none; } /* the page supplies the title */
