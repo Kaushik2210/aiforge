@@ -26,6 +26,10 @@ def test_default_and_given_starting_balance():
     assert Account(100).balance == 100
 
 
+def test_a_negative_starting_balance_is_rejected():
+    assert raises(ValueError, Account, -1)
+
+
 def test_deposit_adds_and_returns_the_new_balance():
     a = Account(10)
     assert a.deposit(25) == 35

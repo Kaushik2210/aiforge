@@ -11,6 +11,8 @@ class Account:
     a.withdraw(40)     -> subtracts 40 and returns the new balance
     repr(Account(100)) -> "Account(balance=100)"
 
+    Amounts and balances are numbers (ints or floats).
+
     Rules:
     - `balance` is a normal attribute on each account. Accounts never share it.
     - A negative starting balance raises ValueError.

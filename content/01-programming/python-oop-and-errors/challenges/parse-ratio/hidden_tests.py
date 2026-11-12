@@ -64,6 +64,12 @@ def test_the_zero_message_is_not_empty_for_any_numerator():
             raise AssertionError(f"{text!r} should raise ValueError")
 
 
+def test_whatever_int_accepts_is_allowed():
+    assert parse_ratio("+1/2") == 0.5
+    assert parse_ratio("1_0/2") == 5.0
+    assert parse_ratio("1 /2") == 0.5
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):
