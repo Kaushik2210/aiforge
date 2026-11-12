@@ -1,0 +1,39 @@
+- question: "What is the difference between a list and a tuple, and when would you pick each?"
+  modelAnswer: "Both are ordered sequences. A list is mutable, so you can add, remove and change items in place; a tuple is immutable, so it cannot change after creation. Pick a list for a collection that grows or is edited, and a tuple for a fixed record or a dictionary key, since immutable items can be hashed. A tuple can still contain a mutable item, and that inner item can change."
+  followUps: ["Can a tuple be a dict key?", "Is a tuple always safe from change?"]
+
+- question: "Explain what happens with a = [1, 2]; b = a; b.append(3). How would you get an independent copy?"
+  modelAnswer: "Assignment binds a second name to the same list object, so after the append both a and b show [1, 2, 3]. To get an independent top-level copy use a[:] or a.copy(). Those are shallow, so a list inside the list is still shared; copy.deepcopy copies the inner objects too."
+  followUps: ["What is a shallow copy?", "When do you need a deep copy?"]
+
+- question: "What is the difference between == and is?"
+  modelAnswer: "== asks whether two objects have equal values. is asks whether they are the same object, meaning the same identity. Two separate lists with the same items are equal but not identical. Use is for singletons such as None, and use == for values, because whether equal small numbers or strings share one object is implementation-dependent."
+  followUps: ["Why does is sometimes seem to work for small numbers?", "How do you check for None?"]
+
+- question: "Why does 0.1 + 0.2 == 0.3 return False, and what do you do about it?"
+  modelAnswer: "Floats are stored as binary fractions, and 0.1, 0.2 and 0.3 have no exact binary form, so the sum is 0.30000000000000004. The behaviour is not a Python bug; it is how binary floating point works. Compare with math.isclose or a tolerance, and use Decimal or Fraction when exact decimal arithmetic matters, such as money."
+  followUps: ["Why not round and compare?", "What is Decimal for?"]
+
+- question: "What do / and // do in Python, including for negative numbers?"
+  modelAnswer: "/ is true division and always returns a float, so 7 / 2 is 3.5 and 6 / 3 is 2.0. // is floor division, rounding toward negative infinity, so 7 // 2 is 3 and -7 // 2 is -4. % is the matching remainder, so -7 % 3 is 2. The floored quotient times the divisor plus the remainder equals the original number."
+  followUps: ["How would you truncate toward zero instead?", "What does 7 % -3 give?"]
+
+- question: "Why is it a bug to remove items from a list while iterating over it, and how do you fix it?"
+  modelAnswer: "The loop moves through positions. Removing an item shifts later items one place left, and the loop then steps past the item that moved into the current position, so some items are never checked. Fix it by iterating over a copy, or better by building a new list, for example with a list comprehension that keeps what you want."
+  followUps: ["How does a comprehension avoid the problem?", "What about adding items while iterating?"]
+
+- question: "How do dictionaries behave with missing keys, and what are the safe patterns?"
+  modelAnswer: "d[key] raises KeyError when the key is missing, which is the right behaviour if the key is required. d.get(key) returns None and d.get(key, default) returns your default, which suits optional data and counting patterns like counts[w] = counts.get(w, 0) + 1. Keys must be hashable, so strings, numbers and tuples of immutables work, but lists do not. Insertion order is guaranteed since Python 3.7."
+  followUps: ["When would you prefer the KeyError?", "What other tools count items?"]
+
+- question: "What counts as false in an if statement, and why can that cause bugs?"
+  modelAnswer: "None, False, zero of any number type, and empty containers such as an empty string, list, tuple, dict, set or range are false. Everything else is true, including the string '0'. The bug is that a valid value like 0 or an empty list is treated the same as missing. When you mean missing, test x is None explicitly."
+  followUps: ["How do you write 'missing or empty' on purpose?", "Is '0' true or false?"]
+
+- question: "What does a for loop's else clause do?"
+  modelAnswer: "The else block runs only when the loop finishes normally, without hitting break. It is useful for search loops: break when the item is found, and use else for the not-found case. A return or an exception also skips it."
+  followUps: ["Does continue skip the else?", "Show a search with for-else."]
+
+- question: "Explain the difference between list.sort() and sorted()."
+  modelAnswer: "list.sort sorts the list in place and returns None, so writing x = nums.sort() leaves x as None. sorted(iterable) builds and returns a new sorted list and leaves the original alone, and it works on any iterable. Both accept a key function, for example key=lambda kv: (-kv[1], kv[0]) to sort by a number descending then a word ascending."
+  followUps: ["Is the sort stable?", "How do you sort in reverse?"]

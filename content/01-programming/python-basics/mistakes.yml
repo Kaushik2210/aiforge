@@ -1,0 +1,31 @@
+- mistake: "Assuming b = a copies a list."
+  why: "Assignment attaches another name to the same object. For lists, dicts and sets that means both names see every change."
+  detect: "Edit one name and print the other. Compare with id(a) == id(b), or check whether a is b is True."
+
+- mistake: "Comparing floats with == and expecting decimal arithmetic."
+  why: "Floats are binary fractions, so 0.1 + 0.2 is 0.30000000000000004, not 0.3."
+  detect: "A test fails by about 1e-16. Print with repr, then switch to math.isclose or Decimal."
+
+- mistake: "Removing or adding items to a list while looping over it."
+  why: "The loop walks by position, so deleting an item shifts later items left and one gets skipped."
+  detect: "Items survive that should have been removed, and the result depends on how items are arranged. Loop over a copy, or build a new list."
+
+- mistake: "Using if not x: when 0 or an empty list is a valid value."
+  why: "Zero and empty containers are false, so the check cannot tell them apart from a missing value."
+  detect: "Valid zero results get treated as missing. Test x is None when you mean missing."
+
+- mistake: "Writing result = items.sort() and then using result."
+  why: "In-place methods like sort and append return None, so result is None."
+  detect: "A later line raises 'NoneType' errors. Use sorted(items) if you want a new list back."
+
+- mistake: "Expecting -7 // 2 to be -3 because it looks like rounding toward zero."
+  why: "Floor division rounds toward negative infinity, so the answer is -4 and the matching remainder is 1."
+  detect: "Indexing or bucketing code is off by one only for negative inputs. Test negative values on purpose."
+
+- mistake: "Using is to compare numbers or strings."
+  why: "is checks identity. Whether equal small values share one object depends on the implementation, so it can pass by accident."
+  detect: "A comparison works in a quick test and fails on other values or another Python build. Use == for values and is only for None."
+
+- mistake: "Writing (1) and expecting a tuple."
+  why: "Parentheses only group an expression. A one-item tuple needs the trailing comma, (1,)."
+  detect: "type(x) shows int, not tuple. Print the type when a tuple-only operation misbehaves."
