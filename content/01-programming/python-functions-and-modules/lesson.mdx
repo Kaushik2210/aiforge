@@ -1,0 +1,306 @@
+---
+id: python-functions-and-modules
+title: Functions and Modules
+realm: 1
+zone: Python foundations
+prerequisites: [python-basics]
+estimatedMinutes: 150
+verifiedOn: 2026-11-12
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "A function is a named, reusable piece of code. Parameters are the names in the definition; arguments are the values you pass in a call. A function with no `return` returns None."
+  - "Arguments can be positional or keyword, can have defaults, and can be collected with `*args` (extra positional) and `**kwargs` (extra keyword). A bare `*` makes later parameters keyword-only."
+  - "A name used inside a function is looked up locally first, then in enclosing functions, then at module level, then in the built-ins. Assigning to a name makes it local unless you declare `global` or `nonlocal`."
+  - "A module is a file of Python code. `import` runs it once and then reuses the loaded module, and `if __name__ == \"__main__\":` separates what runs as a script from what runs on import."
+coreComplexity:
+  - "A default value is evaluated once, when the `def` runs, not on each call. A mutable default such as `[]` is therefore one shared object, and changes to it leak between calls. The usual fix is a `None` default and a new object inside the function."
+  - "Arguments are passed as references to the same objects. Changing a mutable argument inside the function is visible to the caller; rebinding the parameter name to something new is not."
+  - "A closure looks up the outer variable when it runs, not when it is created. Lambdas made in a loop that all use the loop variable see its final value; binding it as a default (`lambda i=i: i`) captures each value."
+  - "Reading an outer variable works inside a function, but assigning to it makes the name local for the whole function, so `x += 1` on a module-level `x` raises UnboundLocalError."
+  - "Importing the same module twice runs its top-level code once; later imports find it already loaded. Code at module top level therefore runs at import time, including any print calls or slow setup."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain why a function with the default argument `items=[]` can return a list that already contains items from earlier calls, and show the fix."
+  rubric:
+    - "Says the default expression is evaluated once when the function is defined, so every call that omits the argument shares the same list."
+    - "Notes that appending changes that one shared list, which is why earlier items appear."
+    - "Gives the fix: default to None, then create a new list inside the function when the argument is None."
+miniGame: none-yet
+bossId: python-functions-and-modules-boss
+---
+
+# Functions and Modules
+
+> **Realm 1, Programming Fundamentals.** Guide: *Mira*, the lantern-bearer
+> (an original AIForge character). In the Loss Mountains she carried one lantern.
+> Here she learns to light many, one per task, each with its own flame.
+
+Every training script you will write is functions calling functions, spread over
+files. Getting functions right means knowing three things precisely: what a call
+receives, what names a function can see, and when code actually runs. Most of
+the confusing Python bugs live in the gaps between those three.
+
+---
+
+## L1. Intuition
+
+**A function is a recipe with a name.** You write the steps once, give them a
+name, and then ask for them by name whenever you need them. The *parameters* are
+the blanks in the recipe; the *arguments* are what you fill them with this time.
+
+```python
+def area(width, height):      # width and height are parameters
+    return width * height
+
+area(3, 4)                    # 3 and 4 are arguments; the call gives 12
+```
+
+**Rooms with doors that only open outward.** Each call gets its own room of
+names. Inside, you can look out into the larger rooms (the function around it,
+the file, Python's built-ins), but a plain assignment inside only changes the
+local room.
+
+**A closure is a function that took a note with it.** A function defined inside
+another function can keep using the outer function's variables after the outer
+one has finished. That is how you make a counter that remembers its count.
+
+**A module is just a file.** Splitting code into files lets you reuse it with
+`import`. Python runs a file the first time you import it and keeps the result.
+
+<Callout type="warn" title="Where the recipe picture breaks">
+A recipe is read fresh every time. A function definition is not: its default
+values are made once, when Python reads the `def`, and then reused on every
+call. That one difference causes the most famous Python surprise (see L2).
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### Defining and calling
+
+```python
+def greet(name, punctuation="!"):
+    """Return a greeting."""      # a docstring: the first line of the body
+    return "Hello, " + name + punctuation
+
+greet("Ada")                      # "Hello, Ada!"
+greet("Ada", "?")                 # "Hello, Ada?"
+greet(punctuation=".", name="Ada")  # keyword arguments can come in any order
+```
+
+A function that reaches the end without `return` gives back `None`.
+
+### Collecting arguments
+
+```python
+def show(*args, **kwargs):
+    return args, kwargs
+
+show(1, 2, a=3)       # ((1, 2), {'a': 3})
+```
+
+`*args` collects extra positional arguments into a tuple, and `**kwargs`
+collects extra keyword arguments into a dictionary. Two markers in the header
+restrict how arguments may be passed:
+
+```python
+def f(a, *, b):       # b must be passed by keyword
+    return a, b
+
+f(1, b=2)             # (1, 2)
+f(1, 2)               # TypeError
+
+def g(a, b, /, c):    # a and b must be passed by position
+    return a, b, c
+```
+
+### Default values are made once
+
+```python
+def add_item(x, items=[]):
+    items.append(x)
+    return items
+
+print(add_item(1))    # [1]
+print(add_item(2))    # [1, 2]   <- the same list as before
+```
+
+The default `[]` was created once, when `def` ran. The fix is to default to
+`None` and create the list inside:
+
+```python
+def add_item(x, items=None):
+    if items is None:
+        items = []
+    items.append(x)
+    return items
+```
+
+### What a call receives
+
+The function gets the same objects you passed. Changing a mutable one is
+visible to the caller; pointing the parameter name somewhere else is not.
+
+```python
+def mutate(lst):
+    lst.append(9)      # changes the caller's list
+
+def rebind(lst):
+    lst = [0]          # only the local name now points at a new list
+
+a = [1]
+mutate(a)              # a is [1, 9]
+rebind(a)              # a is still [1, 9]
+```
+
+### Which name does Python find?
+
+A name is looked up in the local scope, then any enclosing function, then the
+module, then the built-ins. Assignment is what makes a name local:
+
+```python
+x = 10
+def bad():
+    x += 1             # UnboundLocalError: x is local here, and has no value yet
+```
+
+Use a parameter and a return value instead. When you truly need to rebind an
+outer name, declare it: `global x` for module level, `nonlocal x` for an
+enclosing function.
+
+```python
+def counter():
+    n = 0
+    def inc():
+        nonlocal n
+        n += 1
+        return n
+    return inc
+
+c = counter()
+print(c(), c(), c())   # 1 2 3
+```
+
+### The closure trap in loops
+
+```python
+fs = [lambda: i for i in range(3)]
+[f() for f in fs]          # [2, 2, 2]  (each looks up i when called)
+
+fs = [lambda i=i: i for i in range(3)]
+[f() for f in fs]          # [0, 1, 2]  (each saved its own i as a default)
+```
+
+### Small functions as values
+
+A function is an object, so you can pass it around. `lambda` writes a short,
+unnamed one, and `sorted` accepts a `key`:
+
+```python
+sorted(["bb", "a", "ccc"], key=lambda s: -len(s))   # ['ccc', 'bb', 'a']
+```
+
+`functools.partial` fixes some arguments in advance:
+
+```python
+from functools import partial
+def add(a, b=2):
+    return a + b
+add10 = partial(add, 10)
+add10(5)               # 15
+```
+
+### Modules
+
+```python
+import json                       # use as json.dumps(...)
+from json import dumps            # use as dumps(...)
+import json as js                 # use as js.dumps(...)
+```
+
+The first `import json` runs the module and stores it; later imports reuse the
+stored copy, so top-level code runs once. A file you run directly has
+`__name__` equal to `"__main__"`; a file you import has its own module name. So
+this block runs only when the file is executed as a script:
+
+```python
+if __name__ == "__main__":
+    main()
+```
+
+A folder of modules with an `__init__.py` file is a *package*.
+
+<Step prompt="what do the three prints show for c = counter(); print(c(), c(), c()) with the nonlocal counter above?">
+`1 2 3`. The variable `n` lives in `counter`'s call and survives because `inc`
+uses it; each call to `c()` adds one to that same `n`.
+</Step>
+
+---
+
+## L3. Build it
+
+Two short challenges. Run them in the browser editor (Pyodide), or locally with
+`python tests.py <file>`.
+
+1. **`make-counter`**: write `make_counter(start=0, step=1)`, which returns a
+   function that gives `start` on its first call and then keeps adding `step`.
+   Every counter must keep its own count. You will use an inner function and
+   `nonlocal`.
+2. **`collect-items`**: write `collect(item, bucket=None)`, which appends to the
+   list you give it (the very same list, even if it is empty) or starts a new one
+   when you give none. You will meet the default-argument trap and the difference
+   between `is None` and "is falsy".
+
+**Why `is None` and not `if not bucket`.** An empty list is falsy, so
+`if not bucket` would throw away a list the caller deliberately passed in and
+append to a new one. `bucket is None` asks the only question you mean.
+
+---
+
+## L4. Production reality
+
+- **Never use a mutable default.** Use `None` and build the object inside.
+  Linters flag this for a reason: the bug shows up as data that seems to leak
+  between requests or runs.
+- **Say whether you change your input.** A function that edits its argument in
+  place and one that returns a new object look the same at the call site. Pick
+  one, write it in the docstring, and be consistent. `list.sort()` edits in place
+  and returns `None`; `sorted()` returns a new list.
+- **Keep functions small and honest.** One job, a clear name, explicit inputs and
+  outputs. Reach for `global` and `nonlocal` rarely: a function that depends on
+  hidden state is hard to test.
+- **Use keyword-only parameters for flags.** `train(model, *, shuffle=True)` makes
+  call sites readable (`shuffle=False`) and prevents a swapped positional
+  argument.
+- **Keep top-level code cheap.** Anything at module level runs on import, so a
+  slow download or a print at the top of a module hits every program that
+  imports it. Put work in functions and start scripts under
+  `if __name__ == "__main__":`.
+- **Do not name your file after a module you import.** Python looks in the
+  built-in modules first, then in the folders listed in `sys.path`, which begin
+  with the folder of the script you ran. A file of yours called `random.py`
+  can therefore hide the standard library's `random` module.
+- **Failure at 3 a.m.:** results differ between the first and second run of a
+  function in the same process. Look for a mutable default, a module-level
+  variable the function edits, or a closure that reads a loop variable late.
+
+---
+
+## L5. Frontier
+
+Read, in this order, and look for the stated thing:
+
+1. The Python Tutorial, *More on Defining Functions*: read for the exact rules on
+   default values, keyword-only and positional-only parameters, and unpacking.
+2. The Tutorial, *Python Scopes and Namespaces*: read for the worked example that
+   shows `nonlocal`, `global` and plain local assignment side by side.
+3. The Tutorial, *Modules*: read for how the module search path and the
+   `__main__` check work.
+4. The Programming FAQ: read the entries on how arguments are passed and on
+   lambdas defined in a loop.
+
+Open questions to carry forward: how type annotations describe parameters
+without changing what runs, how to design a package so imports stay cheap, and
+how decorators (functions that wrap functions) build on closures. They are
+revisited in the next quests.
