@@ -1,5 +1,5 @@
 import * as Phaser from "phaser";
-import { FxKit, type FxFrame, type FxLevel } from "../fx";
+import { FxKit, pinAgainstZoom, type FxFrame, type FxLevel } from "../fx";
 import { Rng } from "../rng";
 import { biomeColor, biomeFor, mixColor, type MapTheme } from "../map/biomes";
 import type { HikerSession } from "./session";
@@ -26,6 +26,8 @@ export interface HikerSceneOptions {
 }
 
 const MARGIN = 44;
+const HUD_X = 14;
+const HUD_Y = 10;
 const css = (n: number) => `#${n.toString(16).padStart(6, "0")}`;
 
 /**
@@ -69,6 +71,7 @@ export class HikerScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setZoom(f.zoom);
     cam.setScroll(f.shake.x, f.shake.y);
+    this.pinHud(f.zoom);
     this.frame = f;
     if (f.active || this.wasActive) this.drawDynamic(); // one extra draw clears the last frame of an effect
     this.wasActive = f.active;
@@ -79,8 +82,12 @@ export class HikerScene extends Phaser.Scene {
     this.dynLayer = this.add.graphics().setDepth(5);
     this.hudPlate = this.add.graphics().setDepth(9);
     this.hud = this.add
-      .text(14, 10, "", { fontFamily: this.opts.fontFamily, fontSize: "16px", fontStyle: "bold", color: css(this.opts.theme.text), lineSpacing: 4 })
+      .text(HUD_X, HUD_Y, "", { fontFamily: this.opts.fontFamily, fontSize: "16px", fontStyle: "bold", color: css(this.opts.theme.text), lineSpacing: 4 })
       .setDepth(10);
+    this.hud.setScrollFactor(0);
+    this.hudPlate.setScrollFactor(0);
+    // A solid backdrop, so a camera shake never shows the page behind the canvas.
+    this.cameras.main.setBackgroundColor(css(this.opts.theme.bg));
 
     const off = this.opts.session.events.on("change", () => this.sync());
     const onResize = () => {
@@ -92,6 +99,19 @@ export class HikerScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.release());
     this.events.once(Phaser.Scenes.Events.DESTROY, () => this.release());
     this.sync();
+  }
+
+  /**
+   * Keep the HUD still while the camera zooms: undo the zoom about the screen centre.
+   * (Shake does not move it because it does not scroll.)
+   */
+  private pinHud(zoom: number) {
+    const { width, height } = this.scale;
+    const text = pinAgainstZoom(HUD_X, HUD_Y, zoom, width, height);
+    this.hud.setScale(text.scale).setPosition(text.x, text.y);
+    // The plate is drawn from (0, 0), so pinning the origin pins everything on it.
+    const plate = pinAgainstZoom(0, 0, zoom, width, height);
+    this.hudPlate.setScale(plate.scale).setPosition(plate.x, plate.y);
   }
 
   /* ------------------------------------------------------------- syncing */
