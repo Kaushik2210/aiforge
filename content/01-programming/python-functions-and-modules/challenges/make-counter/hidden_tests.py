@@ -48,6 +48,17 @@ def test_calling_one_counter_does_not_move_a_later_one():
     assert second() == 0
 
 
+def test_first_call_is_exactly_start_even_for_awkward_floats():
+    # start - step + step would give 0.09999999999999998 here.
+    assert make_counter(0.1, 0.7)() == 0.1
+    assert make_counter(1, 0.1)() == 1
+
+
+def test_start_does_not_have_to_support_subtraction():
+    c = make_counter("a")
+    assert c() == "a"
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

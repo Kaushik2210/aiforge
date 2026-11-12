@@ -49,6 +49,11 @@ def test_a_fresh_call_after_using_a_given_list_is_clean():
     assert collect(4) == [4]
 
 
+def test_passing_none_explicitly_means_no_bucket():
+    assert collect(1, None) == [1]
+    assert collect(2, None) == [2]
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):
