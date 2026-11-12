@@ -1,0 +1,34 @@
+- title: "The Python Tutorial: Defining Functions and More on Defining Functions"
+  url: "https://docs.python.org/3/tutorial/controlflow.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "Default values evaluated once, keyword and positional-only parameters, *args and **kwargs, lambda and docstrings."
+
+- title: "The Python Tutorial: Python Scopes and Namespaces"
+  url: "https://docs.python.org/3/tutorial/classes.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "The lookup order for names and the worked example that contrasts local, nonlocal and global."
+
+- title: "The Python Tutorial: Modules"
+  url: "https://docs.python.org/3/tutorial/modules.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "Import forms, code running once on first import, the __main__ check, the search path and packages."
+
+- title: "Python Programming FAQ"
+  url: "https://docs.python.org/3/faq/programming.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "Arguments versus parameters, how arguments are passed, and lambdas defined in a loop."
+
+- title: "The Python Standard Library: functools"
+  url: "https://docs.python.org/3/library/functools.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "partial and lru_cache at a basic level, including that cached arguments must be hashable."

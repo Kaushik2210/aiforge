@@ -10,3 +10,6 @@ items:
   - quest: python-basics
     claim: "Python behaviours and docs.python.org pages cited (division, rounding, truthiness, dict order since 3.7)"
     verifiedOn: 2026-11-12
+  - quest: python-functions-and-modules
+    claim: "Python behaviours and docs.python.org pages cited (default arguments, scopes, closures, modules, functools)"
+    verifiedOn: 2026-11-12

@@ -1,0 +1,17 @@
+id: python-functions-and-modules-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - predict-mutable-default
+  - none-default-fix
+  - kwargs-packing
+  - late-binding
+  - spot-bug-unbound-local
+  - nonlocal-counter
+  - mutate-vs-rebind
+  - import-runs-once
+challenges:
+  - make-counter
+  - collect-items
+interleaveFrom:
+  - python-basics
