@@ -416,3 +416,28 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 18: Realm 1 continues with Classes and exceptions (`python-oop-and-errors`), unless the owner asks for the next anime FX slice first.
+
+## Day 18: Classes and exceptions quest (Realm 1)
+
+Done
+- Third Realm 1 quest, `content/01-programming/python-oop-and-errors`: five-tier lesson (classes, instances and `self`, class versus instance attributes and the shared-list bug, inheritance and `super()`, `__repr__` and `__str__`, `__eq__` and hashing, dataclasses, properties, `try`/`except`/`else`/`finally`, raising, chaining with `from`, custom exceptions), 17 quiz items (all nine predict-output answers re-run as code), 24 flashcards, 8 common mistakes, 10 interview questions, 6 primary sources, a boss gauntlet interleaving the Functions quest, and two challenges (`bank-account`, `parse-ratio`) with hidden tests and 17 wrong-answer mutants, all caught.
+- The quest page passes axe in light and dark; `pnpm verify` green; web build OK; 37 Playwright tests pass.
+
+Sources used
+- docs.python.org: tutorial (Classes, Errors and Exceptions), data model, built-in exceptions, dataclasses, functions (property). Fetched 2026-11-12; every behaviour re-run on Python 3.13.7. The dataclasses hashing and mutable-default rules were also read from the docs during review. See `research/01-programming.md`.
+
+Review
+- A separate reviewer ran every snippet (all correct) and found: "the instance first, then the class" overstated (a property wins); a lingering TODO-VERIFY on frozen dataclass hashing (now resolved from the docs); "mutable default" is really "unhashable default" (list, dict or set); `return` in `finally` may warn on newer Python; the visible bank tests never checked the negative-start rule; the starter did not say floats are allowed; the ratio spec said "whole numbers" while `int()` also accepts "+1", "1_0" and similar. All fixed, and the ratio spec now says so and tests it.
+
+Decisions
+- No new ADR. `miniGame` is `none-yet`; no game is promised.
+
+TODO-VERIFY / not done
+- Whether Python 3.14 warns about `return` in `finally` (PEP 765): the lesson says "may warn" and marks it.
+- Exception message wording and the Python version in Pyodide were not checked; tests assert exception types only. Challenges not run in real Pyodide by hand.
+- Dataclass `slots`, `kw_only` and `field` options, abstract base classes, protocols, context-manager classes (`__enter__`/`__exit__`) and exception groups are mentioned or omitted, not taught.
+- A spec-valid account using a property and `ValueError` as the base of `InsufficientFunds` passes the tests though the docstring says "normal attribute"; left as is.
+- No manual screen-reader pass on the new page.
+
+Tomorrow
+- Day 19: Realm 1 continues with Generators and iterators (`generators-and-iterators`), unless the owner asks for the next anime FX slice first.
