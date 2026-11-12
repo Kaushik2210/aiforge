@@ -1,3 +1,5 @@
+import type { FxLevel } from "./fx/mode";
+
 /** Result reported by a mini-game when the learner finishes. */
 export interface GameResult {
   won: boolean;
@@ -11,6 +13,8 @@ export interface GameContext {
   /** Seed for the game's RNG so runs are replayable and testable. */
   seed: number;
   reducedMotion: boolean;
+  /** How dramatic the effects are, 0 (off) to 3. Optional; reduced motion overrides it. */
+  fxLevel?: FxLevel;
   onComplete(result: GameResult): void;
   /** Called if the game cannot start (for example no WebGL), so the page can offer an alternative. */
   onError?(message: string): void;

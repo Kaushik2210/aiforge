@@ -52,6 +52,7 @@ export class GradientHiker implements MiniGame {
         session: this.session,
         theme: this.theme,
         reducedMotion: ctx.reducedMotion,
+        ...(ctx.fxLevel !== undefined ? { fxLevel: ctx.fxLevel } : {}),
         seed: String(ctx.seed),
         fontFamily,
       });

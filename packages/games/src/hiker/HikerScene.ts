@@ -1,4 +1,5 @@
 import * as Phaser from "phaser";
+import { FxKit, type FxFrame, type FxLevel } from "../fx";
 import { Rng } from "../rng";
 import { biomeColor, biomeFor, mixColor, type MapTheme } from "../map/biomes";
 import type { HikerSession } from "./session";
@@ -18,6 +19,8 @@ export interface HikerSceneOptions {
   theme: MapTheme;
   /** When true: no tweens, speed lines or bursts; the ball jumps instead of gliding. */
   reducedMotion: boolean;
+  /** How dramatic the effects are, 0 (off) to 3. Defaults to 2. Reduced motion always wins. */
+  fxLevel?: FxLevel;
   seed: string;
   fontFamily: string;
 }
@@ -45,11 +48,30 @@ export class HikerScene extends Phaser.Scene {
   /** How many trail segments have been "walked" so far (fractional while animating). */
   private progress = 0;
   private walk: Phaser.Tweens.Tween | null = null;
-  private fx = { speed: 0, burst: 0 };
+  private fx = { burst: 0 };
+  private kit: FxKit;
+  private frame: FxFrame = { timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], active: false };
+  private wasActive = false;
   private cleanups: (() => void)[] = [];
 
   constructor(private readonly opts: HikerSceneOptions) {
     super({ key: "gradient-hiker" });
+    this.kit = new FxKit({ level: opts.fxLevel ?? 2, reducedMotion: opts.reducedMotion });
+  }
+
+  /**
+   * Once per frame: advance the effects, freeze or release the game's tweens
+   * (hit-stop), move and zoom the camera, and redraw while anything is playing.
+   */
+  update(_time: number, delta: number) {
+    const f = this.kit.update(delta);
+    this.tweens.timeScale = f.timeScale;
+    const cam = this.cameras.main;
+    cam.setZoom(f.zoom);
+    cam.setScroll(f.shake.x, f.shake.y);
+    this.frame = f;
+    if (f.active || this.wasActive) this.drawDynamic(); // one extra draw clears the last frame of an effect
+    this.wasActive = f.active;
   }
 
   create() {
@@ -125,12 +147,22 @@ export class HikerScene extends Phaser.Scene {
 
   private celebrate(status: string, overshoot: boolean) {
     if (this.opts.reducedMotion) return;
+    const at = this.screenAt(Math.floor(this.progress));
+    const w = this.scale.width;
+    const h = this.scale.height;
     if (status === "won") {
       this.fx.burst = 0;
       this.tweens.addCounter({ from: 0, to: 1, duration: 800, ease: "Cubic.easeOut", onUpdate: (t) => { this.fx.burst = t.getValue() ?? 1; this.drawDynamic(); } });
+      // The win beat: a short freeze, a punch-in, a ring and radial focus lines.
+      this.kit.hitStop(90);
+      this.kit.zoomPunch(0.05, 260);
+      this.kit.shockwave(at.x, at.y - 20, { size: 130, ms: 650 });
+      this.kit.speedLines({ kind: "radial", cx: at.x, cy: at.y - 20, w, h, count: 16, seed: "win" }, 420);
     } else if (overshoot) {
-      this.fx.speed = 1;
-      this.tweens.addCounter({ from: 1, to: 0, duration: 450, onUpdate: (t) => { this.fx.speed = t.getValue() ?? 0; this.drawDynamic(); } });
+      // Flying past the goal: a sharp stop, a jolt and streaks behind the hiker.
+      this.kit.hitStop(60);
+      this.kit.screenShake(0.5);
+      this.kit.speedLines({ kind: "direction", cx: at.x, cy: at.y - 10, w, h, angle: 0, count: 8, seed: "overshoot" }, 450);
     }
   }
 
@@ -274,10 +306,11 @@ export class HikerScene extends Phaser.Scene {
     for (let i = 1; i < pts.length; i++) g.lineBetween(pts[i - 1]!.x, pts[i - 1]!.y, pts[i]!.x, pts[i]!.y);
     pts.forEach((pt, i) => this.marker(g, pt.x, pt.y, i));
 
-    if (this.fx.speed > 0 && !this.opts.reducedMotion) this.speedLines(g, ball);
+    this.effectLines(g);
     this.hiker(g, ball.x, ball.y, snap.state.status);
     if (snap.state.status === "won") this.star(g, ball.x, ball.y - 54, 12);
     if (this.fx.burst > 0 && this.fx.burst < 1 && !this.opts.reducedMotion) this.sparkles(g, ball.x, ball.y - 20, this.fx.burst);
+    this.effectRings(g);
 
     const s = snap.state;
     const status = s.status === "running" ? "" : s.status === "won" ? "  Goal reached!" : s.status === "diverged" ? "  Flew off the map" : "  Out of steps";
@@ -358,12 +391,22 @@ export class HikerScene extends Phaser.Scene {
     }
   }
 
-  private speedLines(g: Phaser.GameObjects.Graphics, ball: { x: number; y: number }) {
+  /** Anime speed or focus lines from the FX kit; drawn behind the hiker, thin and see-through so the goal stays readable. */
+  private effectLines(g: Phaser.GameObjects.Graphics) {
+    const { lines, lineAlpha } = this.frame;
+    if (lines.length === 0) return;
     const { theme } = this.opts;
-    g.lineStyle(3, theme.text, this.fx.speed);
-    for (let i = 0; i < 6; i++) {
-      const y = ball.y - 36 + i * 11;
-      g.lineBetween(ball.x - 22 - i * 6, y, ball.x - 54 - i * 10, y - 3);
+    for (const s of lines) {
+      g.lineStyle(s.width, theme.text, lineAlpha * 0.6).lineBetween(s.x1, s.y1, s.x2, s.y2);
+    }
+  }
+
+  /** Expanding rings (a plain fading ring under reduced motion). */
+  private effectRings(g: Phaser.GameObjects.Graphics) {
+    const { theme } = this.opts;
+    for (const w of this.frame.shockwaves) {
+      g.lineStyle(7, theme.text, w.alpha * 0.9).strokeCircle(w.x, w.y, w.radius);
+      g.lineStyle(4, theme.xp, w.alpha).strokeCircle(w.x, w.y, w.radius);
     }
   }
 
