@@ -13,3 +13,6 @@ items:
   - quest: python-functions-and-modules
     claim: "Python behaviours and docs.python.org pages cited (default arguments, scopes, closures, modules, functools)"
     verifiedOn: 2026-11-12
+  - quest: python-oop-and-errors
+    claim: "Python behaviours and docs.python.org pages cited (classes, exceptions, data model, dataclasses)"
+    verifiedOn: 2026-11-12

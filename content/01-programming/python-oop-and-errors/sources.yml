@@ -1,0 +1,41 @@
+- title: "The Python Tutorial: Classes"
+  url: "https://docs.python.org/3/tutorial/classes.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "Instances, methods, class versus instance attributes (the shared list example), inheritance and private-name conventions."
+
+- title: "The Python Tutorial: Errors and Exceptions"
+  url: "https://docs.python.org/3/tutorial/errors.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "try, except, else and finally, raising, exception chaining, custom exceptions and clean-up actions."
+
+- title: "The Python Language Reference: Data model (special method names)"
+  url: "https://docs.python.org/3/reference/datamodel.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "What __repr__, __str__, __eq__, __hash__ and __bool__ mean, including the rule that __eq__ without __hash__ removes hashing."
+
+- title: "The Python Standard Library: Built-in Exceptions"
+  url: "https://docs.python.org/3/library/exceptions.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "The exception hierarchy, which exceptions derive from Exception, and the common ones such as ValueError and KeyError."
+
+- title: "The Python Standard Library: dataclasses"
+  url: "https://docs.python.org/3/library/dataclasses.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "What @dataclass generates and why mutable defaults need default_factory."
+
+- title: "The Python Standard Library: Built-in Functions (property)"
+  url: "https://docs.python.org/3/library/functions.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "How property turns a method into a read-only or read-write attribute."
