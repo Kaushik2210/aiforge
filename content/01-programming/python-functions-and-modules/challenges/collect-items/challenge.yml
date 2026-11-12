@@ -1,0 +1,2 @@
+title: Collect items without sharing a list
+summary: Write collect, which adds an item to a list and returns it, starting a fresh list when none is given, without falling into the shared default argument trap.

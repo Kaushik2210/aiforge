@@ -1,0 +1,2 @@
+title: Build a counter with a closure
+summary: Write make_counter, which returns a function that remembers its own count between calls, so every counter you make keeps separate state.
