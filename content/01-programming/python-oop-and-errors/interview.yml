@@ -1,0 +1,39 @@
+- question: "What is the difference between a class attribute and an instance attribute, and what bug does it cause?"
+  modelAnswer: "A class attribute is written in the class body and belongs to the class, so every instance shares it. An instance attribute is set on self, usually in __init__, and belongs to one object. Reading looks on the instance first and then the class. The classic bug is a mutable class attribute such as a list: appending through one instance changes it for all instances. Per-object data belongs in __init__."
+  followUps: ["What does assigning obj.x = 2 do when the class has x?", "When is a class attribute the right choice?"]
+
+- question: "Explain self and what really happens when you call acct.deposit(5)."
+  modelAnswer: "self is the first parameter of an instance method and receives the instance the method was called on. Python turns acct.deposit(5) into Account.deposit(acct, 5), so self is acct and amount is 5. The name self is a convention, not a keyword."
+  followUps: ["What goes wrong if you forget self in the def?", "What are static and class methods?"]
+
+- question: "How does inheritance work and why call super().__init__()?"
+  modelAnswer: "A subclass inherits attributes and methods from its parent and can override them. If the subclass defines __init__ it replaces the parent's, so the parent's setup does not run unless you call super().__init__(...). Calling it first lets the parent create its attributes before the subclass adds its own. isinstance is true for instances of the class and its subclasses."
+  followUps: ["What is the difference between inheritance and composition?", "What is method resolution order?"]
+
+- question: "What is the difference between __repr__ and __str__?"
+  modelAnswer: "__repr__ returns an unambiguous description meant for developers, ideally something that looks like code, and is used by repr and when an object appears inside a list. __str__ returns a friendly string used by print and str. If only __repr__ is defined it is used for both, which is why a good __repr__ is the first one to write."
+  followUps: ["What does a default repr look like?", "What does an f-string use?"]
+
+- question: "Why does defining __eq__ make an object unhashable, and how do you fix it?"
+  modelAnswer: "Objects that compare equal must have equal hashes. If you define __eq__ without __hash__, Python sets __hash__ to None rather than keep a hash that no longer matches your equality, so the object cannot be a set member or dictionary key. Define __hash__ consistently with __eq__, or use a frozen dataclass for immutable value objects."
+  followUps: ["Why must equal objects hash equally?", "Should mutable objects be hashable?"]
+
+- question: "Walk through try, except, else and finally."
+  modelAnswer: "The try block runs. If it raises, the first matching except clause runs. The else block runs only if the try block finished without raising. The finally block always runs, whether or not an error occurred, even if the function returns, which makes it right for clean-up. A return inside finally overrides one from the try block."
+  followUps: ["Why put code in else instead of try?", "What if no except matches?"]
+
+- question: "Why is a bare except: or except Exception: pass considered bad practice?"
+  modelAnswer: "It catches errors you did not expect, including typos and bugs in your own code, and discards them, so failures turn into silent wrong results. A bare except also catches KeyboardInterrupt and SystemExit, so Ctrl+C stops working. Catch the specific exception you know how to handle, keep the try block small, and let everything else propagate or log it."
+  followUps: ["When is catching Exception acceptable?", "How should a top-level program handle unexpected errors?"]
+
+- question: "How do you define and use a custom exception, and what does 'raise ... from' add?"
+  modelAnswer: "Define a class that derives from Exception, usually with a docstring, and raise it where the problem is detected. A library often defines one base exception and derives specific ones from it so callers can catch either level. raise NewError(...) from e records e as the cause, so the traceback shows both the new error and the original failure instead of losing it."
+  followUps: ["Why not derive from BaseException?", "How do you hide the original cause on purpose?"]
+
+- question: "When would you use a dataclass, and what are its pitfalls?"
+  modelAnswer: "Use @dataclass for classes that mainly hold data: it generates __init__, __repr__ and __eq__ from annotated fields, which removes boilerplate. Pitfalls: a mutable default like a list is rejected with ValueError and needs field(default_factory=list), and because it defines __eq__ the instance is unhashable unless you make it frozen."
+  followUps: ["What does frozen=True change?", "How do you add computed fields?"]
+
+- question: "What is a property, and does Python have private attributes?"
+  modelAnswer: "A property lets a method be read like an attribute, so you can compute a value or make it read-only: with a getter and no setter, assigning raises AttributeError. Python has no truly private attributes. A leading underscore marks a name as internal by convention, and a double leading underscore triggers name mangling to avoid accidental clashes in subclasses, but neither stops determined access."
+  followUps: ["How do you add a setter?", "What does name mangling actually do?"]

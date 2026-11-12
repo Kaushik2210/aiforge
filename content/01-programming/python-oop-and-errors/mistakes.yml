@@ -1,0 +1,31 @@
+- mistake: "Putting a list or dict in the class body and expecting one per object."
+  why: "A value in the class body belongs to the class and is shared by every instance, so a change through one instance appears in all of them."
+  detect: "Two objects show each other's data. Check obj.items is other.items, and create per-instance data in __init__."
+
+- mistake: "Using a bare except: or except Exception: and passing."
+  why: "It hides real bugs and failures. A bare except also swallows KeyboardInterrupt, so Ctrl+C stops working."
+  detect: "A function returns None or wrong results with no error shown. Catch the specific exception you can handle and log or re-raise the rest."
+
+- mistake: "Putting too much code inside the try block."
+  why: "A broad block can catch an error from a line you did not mean to guard, so a bug elsewhere is reported as the expected failure."
+  detect: "The handler fires for odd reasons. Keep only the line that can raise the exception inside try, and use else for the rest."
+
+- mistake: "Changing the object before checking, then raising."
+  why: "A failed call that has already modified state leaves the object inconsistent."
+  detect: "After a caught error the data has still changed. Validate first, change second."
+
+- mistake: "Defining __eq__ and then using the object in a set or as a dict key."
+  why: "Defining __eq__ alone sets __hash__ to None, so the object is unhashable."
+  detect: "TypeError: unhashable type. Define a matching __hash__, or use @dataclass(frozen=True) for value objects."
+
+- mistake: "Re-raising a different exception and losing the original."
+  why: "Without 'from', the cause is only shown as context, and with 'from None' it is hidden. Either can make debugging harder."
+  detect: "A traceback does not show what actually failed. Use raise NewError(...) from e to keep the cause."
+
+- mistake: "Forgetting to call super().__init__() in a subclass."
+  why: "The parent's setup is skipped, so attributes it creates are missing."
+  detect: "AttributeError on an attribute the parent should set. Call super().__init__(...) first in the subclass's __init__."
+
+- mistake: "Putting return inside finally."
+  why: "It replaces a return value or hides an exception from the try block."
+  detect: "An error disappears and the function returns a value. Use finally only for clean-up, not for returning."
