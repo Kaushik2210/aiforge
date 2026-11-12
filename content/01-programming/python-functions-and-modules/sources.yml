@@ -31,4 +31,11 @@
   type: docs
   primary: true
   verifiedOn: 2026-11-12
-  readFor: "partial and lru_cache at a basic level, including that cached arguments must be hashable."
+  readFor: "partial, which the lesson uses; lru_cache is optional extra reading."
+
+- title: "The Python Tutorial: Data Structures (list methods)"
+  url: "https://docs.python.org/3/tutorial/datastructures.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "Why methods that change a list in place, such as sort, return None."

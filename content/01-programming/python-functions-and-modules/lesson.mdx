@@ -220,7 +220,8 @@ import json as js                 # use as js.dumps(...)
 ```
 
 The first `import json` runs the module and stores it; later imports reuse the
-stored copy, so top-level code runs once. A file you run directly has
+stored copy, so top-level code runs once per program run (unless you deliberately
+reload the module). A file you run directly has
 `__name__` equal to `"__main__"`; a file you import has its own module name. So
 this block runs only when the file is executed as a script:
 
@@ -229,7 +230,8 @@ if __name__ == "__main__":
     main()
 ```
 
-A folder of modules with an `__init__.py` file is a *package*.
+A folder of modules with an `__init__.py` file is a *package*. (Newer Python also
+allows "namespace packages" without one; start with `__init__.py`.)
 
 <Step prompt="what do the three prints show for c = counter(); print(c(), c(), c()) with the nonlocal counter above?">
 `1 2 3`. The variable `n` lives in `counter`'s call and survives because `inc`
@@ -261,8 +263,7 @@ append to a new one. `bucket is None` asks the only question you mean.
 ## L4. Production reality
 
 - **Never use a mutable default.** Use `None` and build the object inside.
-  Linters flag this for a reason: the bug shows up as data that seems to leak
-  between requests or runs.
+  The bug shows up as data that seems to leak between calls or runs.
 - **Say whether you change your input.** A function that edits its argument in
   place and one that returns a new object look the same at the call site. Pick
   one, write it in the docstring, and be consistent. `list.sort()` edits in place
@@ -301,6 +302,6 @@ Read, in this order, and look for the stated thing:
    lambdas defined in a loop.
 
 Open questions to carry forward: how type annotations describe parameters
-without changing what runs, how to design a package so imports stay cheap, and
+without Python checking them when the function runs, how to design a package so imports stay cheap, and
 how decorators (functions that wrap functions) build on closures. They are
 revisited in the next quests.

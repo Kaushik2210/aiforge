@@ -38,14 +38,14 @@
   question: "Which is the standard fix for a function that must start with a new empty list when none is passed?"
   options:
     - "Write items=list in the header"
-    - "Use a global list and copy it"
+    - "Use one global list that every call appends to"
     - "Write items=[] but call .clear() at the end"
     - "Default to None and create the list inside the function"
   answer: 3
   explanation: "Use items=None, then 'if items is None: items = []' inside, so each call that omits the argument gets its own list."
   whyWrong:
     "0": "list is the type, not a new empty list; the function would receive the class itself."
-    "1": "A global would be shared state too, which is the problem you are avoiding."
+    "1": "Every call would then share that one global list, which is the same bug."
     "2": "Clearing at the end still shares one object between calls, and it would erase a list the caller passed in."
 
 - id: no-return-value

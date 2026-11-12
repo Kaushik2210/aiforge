@@ -7,7 +7,7 @@
 - { id: c-kwargs, front: "What does **kwargs collect?", back: "Extra keyword arguments, as a dict." }
 - { id: c-kw-only, front: "What does a bare * in a parameter list do?", back: "Parameters after it are keyword-only; passing them by position raises TypeError." }
 - { id: c-pos-only, front: "What does a / in a parameter list do?", back: "Parameters before it are positional-only; passing them by keyword raises TypeError." }
-- { id: c-ref-pass, front: "How are arguments passed?", back: "As references to the same objects: mutating a mutable argument is seen by the caller; rebinding the parameter is not." }
+- { id: c-ref-pass, front: "How are arguments passed?", back: "As references to the same objects (the FAQ says 'call by assignment', not call by reference): mutating a mutable argument is seen by the caller; rebinding the parameter is not." }
 - { id: c-lookup, front: "In what order does Python look up a name?", back: "Local, enclosing functions, module (global), built-ins." }
 - { id: c-assign-local, front: "What does assigning to a name inside a function do?", back: "Makes it local to that function unless declared global or nonlocal." }
 - { id: c-unbound, front: "Why does total += 1 raise UnboundLocalError in a function?", back: "The assignment makes total local, and it has no value yet when read." }
@@ -17,8 +17,8 @@
 - { id: c-late-fix, front: "How do you capture the loop value in a lambda?", back: "Save it as a default: lambda i=i: i." }
 - { id: c-lambda, front: "What is a lambda?", back: "A short unnamed function limited to one expression." }
 - { id: c-partial, front: "What does functools.partial do?", back: "Returns a new callable with some arguments already filled in." }
-- { id: c-import-once, front: "How often does a module's top-level code run?", back: "Once, the first time it is imported; later imports reuse it." }
+- { id: c-import-once, front: "How often does a module's top-level code run?", back: "Once per program run, the first time it is imported; later imports reuse it (unless it is reloaded on purpose)." }
 - { id: c-main-guard, front: "What is if __name__ == '__main__' for?", back: "Runs code only when the file is run as a script, not when it is imported." }
-- { id: c-package, front: "What makes a folder a package?", back: "An __init__.py file in it." }
+- { id: c-package, front: "What makes a folder a package?", back: "An __init__.py file marks a regular package (newer Python also allows namespace packages without one)." }
 - { id: c-inplace, front: "list.sort() versus sorted()?", back: "sort() changes the list in place and returns None; sorted() returns a new list." }
 - { id: c-is-none, front: "Why test 'is None' rather than 'not x'?", back: "An empty list or 0 is falsy but a valid value; only is None means 'nothing was given'." }
