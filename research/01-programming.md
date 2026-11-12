@@ -105,3 +105,53 @@ Caveats:
 - Docs example output for `__annotations__` shows a different key order than 3.13 (3.13 prints declared order `h, e, return`); do not assert dict order. TODO-VERIFY behaviour on Python 3.14+ (deferred annotations).
 - Tutorial statement on `sys.modules` was not found on the Modules page (page summary said not mentioned); `sys.modules` caching is confirmed by local run only. TODO-VERIFY against the import system reference (docs.python.org/3/reference/import.html).
 - Pyodide's Python version may differ from 3.13; re-check messages there.
+
+## Classes and exceptions (Day 18)
+verifiedOn: 2026-11-12. Fetched 2026-11-12 (paraphrased; page summaries via fetch tool). Local run: CPython 3.13.7. The docs.python.org/3 pages served as "3.15.2 documentation" at fetch time; the built-in hierarchy listed there includes entries newer than 3.13 (for example ImportCycleError, PythonFinalizationError), so do not teach those as 3.13 facts. TODO-VERIFY version notes if they are mentioned.
+
+Sources
+- https://docs.python.org/3/tutorial/classes.html
+- https://docs.python.org/3/tutorial/errors.html
+- https://docs.python.org/3/reference/datamodel.html
+- https://docs.python.org/3/library/exceptions.html (served at /3/builtins/exceptions.html)
+- https://docs.python.org/3/library/dataclasses.html
+- https://docs.python.org/3/library/functions.html (property entry)
+
+Documented claims
+- Instantiation makes an empty object, then `__init__` customizes it. First method parameter, by convention `self`, is the instance passed implicitly.
+- Class variables are shared by all instances; instance variables are per instance. The tutorial's Dog example shows a class-level `tricks = []` shared by every dog; fix is `self.tricks = []` in `__init__`.
+- A function found on the class is turned into a bound method on instance access; `x.f()` equals `MyClass.f(x)`.
+- Inheritance: `Derived(Base)`; lookup walks the base chain; overriding allowed. Cooperative `super()` follows the MRO. `isinstance(obj, C)` is true for instances of C or subclasses; `issubclass(A, B)` tests class inheritance.
+- Single leading underscore = non-public by convention only. Two leading underscores (at most one trailing) triggers name mangling to `_classname__name`. Not real privacy.
+- Iterators/generators: pointer only (`__iter__`, `__next__`, `StopIteration`, `yield`).
+- try clauses order: try, except(s), else, finally. Catch specific exceptions; `Exception` is the broad but still bounded catch; BaseException also covers SystemExit and KeyboardInterrupt.
+- Implicit chaining stores the handled exception in `__context__`; `raise X from Y` sets `__cause__`; `from None` suppresses display of the context.
+- Custom exceptions derive from Exception (not BaseException), names usually end in "Error".
+- ExceptionGroup/`except*`: pointer only. `with` gives predefined clean-up (for example files) on success or failure.
+- Data model: `__repr__` is the "official" string (used by repr()); `__str__` is used by str(), print() and default format; if only `__repr__` is defined it serves as the informal string too; default `__str__` calls `__repr__`.
+- Defining `__eq__` without `__hash__` sets `__hash__` to None (unhashable). Truthiness: `__bool__`, else `__len__` (zero is false), else always true. `__enter__` value binds to `as`; `__exit__(type, value, tb)` returning true suppresses the exception.
+- dataclass generates `__init__`, `__repr__`, `__eq__`; mutable defaults (list, dict, set) raise ValueError, use `field(default_factory=list)`. With eq=True and frozen=False, `__hash__` is set to None.
+- `@property` makes a getter; without a setter, assignment fails.
+- Hierarchy: BaseException > Exception > {ArithmeticError > ZeroDivisionError, LookupError > {IndexError, KeyError}, OSError > FileNotFoundError, ValueError, TypeError, AttributeError, StopIteration}; KeyboardInterrupt, SystemExit, GeneratorExit sit directly under BaseException.
+
+Confirmed local outputs (3.13.7)
+- Dog-style class list: `b.tricks` shows `['roll']` after `a.add('roll')`; `a.tricks is b.tricks` is True.
+- Class attr x=1; `c.x = 2` gives c.x 2, C.x 1, new instance 1 (shadowing).
+- `Account.deposit(acct, 5)` and `acct.deposit(5)` both mutate: balance 10; `type(acct.deposit).__name__` is `method`.
+- A->B->D with `super().__init__()` prints "A init, B init, D init"; instance vars `{'a': 1, 'b': 2}`. isinstance(d, A) True, issubclass(D, A) True, isinstance(A(), D) False.
+- `self.__x` stored as `_P__x`; `self._y` stays `_y`.
+- Only `__repr__`: print, repr, f-string, list all show repr text. With both: print/f-string use `__str__`, repr and list printing use `__repr__` (`[O-repr]`).
+- `__eq__` only: `E.__hash__` is None; `hash(e)` and `{e}` raise TypeError.
+- bool: `__len__` 0 gives False; `__bool__` False wins over `__len__` 5; plain object True.
+- try/except/else/finally: no error prints try, else, finally; ZeroDivisionError prints try, except, finally. `return` in try still runs finally first ("try", "finally", then "try-ret"); `return` in finally overrides the try return (returns 'finally').
+- `raise ValueError from z`: `__cause__` is ZeroDivisionError, `__context__` ZeroDivisionError, `__suppress_context__` True. Plain raise inside except: `__cause__` None, `__context__` ZeroDivisionError, suppress False. `from None`: cause None, context still set, suppress True.
+- `except BaseException`/bare `except:` caught KeyboardInterrupt; `except Exception` let it escape. `issubclass(KeyboardInterrupt, Exception)` False.
+- Custom NotFound(AppError(Exception)): first matching except wins in written order; subclass first prints NotFound, AppError, then Exception for ValueError.
+- `int('x')` raises ValueError; `{}['k']` KeyError with `args == ('k',)`, str is `'k'` (with quotes); ZeroDivisionError for 1/0 and is an ArithmeticError; FileNotFoundError is an OSError (errno 2 on this Windows box, platform dependent); `next(iter([]))` raises StopIteration.
+- dataclass: `Pt(1)` repr `Pt(x=1, y=0)`; eq True for same fields; `Pt.__hash__` None. `xs: list = []` raises ValueError at class definition; `default_factory=list` gives separate lists.
+- property without setter: assignment raises AttributeError (message "property 'r' of 'T' object has no setter").
+
+Caveats
+- Exception message wording is version-specific (the property message and dataclass ValueError text have changed across releases; Pyodide may differ). Tests and checkers should assert exception types, not messages.
+- `except` ordering: put subclasses before superclasses, or the subclass handler never runs.
+- Tutorial/reference claims above come from fetch-tool page summaries, not verbatim reading; wording is mine. TODO-VERIFY exact phrasing before quoting anything.
