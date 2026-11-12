@@ -1,0 +1,292 @@
+- id: predict-mutable-default
+  kind: predict-output
+  question: "What do the two prints show?"
+  code: |
+    def add_item(x, items=[]):
+        items.append(x)
+        return items
+
+    print(add_item(1))
+    print(add_item(2))
+  options:
+    - "[1] then [2]"
+    - "[1, 2] then [1, 2]"
+    - "[1] then [1, 2]"
+    - "An error on the second call"
+  answer: 2
+  explanation: "The default list is created once, when def runs, and reused by every call that omits the argument. The second call appends to the same list."
+  whyWrong:
+    "0": "That would need a new list on each call, which is what the None-default pattern does, not this code."
+    "1": "Each print shows the list as it is right after its own call, so the first print still shows only [1]."
+    "3": "Nothing raises; the shared default is a perfectly valid list."
+
+- id: default-evaluated-when
+  question: "When is the default value expression in def f(x, items=[]) evaluated?"
+  options:
+    - "Once, when the def statement runs"
+    - "On every call that omits the argument"
+    - "Only the first time the function is called"
+    - "When the function returns"
+  answer: 0
+  explanation: "Defaults are evaluated at definition time, once, and the resulting object is reused on every call."
+  whyWrong:
+    "1": "That is what many people expect, and it is why a mutable default surprises them. Python does not re-evaluate it."
+    "2": "The object is built earlier than that, when the def line itself executes."
+    "3": "Return has nothing to do with defaults."
+
+- id: none-default-fix
+  question: "Which is the standard fix for a function that must start with a new empty list when none is passed?"
+  options:
+    - "Write items=list in the header"
+    - "Use a global list and copy it"
+    - "Write items=[] but call .clear() at the end"
+    - "Default to None and create the list inside the function"
+  answer: 3
+  explanation: "Use items=None, then 'if items is None: items = []' inside, so each call that omits the argument gets its own list."
+  whyWrong:
+    "0": "list is the type, not a new empty list; the function would receive the class itself."
+    "1": "A global would be shared state too, which is the problem you are avoiding."
+    "2": "Clearing at the end still shares one object between calls, and it would erase a list the caller passed in."
+
+- id: no-return-value
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    def shout(text):
+        text.upper()
+
+    print(shout("hi"))
+  options:
+    - "HI"
+    - "None"
+    - "hi"
+    - "An error"
+  answer: 1
+  explanation: "The function computes the upper-case text but never returns it, so the call gives back None."
+  whyWrong:
+    "0": "The result of text.upper() is thrown away because there is no return."
+    "2": "The function returns nothing, so the original text is not returned either."
+    "3": "The code is valid; it just returns None."
+
+- id: kwargs-packing
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    def show(*args, **kwargs):
+        return args, kwargs
+
+    print(show(1, 2, a=3))
+  options:
+    - "([1, 2], {'a': 3})"
+    - "((1, 2), ('a', 3))"
+    - "(1, 2, 3)"
+    - "((1, 2), {'a': 3})"
+  answer: 3
+  explanation: "*args collects the extra positional arguments into a tuple and **kwargs collects the extra keyword arguments into a dict."
+  whyWrong:
+    "0": "args is a tuple, not a list."
+    "1": "kwargs is a dictionary, so it prints as {'a': 3}."
+    "2": "The positional and keyword arguments are collected separately."
+
+- id: keyword-only
+  question: "Given def f(a, *, b): ..., what does f(1, 2) do?"
+  options:
+    - "Raises TypeError"
+    - "Returns normally with b equal to 2"
+    - "Raises SyntaxError"
+    - "Ignores the 2"
+  answer: 0
+  explanation: "Parameters after a bare * are keyword-only, so b must be written f(1, b=2). Passing it by position raises TypeError."
+  whyWrong:
+    "1": "That is exactly what the bare * forbids."
+    "2": "The call is syntactically fine; the error appears when it runs."
+    "3": "Python never silently drops an extra argument."
+
+- id: late-binding
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    fs = [lambda: i for i in range(3)]
+    print([f() for f in fs])
+  options:
+    - "[0, 1, 2]"
+    - "[2, 2, 2]"
+    - "[3, 3, 3]"
+    - "[0, 0, 0]"
+  answer: 1
+  explanation: "Each lambda looks up i when it is called, and by then the loop has finished with i equal to 2."
+  whyWrong:
+    "0": "That would need each lambda to remember its own i; use lambda i=i: i for that."
+    "2": "range(3) stops at 2, so i never reaches 3."
+    "3": "i is not reset to 0; it keeps the last value of the loop."
+
+- id: late-binding-fix
+  question: "Which version of the list gives [0, 1, 2] when every function is called?"
+  options:
+    - "[lambda: i for i in range(3)]"
+    - "[lambda: i for i in [0, 1, 2]]"
+    - "[lambda i=i: i for i in range(3)]"
+    - "[lambda i: i for i in range(3)]"
+  answer: 2
+  explanation: "A default is evaluated when the lambda is created, so lambda i=i: i saves each loop value."
+  whyWrong:
+    "0": "Every one of these reads i late, so all of them return 2."
+    "1": "Looping over a list instead of range changes nothing: the lambdas still read i when called."
+    "3": "This lambda needs an argument, so calling it with none raises TypeError."
+
+- id: spot-bug-unbound-local
+  kind: spot-bug
+  question: "Calling bump() raises UnboundLocalError. What is the bug?"
+  code: |
+    total = 0
+
+    def bump():
+        total += 1
+        return total
+
+    bump()
+  options:
+    - "total is assigned inside bump, which makes it local, and it has no value yet"
+    - "Integers cannot be changed"
+    - "Functions cannot read module-level names"
+    - "return must come before the assignment"
+  answer: 0
+  explanation: "Assigning to a name inside a function makes that name local for the whole function. total += 1 reads a local that has no value yet. Pass total in and return the new value, or declare global total."
+  whyWrong:
+    "1": "Integers are immutable, but the problem is the scope of the name, not the type."
+    "2": "Functions can read module-level names; the trouble starts only when they assign to one."
+    "3": "The order of return and the assignment is not the issue."
+
+- id: nonlocal-counter
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    def counter():
+        n = 0
+        def inc():
+            nonlocal n
+            n += 1
+            return n
+        return inc
+
+    c = counter()
+    print(c(), c(), c())
+  options:
+    - "1 1 1"
+    - "0 1 2"
+    - "UnboundLocalError"
+    - "1 2 3"
+  answer: 3
+  explanation: "inc keeps using the same n from counter's call, and each call adds one to it, so the results are 1, 2 and 3."
+  whyWrong:
+    "0": "That would happen if n were a new local on each call. nonlocal ties it to the enclosing n."
+    "1": "The count starts at 0 but is increased before it is returned."
+    "2": "nonlocal n is exactly what prevents that error."
+
+- id: mutate-vs-rebind
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    def mutate(lst):
+        lst.append(9)
+
+    def rebind(lst):
+        lst = [0]
+
+    a = [1]
+    mutate(a)
+    rebind(a)
+    print(a)
+  options:
+    - "[1]"
+    - "[1, 9]"
+    - "[0]"
+    - "[0, 9]"
+  answer: 1
+  explanation: "mutate changes the very list the caller passed. rebind only points its own local name at a new list, so the caller's list is untouched."
+  whyWrong:
+    "0": "The append in mutate does change the caller's list."
+    "2": "Rebinding the parameter name does not affect the caller's name."
+    "3": "rebind never touches a, so the 0 never appears."
+
+- id: parameter-vs-argument
+  question: "In def area(width, height): and the call area(3, 4), what are 3 and 4?"
+  options:
+    - "Parameters"
+    - "Keywords"
+    - "Arguments"
+    - "Defaults"
+  answer: 2
+  explanation: "Parameters are the names in the definition; arguments are the values you pass in the call."
+  whyWrong:
+    "0": "width and height are the parameters."
+    "1": "They are passed by position, and keyword would mean name=value."
+    "3": "They are given in the call; nothing says they are default values."
+
+- id: sorted-key
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    print(sorted(["bb", "a", "ccc"], key=lambda s: -len(s)))
+  options:
+    - "['ccc', 'bb', 'a']"
+    - "['a', 'bb', 'ccc']"
+    - "['bb', 'a', 'ccc']"
+    - "['a', 'ccc', 'bb']"
+  answer: 0
+  explanation: "The key returns minus the length, so longer strings get smaller keys and come first."
+  whyWrong:
+    "1": "That is the order for key=len without the minus sign."
+    "2": "That is the original order, but sorted always reorders by key."
+    "3": "The keys -1, -3 and -2 would not give this order."
+
+- id: import-runs-once
+  question: "A module prints 'loading' at its top level. A program imports it twice in a row. How many times is 'loading' printed?"
+  options:
+    - "It depends on the file size"
+    - "Twice"
+    - "Zero times, because top-level code does not run on import"
+    - "Once"
+  answer: 3
+  explanation: "Top-level code runs the first time the module is imported; later imports reuse the module that is already loaded."
+  whyWrong:
+    "0": "Size has no effect on how often the code runs."
+    "1": "A second import finds the module already loaded and does not run it again."
+    "2": "Top-level code does run on import, which is why heavy work belongs in functions."
+
+- id: main-guard
+  question: "What does if __name__ == \"__main__\": protect?"
+  options:
+    - "It stops other files from importing this one"
+    - "It makes the code run faster"
+    - "It makes the code inside run only when the file is run directly, not when it is imported"
+    - "It marks the main function for the debugger"
+  answer: 2
+  explanation: "When a file is run as a script its __name__ is __main__; when it is imported __name__ is the module's name, so the block is skipped."
+  whyWrong:
+    "0": "Imports still work; the guard only skips the block."
+    "1": "It has no effect on speed."
+    "3": "Python does not treat it specially for debuggers."
+
+- id: partial-call
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    from functools import partial
+
+    def add(a, b=2):
+        return a + b
+
+    add10 = partial(add, 10)
+    print(add10(5))
+  options:
+    - "12"
+    - "15"
+    - "10"
+    - "5"
+  answer: 1
+  explanation: "partial fills in a=10 in advance, so add10(5) calls add(10, 5), which is 15."
+  whyWrong:
+    "0": "That would use the default b=2, but the call supplies 5 for b."
+    "2": "The 5 you pass is added to the 10."
+    "3": "The 10 that partial supplied is added too."
