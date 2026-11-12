@@ -340,3 +340,29 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 15: start Realm 1 (Programming): first Python-foundations quest.
+
+## Day 15: Python basics quest (Realm 1) and animation research
+
+Done
+- First Realm 1 quest, `content/01-programming/python-basics`: five-tier lesson (names and mutability, numbers and floats, strings and slices, the four containers, loops, truthiness), 17 quiz items (predict-output and spot-bug included), 22 flashcards, 8 common mistakes, 10 interview questions, 7 primary sources, a boss gauntlet, and two challenges (`word-frequencies`, `moving-average`) with hidden tests and 11 wrong-answer mutants, all caught by challenge CI.
+- The quest page builds and passes the axe check in light and dark; the Python basics page is now in the accessibility route list.
+- Owner asked for anime-quality animation (One Piece-style energy). Researched it first: `research/09-anime-animation.md` (techniques, tool licences, accessibility limits, ranked plan, an FX kit API). Nothing built yet.
+
+Sources used
+- docs.python.org: tutorial (introduction, control flow, data structures, floating point), data model, built-in types, built-in functions, What's New 3.7. Fetched 2026-11-12; every snippet re-run on Python 3.13.7. See `research/01-programming.md`.
+- Animation research: Phaser 4 migration guide and installed package, WCAG 2.2 three-flashes page, licence pages for GSAP, Spine, Live2D, Rive, Motion, Lottie, and one animation-craft blog on frame-rate modulation.
+
+Review
+- A separate reviewer ran every snippet (all correct) and found: the word-count spec did not say words come back lowercase; a `string.punctuation` strip, a regex split and a rounding version of moving average all passed the tests; the lesson overstated "tuples work as dict keys" and under-explained shallow copies; the `round` docs were not cited; one distractor explanation was wrong; 13 of 17 correct answers were option 2. All fixed with tests, and the answers are now spread across positions.
+
+Decisions
+- No new ADR. The quest follows the Depth Ladder and ADR 0002; `miniGame` is `none-yet` (the schema needs a value; no game exists for this quest, and the lesson does not promise one).
+
+TODO-VERIFY / not done
+- f-strings are not taught: the tutorial only links to the reference. Sets being mutable comes from general knowledge and the stdtypes page, not the data-model page.
+- The comparison with C-style division in a quiz note is general knowledge, not from the Python docs.
+- Animation research gaps: Blocky and Bokeh filter names in Phaser 4, Rive editor and dotLottie licence terms, the US Copyright Office AI conclusions, hit-stop timing numbers (blogs disagree, tune by feel), filter cost on low-end phones.
+- No manual screen-reader pass on the new page. Pyodide runs the challenges only in CI, not yet checked by hand in the browser.
+
+Tomorrow
+- Day 16: Realm 1 continues with the Functions and modules quest, unless the owner chooses to start the anime FX kit first (hit-stop, speed lines, cut-in banner, shockwave; see `research/09-anime-animation.md`).
