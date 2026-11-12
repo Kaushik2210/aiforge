@@ -1,0 +1,2 @@
+title: Build a bank account class
+summary: Write an Account class with a balance, deposit and withdraw methods, and your own InsufficientFunds exception, so every account keeps separate state and bad requests fail loudly without changing the balance.

@@ -1,0 +1,2 @@
+title: Parse a ratio and fail clearly
+summary: Turn text like "3/4" into 0.75, raising ValueError with a message for bad input and zero denominators, while letting unrelated errors reach the caller instead of hiding them.
