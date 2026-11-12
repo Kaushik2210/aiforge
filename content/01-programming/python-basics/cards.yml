@@ -1,0 +1,23 @@
+- { id: c-names, front: "What does b = a do when a is a list?", back: "It attaches a second name to the same list. Nothing is copied." }
+- { id: c-copy-list, front: "Two ways to make a shallow copy of a list?", back: "a[:] and a.copy()." }
+- { id: c-mutable, front: "Which built-in types are mutable?", back: "list, dict and set." }
+- { id: c-immutable, front: "Which built-in types are immutable?", back: "int, float, str and tuple." }
+- { id: c-is-vs-eq, front: "is versus == ?", back: "== compares values; is compares identity (the same object). Use is for None." }
+- { id: c-true-div, front: "What does / always return?", back: "A float, even for 6 / 3 (which is 2.0)." }
+- { id: c-floor-div, front: "What does // do to negative numbers?", back: "It floors toward negative infinity, so -7 // 2 is -4." }
+- { id: c-modulo, front: "What is -7 % 3 and why?", back: "2, because the remainder matches the floored quotient: -3 * 3 + 2 = -7." }
+- { id: c-float-eq, front: "Why is 0.1 + 0.2 == 0.3 False?", back: "Floats are binary fractions with no exact form for 0.1 and 0.2. Use math.isclose." }
+- { id: c-round-tie, front: "What does round(2.5) give?", back: "2: exact ties go to the even neighbour." }
+- { id: c-slice-end, front: "Does s[a:b] include index b?", back: "No. It includes a and stops before b." }
+- { id: c-slice-clip, front: "Slice versus single index out of range?", back: "A slice clips quietly ('abc'[1:99] is 'bc'); a single index raises IndexError." }
+- { id: c-sort-none, front: "What does list.sort() return?", back: "None. It sorts in place. sorted(x) returns a new list." }
+- { id: c-empty-braces, front: "How do you write an empty set?", back: "set(). Empty braces {} make an empty dict." }
+- { id: c-one-tuple, front: "How do you write a one-item tuple?", back: "(1,) with a trailing comma." }
+- { id: c-dict-get, front: "d['k'] versus d.get('k', 0) for a missing key?", back: "d['k'] raises KeyError; d.get('k', 0) returns 0." }
+- { id: c-dict-order, front: "Do dicts keep insertion order?", back: "Yes, guaranteed by the language since Python 3.7." }
+- { id: c-range-stop, front: "Does range(5) include 5?", back: "No. It gives 0 to 4. range is lazy, not a list." }
+- { id: c-loop-else, front: "When does a for loop's else run?", back: "Only when the loop finishes without hitting break." }
+- { id: c-falsy, front: "What counts as false in an if?", back: "None, False, zero numbers, and empty containers ('', [], (), {}, set(), range(0))." }
+- { id: c-mutate-loop, front: "Why not remove items from a list while looping over it?", back: "Later items shift left and the loop skips one. Loop over a copy or build a new list." }
+- { id: c-sort-key, front: "How do you sort by count descending, then word ascending?", back: "sorted(items, key=lambda kv: (-kv[1], kv[0])). Tuples compare item by item." }
+- { id: c-dict-keys, front: "What can be a dict key?", back: "A hashable (in practice immutable) object: str, number, tuple of immutables. Not a list." }
