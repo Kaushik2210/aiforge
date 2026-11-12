@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const ROUTES = ["/", "/dashboard/", "/map/", "/skills/", "/review/", "/settings/", "/quests/gradient-descent/", "/games/gradient-hiker/"];
+const ROUTES = ["/", "/dashboard/", "/map/", "/skills/", "/review/", "/settings/", "/quests/gradient-descent/", "/quests/python-basics/", "/games/gradient-hiker/"];
 const THEMES = ["light", "dark"] as const;
 
 for (const theme of THEMES) {
