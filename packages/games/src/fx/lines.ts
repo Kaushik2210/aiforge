@@ -32,7 +32,8 @@ export interface SpeedLineSpec {
  * hand-drawn flicker. The same spec, time and step always give the same lines.
  */
 export function speedLines(spec: SpeedLineSpec, tMs: number, step = 2, fps = 24): Segment[] {
-  const count = spec.count ?? 14;
+  if (![spec.cx, spec.cy, spec.w, spec.h].every(Number.isFinite)) return [];
+  const count = Math.max(0, Math.min(200, Math.floor(Number.isFinite(spec.count) ? (spec.count as number) : 14)));
   const rng = new Rng(`${spec.seed ?? "fx"}:${heldFrame(tMs, step, fps)}`);
   const reach = Math.hypot(spec.w, spec.h) / 2;
   const out: Segment[] = [];

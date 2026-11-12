@@ -28,7 +28,15 @@ export interface FxFrame {
   active: boolean;
 }
 
-const IDLE: FxFrame = { timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], active: false };
+/** A fresh idle frame each time, so a caller changing one cannot affect the next. */
+const idle = (): FxFrame => ({ timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], active: false });
+
+const isFinite_ = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
+
+/** No effect runs longer than this, so an Infinity or a typo cannot hold one on screen forever. */
+const MAX_EFFECT_MS = 5000;
+const MAX_LINES = 200;
+const MAX_RING_SIZE = 2000;
 
 /** The longest frame step we trust, so a background tab cannot skip an effect in one jump. */
 const MAX_STEP_MS = 100;
@@ -69,42 +77,48 @@ export class FxKit {
   /** Freeze the game for a moment on impact. Capped at MAX_HIT_STOP_MS. */
   hitStop(ms: number): void {
     const s = strength(this.level);
-    if (s === 0 || !(ms > 0)) return;
+    if (s === 0 || !isFinite_(ms) || !(ms > 0)) return;
     this.freezeMs = Math.max(this.freezeMs, Math.min(MAX_HIT_STOP_MS, ms * s));
   }
 
   /** Add camera shake. `trauma` is 0 to 1; stacked hits add up to a maximum of 1. */
   screenShake(trauma: number): void {
     const s = strength(this.level);
-    if (s === 0 || !(trauma > 0)) return;
+    if (s === 0 || !isFinite_(trauma) || !(trauma > 0)) return;
     this.trauma = Math.min(1, this.trauma + Math.min(1, trauma) * s);
   }
 
   /** Zoom in by `amount` (0.05 is 5%) and ease back out over `ms`. */
   zoomPunch(amount: number, ms: number): void {
     const s = strength(this.level);
-    if (s === 0 || !(amount > 0) || !(ms > 0)) return;
-    this.punch = { amount: Math.min(0.2, amount * s), ms, t: 0 };
+    if (s === 0 || !isFinite_(amount) || !isFinite_(ms) || !(amount > 0) || !(ms > 0)) return;
+    this.punch = { amount: Math.min(0.2, amount * s), ms: Math.min(MAX_EFFECT_MS, ms), t: 0 };
   }
 
   /** Anime speed lines or radial focus lines for `ms`, redrawn on twos. */
   speedLines(spec: SpeedLineSpec, ms: number): void {
     const s = strength(this.level);
-    if (s === 0 || !(ms > 0)) return;
-    this.lineState = { spec: { ...spec, count: Math.round((spec.count ?? 14) * Math.min(1, s)) }, ms, t: 0 };
+    if (s === 0 || !isFinite_(ms) || !(ms > 0)) return;
+    if (![spec.cx, spec.cy, spec.w, spec.h].every(isFinite_)) return;
+    const wanted = isFinite_(spec.count) ? spec.count : 14;
+    const count = Math.max(0, Math.min(MAX_LINES, Math.round(wanted * Math.min(1, s))));
+    this.lineState = { spec: { ...spec, count }, ms: Math.min(MAX_EFFECT_MS, ms), t: 0 };
   }
 
   /** An expanding ring. Under reduced motion it stays put and only fades. */
   shockwave(x: number, y: number, opts: { size?: number; ms?: number } = {}): void {
     const reduced = this.mode.reducedMotion && this.mode.level > 0;
     if (strength(this.level) === 0 && !reduced) return;
-    this.waves.push({ x, y, size: opts.size ?? 120, ms: opts.ms ?? 600, t: 0, still: reduced });
+    if (!isFinite_(x) || !isFinite_(y)) return;
+    const size = isFinite_(opts.size) && opts.size > 0 ? Math.min(MAX_RING_SIZE, opts.size) : 120;
+    const ms = isFinite_(opts.ms) && opts.ms > 0 ? Math.min(MAX_EFFECT_MS, opts.ms) : 600;
+    this.waves.push({ x, y, size, ms, t: 0, still: reduced });
     if (this.waves.length > 4) this.waves.shift();
   }
 
   /** Advance by `dtMs` of real time and return the frame to draw. */
   update(dtMs: number): FxFrame {
-    const dt = Math.min(MAX_STEP_MS, Math.max(0, dtMs));
+    const dt = isFinite_(dtMs) ? Math.min(MAX_STEP_MS, Math.max(0, dtMs)) : 0;
     this.nowMs += dt;
 
     const frozen = this.freezeMs > 0;
@@ -140,7 +154,7 @@ export class FxKit {
     // The last frame of a line burst or ring still has something to draw, so it counts as active.
     const active =
       frozen || this.trauma > 0 || this.punch !== null || this.lineState !== null || this.waves.length > 0 || lines.length > 0 || shockwaves.length > 0;
-    if (!active) return IDLE;
+    if (!active) return idle();
     return { timeScale: frozen ? 0 : 1, shake, zoom, lines, lineAlpha, shockwaves, active };
   }
 
