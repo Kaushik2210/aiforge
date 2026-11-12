@@ -1,0 +1,2 @@
+title: Count the words
+summary: Turn a sentence into a ranked list of word counts, ignoring case and surrounding punctuation, with ties broken alphabetically.

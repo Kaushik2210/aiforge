@@ -1,0 +1,2 @@
+title: Smooth a loss curve
+summary: Compute the moving average of a list of numbers with a fixed window, the same trick used to read a noisy training-loss curve.
