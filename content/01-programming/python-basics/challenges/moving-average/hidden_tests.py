@@ -38,6 +38,11 @@ def test_unsorted_input_keeps_its_order():
     assert moving_average([9, 1, 5], 2) == [5.0, 3.0]
 
 
+def test_averages_are_not_rounded():
+    out = moving_average([1, 2, 2], 3)
+    assert abs(out[0] - 5 / 3) < 1e-12
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

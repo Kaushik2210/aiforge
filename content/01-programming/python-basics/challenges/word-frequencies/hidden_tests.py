@@ -36,6 +36,15 @@ def test_many_words():
     assert word_frequencies(text) == [("x", 500), ("y", 200)]
 
 
+def test_only_the_listed_characters_are_stripped():
+    # Hyphens and square brackets are not in the strip list, so they stay.
+    assert word_frequencies("well-known -x- [ok]") == [("-x-", 1), ("[ok]", 1), ("well-known", 1)]
+
+
+def test_punctuation_inside_a_word_stays():
+    assert word_frequencies("e.g. a.b") == [("a.b", 1), ("e.g", 1)]
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

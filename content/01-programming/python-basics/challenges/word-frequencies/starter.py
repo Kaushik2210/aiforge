@@ -2,7 +2,7 @@ def word_frequencies(text):
     """Count how often each word appears in `text`.
 
     - Words are separated by whitespace.
-    - Ignore case: "The" and "the" are the same word.
+    - Ignore case: "The" and "the" are the same word. Return words in lowercase.
     - Strip these characters from both ends of a word: . , ! ? ; : " ' ( )
       Characters inside a word stay, so "don't" is one word.
     - Skip a token that is empty after stripping.
