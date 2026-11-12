@@ -1,14 +1,14 @@
 - id: names-not-boxes
   question: "After a = [1, 2] and b = a, what does b.append(3) do to a?"
   options:
-    - "Nothing: b is its own copy of the list"
     - "a becomes [1, 2, 3] too, because both names point at the same list"
+    - "Nothing: b is its own copy of the list"
     - "It raises an error because a and b share data"
     - "a becomes [3] because the last change wins"
-  answer: 1
+  answer: 0
   explanation: "Assignment attaches a second name to the same object. A list is mutable, so a change through one name shows through the other."
   whyWrong:
-    "0": "Assignment never copies. You would need b = a[:] or b = a.copy() for a copy."
+    "1": "Assignment never copies. You would need b = a[:] or b = a.copy() for a copy."
     "2": "Sharing is allowed; nothing is raised."
     "3": "append adds to the end of the one shared list; nothing is replaced."
 
@@ -42,14 +42,14 @@
     print(a)
   options:
     - "[1, 2, 3]"
-    - "[1, 2]"
     - "[3]"
+    - "[1, 2]"
     - "An error"
-  answer: 1
+  answer: 2
   explanation: "a[:] builds a new list with the same items, so changing b leaves a alone."
   whyWrong:
     "0": "That would need b and a to be the same list, but the slice made a copy."
-    "2": "Nothing replaces a; it still has its two items."
+    "1": "Nothing replaces a; it still has its two items."
     "3": "Slicing a whole list is valid and gives a new list."
 
 - id: predict-division
@@ -58,42 +58,42 @@
   code: |
     print(-7 // 2, -7 % 3)
   options:
-    - "-3 1"
-    - "-4 2"
-    - "-3 2"
+    - "-3 -1"
     - "-4 1"
-  answer: 1
+    - "-3 2"
+    - "-4 2"
+  answer: 3
   explanation: "// floors toward negative infinity, so -3.5 becomes -4. The remainder matches the floored quotient: -3 * 3 + 2 equals -7."
   whyWrong:
-    "0": "That is what a language that truncates toward zero would give for the first value. Python floors."
+    "0": "That is what a language that truncates toward zero (like C) gives for both values. Python floors, so the answers differ."
+    "1": "The remainder of -7 divided by 3 is 2, because -3 * 3 + 2 equals -7."
     "2": "The first value floors to -4, not -3."
-    "3": "The remainder of -7 divided by 3 is 2, because -3 * 3 + 2 equals -7."
 
 - id: float-equality
   question: "What does 0.1 + 0.2 == 0.3 evaluate to in Python?"
   options:
     - "True"
-    - "False"
     - "It raises an error"
+    - "False"
     - "True on some machines and False on others"
-  answer: 1
+  answer: 2
   explanation: "0.1 and 0.2 are stored as binary fractions with tiny errors, and their sum is 0.30000000000000004, which is not the float 0.3. Use math.isclose."
   whyWrong:
     "0": "This is the classic surprise; the sum is slightly above 0.3."
-    "2": "The comparison is legal; it just returns False."
+    "1": "The comparison is legal; it just returns False."
     "3": "Standard floats give the same answer on every machine."
 
 - id: round-half-even
   question: "What does round(2.5) return?"
   options:
-    - "3"
     - "2"
+    - "3"
     - "2.5"
     - "3.0"
-  answer: 1
+  answer: 0
   explanation: "round sends an exact tie to the even neighbour, so 2.5 becomes 2 and 1.5 becomes 2. With no digits argument the result is an int."
   whyWrong:
-    "0": "That is round-half-up, which is not what Python's round does."
+    "1": "That is round-half-up, which is not what Python's round does."
     "2": "round with no second argument returns a whole number."
     "3": "With no second argument the result is an int, not a float."
 
@@ -104,27 +104,27 @@
     print([3, 1, 2].sort())
   options:
     - "[1, 2, 3]"
-    - "None"
-    - "[3, 1, 2]"
     - "An error"
-  answer: 1
+    - "[3, 1, 2]"
+    - "None"
+  answer: 3
   explanation: "list.sort sorts the list in place and returns None. Use sorted(...) when you want the sorted list back."
   whyWrong:
     "0": "That is what sorted([3, 1, 2]) returns; the method returns None."
+    "1": "Calling sort on a list literal is legal."
     "2": "The method returns None, not the list in any order."
-    "3": "Calling sort on a list literal is legal."
 
 - id: slice-forgiving
   question: "What does 'abc'[1:99] evaluate to?"
   options:
-    - "'bc'"
     - "IndexError"
+    - "'bc'"
     - "'abc'"
     - "'bc' plus a warning"
-  answer: 0
+  answer: 1
   explanation: "Slices clip out-of-range bounds, so the stop of 99 simply means the end of the string. Only a single index, like 'abc'[5], raises IndexError."
   whyWrong:
-    "1": "A slice never raises for out-of-range bounds; a single index does."
+    "0": "A slice never raises for out-of-range bounds; a single index does."
     "2": "The slice starts at index 1, so the 'a' is not included."
     "3": "Python does not warn about slice bounds."
 
@@ -132,27 +132,27 @@
   question: "What does [1, 2, 3][5] do?"
   options:
     - "Returns None"
-    - "Raises IndexError"
     - "Returns an empty list"
+    - "Raises IndexError"
     - "Returns 3, the last item"
-  answer: 1
+  answer: 2
   explanation: "A single out-of-range index raises IndexError. Only slices are forgiving."
   whyWrong:
     "0": "Python never returns None for a bad index."
-    "2": "[1, 2, 3][5:] would give an empty list, but a single index raises."
+    "1": "[1, 2, 3][5:] would give an empty list, but a single index raises."
     "3": "Negative indices count from the right, but 5 is simply out of range."
 
 - id: empty-braces
   question: "What does {} create?"
   options:
-    - "An empty set"
     - "An empty dict"
+    - "An empty set"
     - "An empty tuple"
     - "A syntax error"
-  answer: 1
+  answer: 0
   explanation: "Empty braces make a dict. For an empty set write set()."
   whyWrong:
-    "0": "Sets share the brace syntax, but an empty pair of braces is a dict. Use set()."
+    "1": "Sets share the brace syntax, but an empty pair of braces is a dict. Use set()."
     "2": "Tuples use parentheses, and an empty one is ()."
     "3": "It is valid and very common."
 
@@ -160,28 +160,28 @@
   question: "Which of these counts as TRUE in an if statement?"
   options:
     - "[]"
-    - "'0'"
-    - "0.0"
     - "None"
-  answer: 1
+    - "0.0"
+    - "'0'"
+  answer: 3
   explanation: "Only empty containers, None, False and zero numbers are false. The string '0' is not empty, so it is true."
   whyWrong:
     "0": "An empty list is false."
+    "1": "None is false."
     "2": "Zero of any number type is false."
-    "3": "None is false."
 
 - id: is-vs-equals
   question: "After x = [1] and y = [1], what do x == y and x is y give?"
   options:
     - "True and True"
-    - "True and False"
     - "False and False"
+    - "True and False"
     - "False and True"
-  answer: 1
+  answer: 2
   explanation: "== compares values, which are equal. is compares identity, and two separately created lists are different objects."
   whyWrong:
     "0": "Two separate list literals are never the same object."
-    "2": "The values are equal, so == is True."
+    "1": "The values are equal, so == is True."
     "3": "That has the two operators the wrong way round."
 
 - id: missing-key
@@ -218,16 +218,16 @@
   code: |
     print(list(range(5, 0, -2)))
   options:
-    - "[5, 3, 1]"
+    - "[]"
     - "[5, 3, 1, -1]"
     - "[4, 2, 0]"
-    - "[]"
-  answer: 0
+    - "[5, 3, 1]"
+  answer: 3
   explanation: "range counts from 5 down by 2 and stops before it reaches 0, so the values are 5, 3 and 1."
   whyWrong:
+    "0": "A negative step counts down, so the range is not empty."
     "1": "The stop value is excluded and the sequence stops once it would pass 0."
     "2": "It starts at 5, not 4."
-    "3": "A negative step counts down, so the range is not empty."
 
 - id: predict-loop-else
   kind: predict-output
@@ -241,14 +241,14 @@
     print("end")
   options:
     - "done, then end"
-    - "end"
     - "done"
+    - "end"
     - "Nothing"
-  answer: 1
+  answer: 2
   explanation: "The loop else runs only when the loop finishes without break. Here break fires at 2, so only end is printed."
   whyWrong:
     "0": "done is skipped because the loop was ended by break."
-    "2": "The last print always runs, and done does not."
+    "1": "The last print always runs, and done does not."
     "3": "The final print is outside the loop and always runs."
 
 - id: spot-bug-remove-while-looping
