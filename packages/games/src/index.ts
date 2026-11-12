@@ -10,3 +10,4 @@ export * from "./hiker/logic";
 export * from "./hiker/session";
 export * from "./hiker/view";
 export * from "./hiker/hiker-game";
+export * from "./fx";
