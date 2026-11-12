@@ -1,0 +1,351 @@
+---
+id: python-oop-and-errors
+title: Classes and Exceptions
+realm: 1
+zone: Python foundations
+prerequisites: [python-functions-and-modules]
+estimatedMinutes: 150
+verifiedOn: 2026-11-12
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "A class is a blueprint and an instance is one thing built from it. Data lives in attributes, behaviour lives in methods, and `__init__` sets up each new instance. A method call `obj.m(x)` is the same as `Class.m(obj, x)`: the instance arrives as `self`."
+  - "An attribute written in the class body belongs to the class and is shared by every instance; an attribute set on `self` belongs to that one instance. Reading looks at the instance first, then the class."
+  - "A subclass inherits its parent's behaviour and can override it; `super()` reaches the parent's version. `isinstance(x, C)` is true for instances of C and of its subclasses."
+  - "An exception is an object that is raised to signal a problem and caught with `try`/`except`. `else` runs when nothing was raised, `finally` always runs, and the first matching `except` wins. Custom exceptions derive from `Exception`."
+coreComplexity:
+  - "A mutable object stored as a class attribute (a list or a dict) is shared by all instances, so one instance's change appears in every other. Per-instance data belongs on `self` inside `__init__`."
+  - "Defining `__eq__` without `__hash__` makes instances unhashable: they cannot be set members or dictionary keys. `@dataclass` generates `__eq__` and leaves `__hash__` unset for the same reason."
+  - "A bare `except:` also catches `KeyboardInterrupt` and `SystemExit`; `except Exception` does not. Swallowing errors silently turns a loud bug into wrong answers later."
+  - "`return` inside `finally` overrides a `return` or an exception from the `try` block, and `finally` runs before the function actually returns."
+  - "`raise NewError(...) from original` records the original as `__cause__`; a plain `raise` inside an `except` block only records it as `__context__`. Both appear in the traceback, and `from None` hides the context."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain why a class with `items = []` written in its body can make two separate objects appear to share data, and show the fix."
+  rubric:
+    - "Says an attribute defined in the class body belongs to the class, so every instance reads the same list."
+    - "Notes that appending changes that one shared list, so the change shows up on every instance."
+    - "Gives the fix: create the list on `self` inside `__init__` (`self.items = []`), so each instance gets its own."
+miniGame: none-yet
+bossId: python-oop-and-errors-boss
+---
+
+# Classes and Exceptions
+
+> **Realm 1, Programming Fundamentals.** Guide: *Mira*, the lantern-bearer
+> (an original AIForge character). Today she builds a lantern workshop: a
+> blueprint for lanterns, and an alarm bell for the day one goes out.
+
+Almost every library you will use for machine learning is made of classes: a
+model, an optimiser, a dataset, a tokenizer. And almost every real program has
+to survive things going wrong: a missing file, a bad number, a network that
+drops. This quest is about giving data and behaviour a home, and about failing
+in a way you can see and handle.
+
+---
+
+## L1. Intuition
+
+**A class is a blueprint; an instance is one lantern.** The blueprint says what
+every lantern has (a fuel level) and can do (light, dim). Each lantern built
+from it has its own fuel level.
+
+```python
+class Lantern:
+    def __init__(self, fuel):      # runs when you build a new one
+        self.fuel = fuel           # data stored on THIS lantern
+
+    def burn(self, amount):        # behaviour
+        self.fuel -= amount
+        return self.fuel
+
+a = Lantern(10)
+b = Lantern(10)
+a.burn(3)          # a.fuel is 7, b.fuel is still 10
+```
+
+`self` is simply the name for "the lantern this method was called on".
+
+**An exception is an alarm bell.** When something cannot continue, Python
+*raises* an exception. It travels outward through the calls until a matching
+`except` catches it, or the program stops and prints where it happened. You
+choose where to listen.
+
+```python
+try:
+    ratio = 1 / 0
+except ZeroDivisionError:
+    ratio = None
+```
+
+<Callout type="warn" title="Where the blueprint picture breaks">
+A real blueprint is separate from the things built from it. A Python class is
+itself an object that exists while the program runs, and values written in its
+body are shared by every instance. That sharing is the source of the classic
+class bug in L2.
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### Methods, `self`, and the call
+
+```python
+class Account:
+    def __init__(self, balance=0):
+        self.balance = balance
+    def deposit(self, amount):
+        self.balance += amount
+        return self.balance
+
+acct = Account(10)
+acct.deposit(5)            # 15
+Account.deposit(acct, 5)   # 20: the same call, written out
+```
+
+### Class attributes and instance attributes
+
+```python
+class Dog:
+    tricks = []                       # lives on the CLASS: shared
+
+    def add(self, trick):
+        self.tricks.append(trick)
+
+a, b = Dog(), Dog()
+a.add("sit")
+print(b.tricks)                       # ['sit']  (b sees a's trick)
+```
+
+Fix it by creating the list per instance:
+
+```python
+class Dog:
+    def __init__(self):
+        self.tricks = []
+```
+
+Reading `obj.x` looks on the instance first, then on the class. Assigning
+`obj.x = 2` creates an instance attribute that *hides* the class one:
+
+```python
+class C:
+    x = 1
+
+c = C()
+c.x = 2
+print(C.x, C().x, c.x)     # 1 1 2
+```
+
+### Inheritance
+
+```python
+class A:
+    def __init__(self):
+        print("A")
+
+class B(A):
+    def __init__(self):
+        super().__init__()   # run A's setup first
+        print("B")
+
+B()                          # prints A, then B
+isinstance(B(), A)           # True: a B is an A
+isinstance(A(), B)           # False
+```
+
+### What objects print as
+
+`__repr__` is the unambiguous description (shown by `repr` and in lists);
+`__str__` is the friendly one (used by `print`). If only `__repr__` exists,
+it is used for both.
+
+```python
+class P:
+    def __repr__(self): return "P()"
+    def __str__(self):  return "a P"
+
+print(P())        # a P
+print([P()])      # [P()]
+```
+
+### Equality and hashing
+
+```python
+class E:
+    def __eq__(self, other):
+        return True
+
+{E()}             # TypeError: unhashable type
+```
+
+Defining `__eq__` alone removes `__hash__`, so the instance cannot go in a set
+or be a dictionary key. Define both, or neither.
+
+### Less typing with `dataclass`
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Point:
+    x: int
+    y: int = 0
+
+print(Point(1))                 # Point(x=1, y=0)
+Point(1) == Point(1)            # True
+```
+
+`@dataclass` writes `__init__`, `__repr__` and `__eq__` for you. A mutable
+default such as `items: list = []` raises `ValueError` when the class is
+defined; use `field(default_factory=list)`.
+
+### Properties and "private" names
+
+```python
+class Temp:
+    def __init__(self, c):
+        self._c = c               # a leading underscore means "internal, please leave it"
+    @property
+    def celsius(self):            # read-only: there is no setter
+        return self._c
+```
+
+`Temp(3).celsius = 5` raises `AttributeError`. Python has no truly private
+attributes; the underscore is a convention. A name starting with two
+underscores is rewritten (`self.__x` becomes `_ClassName__x`) to avoid
+accidental clashes in subclasses.
+
+### `try`, `except`, `else`, `finally`
+
+```python
+try:
+    print("try")
+    raise ValueError
+except ValueError:
+    print("except")
+else:
+    print("else")          # only when no exception was raised
+finally:
+    print("finally")       # always runs
+# try, except, finally
+```
+
+With several `except` clauses, the first one that matches wins, so put the
+specific ones first:
+
+```python
+class MyErr(Exception): pass
+class SubErr(MyErr): pass
+
+try:
+    raise SubErr()
+except MyErr:
+    print("base")          # runs: SubErr is a MyErr
+except SubErr:
+    print("sub")           # never reached
+```
+
+`return` in `finally` wins:
+
+```python
+def f():
+    try:
+        return 1
+    finally:
+        return 2           # f() gives 2
+```
+
+### Raising, chaining, and your own exceptions
+
+```python
+class ConfigError(Exception):
+    """Raised for a bad configuration value."""
+
+def read_port(text):
+    try:
+        return int(text)
+    except ValueError as e:
+        raise ConfigError(f"bad port: {text!r}") from e   # keep the original as the cause
+```
+
+Built-in exceptions you will meet constantly: `ValueError` (right type, wrong
+value, such as `int("x")`), `TypeError`, `KeyError` (its `args` hold the key),
+`ZeroDivisionError`, `StopIteration`.
+
+The `with` statement runs clean-up for you even when an error is raised, which
+is why files are usually opened as `with open(path) as f:`.
+
+<Step prompt="what is printed by the try, else, finally example when the try block does NOT raise?">
+`try`, `else`, `finally`. The `except` block is skipped, `else` runs because
+nothing was raised, and `finally` always runs.
+</Step>
+
+---
+
+## L3. Build it
+
+Two short challenges. Run them in the browser editor (Pyodide), or locally with
+`python tests.py <file>`.
+
+1. **`bank-account`**: write an `Account` class and your own `InsufficientFunds`
+   exception. Each account keeps its own balance, a failed request must leave
+   the balance unchanged, and `repr` shows `Account(balance=100)`. You will use
+   `__init__`, instance attributes, `raise`, and `__repr__`.
+2. **`parse-ratio`**: turn text like `"3/4"` into `0.75`. Bad text and a zero
+   denominator raise `ValueError` with a message, but a non-string such as `None`
+   must reach the caller as Python's own error. You will see why a blanket
+   `except Exception` would be wrong here.
+
+**Check first, change second.** In `withdraw`, test the amount before you touch
+`self.balance`. If you subtract first and raise afterwards, the failed call has
+already changed the data.
+
+---
+
+## L4. Production reality
+
+- **Catch the narrowest exception you can handle**, and put only the lines that
+  can raise it inside `try`. `except Exception` and especially a bare `except:`
+  hide bugs: a typo in your own code looks like "bad input".
+- **Never swallow an error silently.** If you must continue, record what
+  happened. If you cannot recover, let it propagate; a loud failure near the cause
+  is cheaper than a wrong number a day later.
+- **Keep the cause when you translate an error.** Use `raise MyError(...) from e`
+  so the traceback shows both. A plain `raise` inside `except` re-raises the
+  current exception unchanged.
+- **Give a library one base exception** (`class MyLibError(Exception)`) and derive
+  specific ones from it, so callers can catch "anything from this library" or one
+  case.
+- **Use `with` or `finally` for clean-up**: files, locks, temporary state. Do not
+  rely on a line after the `try` block running.
+- **Keep per-instance data on `self`**, never a mutable value in the class body.
+  If you write `__eq__`, write `__hash__` too (or use `@dataclass(frozen=True)`
+  when you need hashable values; TODO-VERIFY the `frozen` details before teaching
+  them).
+- **Prefer small classes with a clear job.** If a class only holds data, a
+  dataclass is shorter and less error-prone than hand-written `__init__` and
+  `__repr__`.
+- **Failure at 3 a.m.:** two objects "mysteriously" share state, a swallowed error
+  produced `None` that surfaced three functions later, or `finally` with a
+  `return` hid the real exception. Look for a class-level list, a bare `except`,
+  and a `return` inside `finally`.
+
+---
+
+## L5. Frontier
+
+Read, in this order, and look for the stated thing:
+
+1. The Python Tutorial, *Classes*: read for how attribute lookup works and the
+   class-versus-instance example with the shared list.
+2. The Tutorial, *Errors and Exceptions*: read for the order of `except`, `else`
+   and `finally`, and for exception chaining.
+3. The Language Reference, *Data model*, the special-method names: read for what
+   `__repr__`, `__eq__`, `__hash__` and `__bool__` promise.
+4. The Library Reference, *Built-in Exceptions* and *dataclasses*: read for the
+   exception hierarchy and what `@dataclass` generates.
+
+Open questions to carry forward: abstract base classes and protocols, how
+exception groups handle several errors at once, and how classes meet iterators
+and generators (the next quest).
