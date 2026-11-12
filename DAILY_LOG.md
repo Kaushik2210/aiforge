@@ -366,3 +366,27 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 16: Realm 1 continues with the Functions and modules quest, unless the owner chooses to start the anime FX kit first (hit-stop, speed lines, cut-in banner, shockwave; see `research/09-anime-animation.md`).
+
+## Day 16: FX kit for anime-style game feel
+
+Done
+- `packages/games/src/fx`: a pure, Phaser-free kit (ADR 0012). Hit-stop, trauma camera shake, zoom punch, speed and focus lines redrawn on twos, shockwave rings, easing with overshoot, a flash limiter capped at the WCAG limit, and a zoom-pinning helper. It takes time as input and returns a frame to draw. 55 unit tests; a mutation run of 14 injected bugs in `kit.ts` found 7 gaps, all closed, so all 14 are now caught.
+- Gradient Hiker uses it: a win gets a 90 ms freeze, a 5% punch-in, a ring and radial lines; flying past the goal gets a 60 ms freeze, a shake and streaks. The HUD is pinned against zoom and the camera has a solid background. Reduced motion or Focus mode runs none of it.
+- `CutIn` banner on level-up and new rank (angled band, overshoot slide, still speed lines at the sides, hidden from screen readers; the XP toast, now above it, is the announcement). 4 new Playwright tests; full suite 33 passed; `pnpm verify` green.
+- README and the Hiker SPEC updated.
+
+Sources used
+- `research/09-anime-animation.md` (written earlier today): Phaser 4 migration guide and package, WCAG 2.2 three-flashes page, licence pages, one craft article on frame-rate modulation.
+
+Review
+- A separate reviewer found: NaN time step silently killed shake; Infinity durations held effects forever; huge line counts ran out of memory; the shared idle frame was mutable; the cut-in lines flickered on twos at about 12 changes a second, a possible flashing pattern under WCAG 2.3.1; zoom clipped the Hiker HUD; shake showed the page behind the canvas; the toast could sit under the banner. All fixed with tests. Not fixed: a level change does not alter an effect already running.
+
+TODO-VERIFY / not done
+- The canvas speed lines still redraw on twos for about 0.4 s. The reviewer judged them low risk (thin, translucent, brief); not measured against the WCAG area and luminance thresholds.
+- Effect numbers (hit-stop, shake, zoom) are tuned by feel. Not tested on a low-end phone. Not looked at on a real touch device.
+- No in-app effects setting yet; only reduced motion and Focus mode change the level. The world map has no effects.
+- Not built: impact frames, smear and afterimages, cel-shading filters, mascot pose stepping, particle sparkles beyond the existing burst.
+- The dev server (`next dev` from the repo root) returns 500 on quest pages because the content path assumes it runs from `apps/web`; production build and the Playwright server are fine. Not fixed.
+
+Tomorrow
+- Day 17: Realm 1 continues with the Functions and modules quest (`python-functions-and-modules`).
