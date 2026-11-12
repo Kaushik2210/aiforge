@@ -287,3 +287,61 @@ describe("FxKit", () => {
     expect(make()).toEqual(make());
   });
 });
+
+describe("FxKit levels and caps (found by mutation testing)", () => {
+  const frozenMs = (level: 0 | 1 | 2 | 3) => {
+    const k = new FxKit({ level });
+    k.hitStop(80);
+    return run(k, 400, 10).filter((f) => f.timeScale === 0).length * 10;
+  };
+  const firstShake = (level: 0 | 1 | 2 | 3) => {
+    const k = new FxKit({ level });
+    k.screenShake(0.5);
+    const f = k.update(1);
+    return Math.hypot(f.shake.x, f.shake.y);
+  };
+
+  it("a higher level freezes longer, and level 0 not at all", () => {
+    expect(frozenMs(0)).toBe(0);
+    expect(frozenMs(1)).toBeLessThan(frozenMs(2));
+    expect(frozenMs(2)).toBeLessThan(frozenMs(3));
+  });
+  it("a higher level shakes harder", () => {
+    expect(firstShake(1)).toBeLessThan(firstShake(3));
+    expect(firstShake(0)).toBe(0);
+  });
+  it("a lower level draws fewer lines", () => {
+    const count = (level: 0 | 1 | 2 | 3) => {
+      const k = new FxKit({ level });
+      k.speedLines({ kind: "radial", cx: 0, cy: 0, w: 100, h: 100, count: 14 }, 300);
+      return k.update(16).lines.length;
+    };
+    expect(count(1)).toBe(7);
+    expect(count(2)).toBe(14);
+  });
+  it("stacked shake is capped, so it fades out in about half a second", () => {
+    const kit = new FxKit({ level: 3 });
+    for (let i = 0; i < 10; i++) kit.screenShake(0.9);
+    expect(run(kit, 1000, 10).at(-1)!.active).toBe(false);
+  });
+  it("a negative time step is ignored, not run backwards", () => {
+    const kit = new FxKit();
+    kit.screenShake(0.2);
+    kit.update(-5000);
+    expect(run(kit, 400, 10).at(-1)!.active).toBe(false);
+  });
+  it("keeps at most four rings at once", () => {
+    const kit = new FxKit();
+    for (let i = 0; i < 10; i++) kit.shockwave(i, i);
+    expect(kit.update(16).shockwaves).toHaveLength(4);
+  });
+  it("the zoom eases out: halfway through it is between the peak and 1", () => {
+    const kit = new FxKit();
+    kit.zoomPunch(0.06, 200);
+    const frames = run(kit, 200, 10);
+    const peak = frames[0]!.zoom;
+    const mid = frames[9]!.zoom; // about 100 ms in
+    expect(mid).toBeLessThan(peak - 0.005);
+    expect(mid).toBeGreaterThan(1);
+  });
+});
