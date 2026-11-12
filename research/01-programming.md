@@ -58,3 +58,50 @@ verifiedOn: 2026-11-12. All pages fetched 2026-11-12 from docs.python.org/3 (pag
 - removing while iterating `[1,2,3,4]` (remove evens) leaves `[1, 3]` here, but the skip behaviour is not documented guaranteed (use as a demo only).
 - `range(5,0,-2) -> [5,3,1]`; `range(2,10,3) -> [2,5,8]`; `print(range(0))` shows `range(0, 0)`
 - dict `{'b':1,'a':2}` plus `'c'` lists as `['b','a','c']`
+
+## Functions and modules (Day 17)
+
+verifiedOn: 2026-11-12. Fetched 2026-11-12 (docs.python.org/3, rendered as 3.15.2; local runs on Python 3.13.7).
+Sources:
+- https://docs.python.org/3/tutorial/controlflow.html (4.8 Defining Functions, 4.9 More on Defining Functions)
+- https://docs.python.org/3/tutorial/classes.html (9.2 Python Scopes and Namespaces, scope_test example)
+- https://docs.python.org/3/tutorial/modules.html (Modules and Packages)
+- https://docs.python.org/3/faq/programming.html (arguments vs parameters, call by assignment, lambda-in-loop, aliasing)
+- https://docs.python.org/3/library/functools.html (partial, lru_cache, cache)
+
+Documented facts (paraphrased):
+- Parameters are the names in a def; arguments are the values passed in a call (FAQ).
+- Tutorial: arguments are passed "call by value, where the value is always an object reference"; FAQ says "call by assignment / object reference": no alias between caller and callee names, so rebinding a parameter never affects the caller, mutating a shared mutable object does.
+- A call creates a new local symbol table; name lookup: local, enclosing functions (nearest first), module globals, built-ins. Assignment binds in the innermost scope unless `global` or `nonlocal` is declared.
+- No `return` (or bare `return`) yields `None`; the REPL hides a lone None, `print()` shows it.
+- Defaults are evaluated once, at definition time, in the defining scope. Mutable defaults are shared across calls; idiom is `=None` plus `if x is None: x = []`.
+- Keyword args follow positional ones, order is free, no parameter may get two values, unknown names are errors. `*name` collects extra positionals into a tuple, `**name` collects extra keywords into a dict (`*` before `**`); params after `*args` are keyword-only.
+- `/` ends positional-only params; bare `*` starts keyword-only params. Call-site `*seq` and `**mapping` unpack.
+- `lambda` is limited to one expression and is sugar for a def; it can read enclosing variables. `list.sort(key=lambda ...)` is the doc example.
+- Docstring: first body statement string literal; first line short summary, ending with a period; blank line before details. Annotations are optional metadata in `__annotations__` and do not affect behaviour.
+- FAQ lambda-in-loop: the loop variable lives in the outer scope and is read when the lambda is called, not defined; fix by saving it as a default argument (`n=x`).
+- Modules: top-level code runs only the first time the module name is imported. Forms: `import m`, `from m import n`, `from m import *`, `import m as a`. Running as a script sets `__name__ == "__main__"`, so a guard keeps demo code from running on import.
+- Search order: built-in modules first, then `sys.path` (script directory, PYTHONPATH, install defaults). Compiled bytecode is cached in `__pycache__` as `name.version.pyc`.
+- Packages: directories with `__init__.py` (runs init code, may set `__all__`); relative imports use leading dots.
+- functools: `partial` pre-fills arguments and returns a new callable; `lru_cache` memoizes, default maxsize 128, arguments must be hashable, `cache_info()` and `cache_clear()` exist, `@cache` equals `lru_cache(maxsize=None)`.
+
+Confirmed local outputs (Python 3.13.7):
+- `def f(x, acc=[])`; `print(f(1), f(2), f(3))` -> `[1, 2, 3] [1, 2, 3] [1, 2, 3]` (one shared list, printed after all three calls). Separate prints give `[1]`, `[1, 2]`, `[1, 2, 3]`.
+- `acc=None` fix: `g(1), g(2)` -> `[1] [2]`. Default bound at def: `i=5; def h(arg=i); i=6; h()` -> `5`.
+- `p(1,2,a=3,b=4)` with `(*args, **kwargs)` -> `((1, 2), {'a': 3, 'b': 4})`.
+- `def ko(*, k)`; `ko(1)` -> `TypeError: ko() takes 0 positional arguments but 1 was given`.
+- `def po(a, /)`; `po(a=1)` -> `TypeError: po() got some positional-only arguments passed as keyword arguments: 'a'`.
+- `dup(0, a=0)` -> `TypeError: dup() got multiple values for argument 'a'`.
+- `fs=[lambda: i for i in range(3)]; [f() for f in fs]` -> `[2, 2, 2]`; with `lambda i=i: i` -> `[0, 1, 2]`.
+- nonlocal counter closure: three calls -> `1 2 3`.
+- `total += 1` in a function without `global` -> `UnboundLocalError: cannot access local variable 'total' where it is not associated with a value`; with `global total` it works (`1`).
+- `print(nothing())` -> `None`. `mutate(a)` appends to caller list (`[1, 99]`); `rebind(a)` (`l = [0]`) leaves it `[1, 99]`.
+- `sorted(["bb","a","ccc"], key=lambda s: len(s))` -> `['a', 'bb', 'ccc']`; doc pairs sorted by name -> `[(4, 'four'), (1, 'one'), (3, 'three'), (2, 'two')]`.
+- `partial(add, 10)(5)` -> `15`. `lru_cache(maxsize=None)` fib(30) -> `832040`, `CacheInfo(hits=28, misses=31, maxsize=None, currsize=31)`. Unhashable arg `[1]` -> `TypeError: unhashable type: 'list'`.
+- Module re-import: `import demo` twice printed "demo executing" once; `"demo" in sys.modules` True and same object; `importlib.import_module("demo")` also cached; `importlib.reload(demo)` re-ran it.
+
+Caveats:
+- Error message wording is CPython-version specific (the UnboundLocalError text is 3.11+ style); assert on exception type in tests, not message text.
+- Docs example output for `__annotations__` shows a different key order than 3.13 (3.13 prints declared order `h, e, return`); do not assert dict order. TODO-VERIFY behaviour on Python 3.14+ (deferred annotations).
+- Tutorial statement on `sys.modules` was not found on the Modules page (page summary said not mentioned); `sys.modules` caching is confirmed by local run only. TODO-VERIFY against the import system reference (docs.python.org/3/reference/import.html).
+- Pyodide's Python version may differ from 3.13; re-check messages there.
