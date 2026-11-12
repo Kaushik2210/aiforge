@@ -390,3 +390,29 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 17: Realm 1 continues with the Functions and modules quest (`python-functions-and-modules`).
+
+## Day 17: Functions and modules quest (Realm 1)
+
+Done
+- Second Realm 1 quest, `content/01-programming/python-functions-and-modules`: five-tier lesson (parameters and arguments, `*args` and `**kwargs`, keyword-only and positional-only, defaults evaluated once, how a call receives objects, name lookup, `global` and `nonlocal`, closures and the loop trap, lambda and `partial`, modules, the `__main__` guard, packages), 16 quiz items (all eight predict-output answers re-run as code), 23 flashcards, 8 common mistakes, 10 interview questions, 6 primary sources, a boss gauntlet interleaving Python basics, and two challenges (`make-counter`, `collect-items`) with hidden tests and 11 wrong-answer mutants, all caught.
+- A real accessibility fix found by axe on the new page: code blocks wider than the column scrolled but could not take keyboard focus. Every lesson code block is now a tab stop (`pre` in the MDX map).
+- Full checks: `pnpm verify` green, web build OK, 35 Playwright tests pass (the new page is in the axe route list, light and dark).
+
+Sources used
+- docs.python.org: tutorial (defining functions, scopes and namespaces, modules and packages, data structures), Programming FAQ, functools. Fetched 2026-11-12; every snippet re-run on Python 3.13.7. See `research/01-programming.md`.
+
+Review
+- A separate reviewer ran every snippet (all correct) and found: the reference counter returned an inexact first value for awkward floats and failed for non-numbers (the hint recommended it); unsourced claims (linters, `list.sort` convention) and a `lru_cache` source with no lesson text; no caveat for namespace packages, reload, or annotations; one quiz distractor that could really work; no test for `collect(1, None)`. All fixed, with a new hidden test and a new mutant for the counter.
+
+Decisions
+- No new ADR. `miniGame` is `none-yet` again; the lesson promises no game.
+
+TODO-VERIFY / not done
+- Not verified in real Pyodide: error message wording differs by Python version and Pyodide's version may differ from 3.13; the challenges assert exception types only, and CI runs 3.12.
+- `sys.modules` caching rests on a local run, not on the Modules tutorial page; the import system reference was not read.
+- Python 3.14 deferred annotations behaviour is unverified; the lesson only says annotations are not checked at run time.
+- Decorators, generators and error handling are mentioned as next steps but not taught here.
+- No manual screen-reader pass of the new page or its focusable code blocks.
+
+Tomorrow
+- Day 18: Realm 1 continues with Classes and exceptions (`python-oop-and-errors`), unless the owner asks for the next anime FX slice first.
