@@ -7,3 +7,6 @@ items:
   - quest: _platform
     claim: "Package versions in docs/adr/0001-stack.md"
     verifiedOn: 2026-11-09
+  - quest: python-basics
+    claim: "Python behaviours and docs.python.org pages cited (division, rounding, truthiness, dict order since 3.7)"
+    verifiedOn: 2026-11-12

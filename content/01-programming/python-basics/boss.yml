@@ -1,0 +1,16 @@
+id: python-basics-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - predict-alias
+  - predict-division
+  - float-equality
+  - is-vs-equals
+  - truthy-value
+  - predict-loop-else
+  - spot-bug-remove-while-looping
+  - missing-key
+challenges:
+  - word-frequencies
+  - moving-average
+interleaveFrom: []

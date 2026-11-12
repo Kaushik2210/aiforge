@@ -1,0 +1,48 @@
+- title: "The Python Tutorial: An Informal Introduction to Python"
+  url: "https://docs.python.org/3/tutorial/introduction.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "How numbers, strings, slices and lists behave, including / versus // and forgiving slices."
+
+- title: "The Python Tutorial: More Control Flow Tools"
+  url: "https://docs.python.org/3/tutorial/controlflow.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "for loops, range, break and continue, loop else, and the advice to iterate over a copy."
+
+- title: "The Python Tutorial: Data Structures"
+  url: "https://docs.python.org/3/tutorial/datastructures.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "List methods, tuples, sets, dictionaries and how sequences compare."
+
+- title: "The Python Language Reference: Data model (objects, values and types)"
+  url: "https://docs.python.org/3/reference/datamodel.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "What identity, type and value mean, and which objects are mutable."
+
+- title: "The Python Standard Library: Built-in Types (Truth Value Testing)"
+  url: "https://docs.python.org/3/library/stdtypes.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "The list of values that count as false."
+
+- title: "The Python Tutorial: Floating-Point Arithmetic: Issues and Limitations"
+  url: "https://docs.python.org/3/tutorial/floatingpoint.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "Why 0.1 + 0.2 is not 0.3 and the tools for exact or tolerant comparison."
+
+- title: "What's New In Python 3.7 (dict order)"
+  url: "https://docs.python.org/3/whatsnew/3.7.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "The point where insertion order of dictionaries became a language guarantee."
