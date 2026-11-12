@@ -4,3 +4,4 @@ export * from "./flash";
 export * from "./shake";
 export * from "./lines";
 export * from "./kit";
+export * from "./pin";

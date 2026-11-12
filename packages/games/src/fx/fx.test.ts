@@ -4,6 +4,7 @@ import { FlashLimiter } from "./flash";
 import { FxKit } from "./kit";
 import { speedLines, type SpeedLineSpec } from "./lines";
 import { MAX_HIT_STOP_MS, effectiveLevel, strength } from "./mode";
+import { pinAgainstZoom } from "./pin";
 import { decayTrauma, shakeOffset } from "./shake";
 
 const run = (kit: FxKit, totalMs: number, stepMs = 16) => {
@@ -343,5 +344,85 @@ describe("FxKit levels and caps (found by mutation testing)", () => {
     const mid = frames[9]!.zoom; // about 100 ms in
     expect(mid).toBeLessThan(peak - 0.005);
     expect(mid).toBeGreaterThan(1);
+  });
+});
+
+describe("FxKit hardening (from independent review)", () => {
+  it("a NaN time step does not poison the kit", () => {
+    const kit = new FxKit();
+    kit.update(Number.NaN);
+    kit.screenShake(1);
+    expect(kit.update(16).active).toBe(true);
+  });
+  it("infinite or huge durations are capped at five seconds", () => {
+    const kit = new FxKit();
+    kit.zoomPunch(0.1, Infinity); // ignored outright
+    kit.speedLines({ kind: "radial", cx: 0, cy: 0, w: 100, h: 100 }, Infinity);
+    kit.shockwave(0, 0, { ms: Infinity });
+    expect(run(kit, 7000, 50).at(-1)!.active).toBe(false);
+    const k2 = new FxKit();
+    k2.zoomPunch(0.1, 1e9);
+    expect(run(k2, 6000, 50).at(-1)!.active).toBe(false);
+  });
+  it("NaN positions and sizes never reach the output", () => {
+    const kit = new FxKit();
+    kit.shockwave(Number.NaN, 0);
+    kit.shockwave(0, 0, { size: Number.NaN });
+    kit.speedLines({ kind: "radial", cx: 0, cy: 0, w: Number.NaN, h: 100 }, 300);
+    const f = kit.update(16);
+    expect(f.lines).toEqual([]);
+    expect(f.shockwaves).toHaveLength(1);
+    expect(Number.isFinite(f.shockwaves[0]!.radius)).toBe(true);
+  });
+  it("a huge line count is capped", () => {
+    const kit = new FxKit();
+    kit.speedLines({ kind: "radial", cx: 0, cy: 0, w: 100, h: 100, count: 5e7 }, 300);
+    expect(kit.update(16).lines.length).toBeLessThanOrEqual(200);
+    expect(speedLines({ kind: "direction", cx: 0, cy: 0, w: 100, h: 100, count: 5e7 }, 0).length).toBeLessThanOrEqual(200);
+  });
+  it("idle frames are independent, so changing one cannot leak into the next", () => {
+    const kit = new FxKit();
+    const a = kit.update(16);
+    a.shake.x = 99;
+    a.lines.push({ x1: 0, y1: 0, x2: 1, y2: 1, width: 1 });
+    const b = kit.update(16);
+    expect(b.shake.x).toBe(0);
+    expect(b.lines).toEqual([]);
+  });
+  it("line alpha follows 1 minus the square of the progress", () => {
+    const kit = new FxKit();
+    kit.speedLines({ kind: "radial", cx: 0, cy: 0, w: 100, h: 100 }, 1000);
+    const frames = run(kit, 520, 10);
+    expect(frames[49]!.lineAlpha).toBeCloseTo(1 - 0.5 * 0.5, 2);
+  });
+  it("a still ring sits at 60 percent of its size", () => {
+    const kit = new FxKit({ reducedMotion: true });
+    kit.shockwave(0, 0, { size: 100, ms: 300 });
+    expect(kit.update(10).shockwaves[0]!.radius).toBeCloseTo(60, 9);
+  });
+  it("shake adds up: two small hits equal one hit of their sum", () => {
+    const one = new FxKit();
+    one.screenShake(0.6);
+    const two = new FxKit();
+    two.screenShake(0.3);
+    two.screenShake(0.3);
+    expect(two.update(1).shake).toEqual(one.update(1).shake);
+  });
+});
+
+describe("pinAgainstZoom", () => {
+  it("lands exactly where it started after the camera zoom is applied", () => {
+    for (const zoom of [1, 1.05, 1.1, 1.2]) {
+      const p = pinAgainstZoom(14, 10, zoom, 640, 360);
+      // Camera zoom about the centre: screen = centre + (world - centre) * zoom.
+      expect(320 + (p.x - 320) * zoom).toBeCloseTo(14, 9);
+      expect(180 + (p.y - 180) * zoom).toBeCloseTo(10, 9);
+      expect(p.scale * zoom).toBeCloseTo(1, 12);
+    }
+  });
+  it("is the identity at zoom 1 and tolerates a bad zoom", () => {
+    expect(pinAgainstZoom(14, 10, 1, 640, 360)).toEqual({ x: 14, y: 10, scale: 1 });
+    expect(pinAgainstZoom(14, 10, Number.NaN, 640, 360)).toEqual({ x: 14, y: 10, scale: 1 });
+    expect(pinAgainstZoom(14, 10, 0, 640, 360).scale).toBe(1);
   });
 });
