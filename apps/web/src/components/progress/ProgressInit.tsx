@@ -52,7 +52,7 @@ export function ProgressInit() {
         />
       )}
 
-      <div aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-50 max-w-xs">
+      <div aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-[70] max-w-xs">
         {visible && (
           <div key={visible.key} className="reveal rounded-[var(--radius)] border-2 border-primary bg-surface p-3 shadow-lg">
             {visible.xpGained > 0 && <p className="font-display text-lg text-primary">+{visible.xpGained} XP</p>}

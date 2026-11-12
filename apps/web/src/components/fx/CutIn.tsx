@@ -15,9 +15,9 @@ interface Props {
 
 /**
  * An anime-style cut-in: an angled band slides across the screen with a little
- * overshoot, holds, and slides out, with speed lines flickering on twos at the
- * sides. It is decoration only, so it is hidden from screen readers (the XP toast
- * makes the same announcement) and never takes pointer events.
+ * overshoot, holds, and slides out, with still speed lines at the sides. It is
+ * decoration only, so it is hidden from screen readers (the XP toast makes the
+ * same announcement) and never takes pointer events.
  *
  * Reduced motion and Focus mode turn the animation off in globals.css; the
  * band then just appears and disappears, and the text stays readable.

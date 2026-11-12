@@ -222,14 +222,14 @@ a, button {
 .cutin-text { position: relative; transform: skewY(3deg); text-align: center; }
 .cutin-title { margin: 0; font-size: var(--text-3xl); line-height: 1.05; letter-spacing: 0.04em; }
 .cutin-sub { margin: var(--space-1) 0 0; font-size: var(--text-lg); font-weight: 700; }
-/* Speed lines sit only at the sides, so no line is ever behind the words. */
+/* Speed lines sit only at the sides, so no line is ever behind the words, and they never flicker. */
 .cutin-lines {
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--c-on-primary) 45%, transparent) 0 2px, transparent 2px 18px);
   -webkit-mask-image: linear-gradient(90deg, #000 0 22%, transparent 32% 68%, #000 78% 100%);
   mask-image: linear-gradient(90deg, #000 0 22%, transparent 32% 68%, #000 78% 100%);
-  animation: cutin-lines 0.17s steps(2) infinite; /* a new drawing every other frame: "on twos" */
+  /* Deliberately still: stripes that flicker would be a flashing pattern (WCAG 2.3.1). The slide-in supplies the motion. */
 }
 @keyframes cutin-slide {
   0% { transform: translateX(-110%) skewY(-3deg); }
@@ -237,10 +237,6 @@ a, button {
   20% { transform: translateX(0) skewY(-3deg); }
   80% { transform: translateX(0) skewY(-3deg); }
   100% { transform: translateX(110%) skewY(-3deg); }
-}
-@keyframes cutin-lines {
-  from { background-position: 0 0; }
-  to { background-position: 18px 0; }
 }
 @media (max-width: 480px) { .cutin-title { font-size: var(--text-2xl); } }
 

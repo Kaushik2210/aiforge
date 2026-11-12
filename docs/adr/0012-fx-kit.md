@@ -34,8 +34,16 @@ written separately in each scene.
 - `FlashLimiter` allows at most 2 flash events per rolling second and refuses a
   setting above 3, the WCAG 2.2 criterion 2.3.1 limit. Nothing uses full-screen
   flashes yet; the limiter exists for the impact frame planned later.
-- The cut-in banner is `aria-hidden` (the XP toast announces the same thing), takes no
-  pointer events, never flashes, and keeps speed lines out from behind its words.
+- The cut-in banner is `aria-hidden` (the XP toast announces the same thing and sits above
+  the banner), takes no pointer events, and keeps its speed lines out from behind its words.
+  Its lines are still: an earlier version flickered them on twos, and review found that
+  striped flicker at about 12 changes per second is a flashing-pattern risk under
+  WCAG 2.3.1, so it was removed. The only motion left is the slide.
+- Inputs are validated: NaN, Infinity, huge counts and negative times are ignored or
+  capped (no effect runs longer than 5 s, at most 200 lines), so one bad call cannot
+  freeze the screen or exhaust memory.
+- In Gradient Hiker the HUD is pinned against camera zoom and the camera has a solid
+  background, so the zoom punch and shake never clip the text or show the page behind.
 
 ## Costs and limits
 - Only Gradient Hiker uses the Phaser adapter. The world map has no effects yet.
