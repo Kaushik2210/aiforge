@@ -60,7 +60,8 @@ print(a)       # [1, 2, 3]  (a changed, because it is the same list)
 
 **Changeable and fixed things.** Lists, dictionaries and sets are *mutable*:
 you can change them in place. Numbers, strings and tuples are *immutable*: any
-"change" makes a new object. Knowing which is which predicts most surprising
+"change" makes a new object. (A tuple cannot be changed, but a list stored
+inside a tuple still can.) Knowing which is which predicts most surprising
 behaviour.
 
 **Four containers do most of the work.**
@@ -133,7 +134,7 @@ A slice is forgiving: out-of-range bounds are clipped, so `"abc"[1:99]` is
 nums = [3, 1, 2]
 nums.sort()            # sorts in place and returns None
 sorted([3, 1, 2])      # returns a NEW sorted list
-copy = nums[:]         # a shallow copy, so changing copy leaves nums alone
+copy = nums[:]         # a shallow copy: adding to copy leaves nums alone
 
 (1,)                   # a one-item tuple needs the trailing comma
 {}                     # an EMPTY DICT; use set() for an empty set
@@ -144,8 +145,12 @@ d.get("b", 0)          # 0, no error
 d["b"]                 # KeyError
 ```
 
+A slice copy is *shallow*: the new list is a separate list, but if its items
+are themselves lists, those inner lists are still shared with the original.
+
 Dictionary keys must be hashable, which in practice means immutable: strings,
-numbers and tuples work, lists do not. Since Python 3.7, a dictionary keeps
+numbers and tuples of immutable items work; lists do not, and neither does a
+tuple that contains a list. Since Python 3.7, a dictionary keeps
 the order in which keys were inserted, and that is part of the language.
 
 Sequences compare item by item: `[1, 2] < [1, 3]` is True and `(1, 2) < (1, 2, 0)`

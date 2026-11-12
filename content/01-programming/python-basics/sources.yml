@@ -46,3 +46,10 @@
   primary: true
   verifiedOn: 2026-11-12
   readFor: "The point where insertion order of dictionaries became a language guarantee."
+
+- title: "The Python Standard Library: Built-in Functions (round)"
+  url: "https://docs.python.org/3/library/functions.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-12
+  readFor: "What round does with ties and with a digits argument."
