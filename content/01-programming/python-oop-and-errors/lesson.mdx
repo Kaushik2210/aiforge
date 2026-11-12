@@ -10,12 +10,12 @@ tiers: [L1, L2, L3, L4, L5]
 skipTiers: []
 coreFundamentals:
   - "A class is a blueprint and an instance is one thing built from it. Data lives in attributes, behaviour lives in methods, and `__init__` sets up each new instance. A method call `obj.m(x)` is the same as `Class.m(obj, x)`: the instance arrives as `self`."
-  - "An attribute written in the class body belongs to the class and is shared by every instance; an attribute set on `self` belongs to that one instance. Reading looks at the instance first, then the class."
+  - "An attribute written in the class body belongs to the class and is shared by every instance; an attribute set on `self` belongs to that one instance. Reading looks at the instance first, then the class (a `property` is the exception, shown below)."
   - "A subclass inherits its parent's behaviour and can override it; `super()` reaches the parent's version. `isinstance(x, C)` is true for instances of C and of its subclasses."
   - "An exception is an object that is raised to signal a problem and caught with `try`/`except`. `else` runs when nothing was raised, `finally` always runs, and the first matching `except` wins. Custom exceptions derive from `Exception`."
 coreComplexity:
   - "A mutable object stored as a class attribute (a list or a dict) is shared by all instances, so one instance's change appears in every other. Per-instance data belongs on `self` inside `__init__`."
-  - "Defining `__eq__` without `__hash__` makes instances unhashable: they cannot be set members or dictionary keys. `@dataclass` generates `__eq__` and leaves `__hash__` unset for the same reason."
+  - "Defining `__eq__` without `__hash__` makes instances unhashable: they cannot be set members or dictionary keys. `@dataclass` generates `__eq__` and, unless you ask for a frozen class, sets `__hash__` to `None` for the same reason."
   - "A bare `except:` also catches `KeyboardInterrupt` and `SystemExit`; `except Exception` does not. Swallowing errors silently turns a loud bug into wrong answers later."
   - "`return` inside `finally` overrides a `return` or an exception from the `try` block, and `finally` runs before the function actually returns."
   - "`raise NewError(...) from original` records the original as `__cause__`; a plain `raise` inside an `except` block only records it as `__context__`. Both appear in the traceback, and `from None` hides the context."
@@ -125,7 +125,8 @@ class Dog:
         self.tricks = []
 ```
 
-Reading `obj.x` looks on the instance first, then on the class. Assigning
+Reading `obj.x` looks on the instance first, then on the class (a property, below, is
+the exception). Assigning
 `obj.x = 2` creates an instance attribute that *hides* the class one:
 
 ```python
@@ -196,9 +197,11 @@ print(Point(1))                 # Point(x=1, y=0)
 Point(1) == Point(1)            # True
 ```
 
-`@dataclass` writes `__init__`, `__repr__` and `__eq__` for you. A mutable
-default such as `items: list = []` raises `ValueError` when the class is
-defined; use `field(default_factory=list)`.
+`@dataclass` writes `__init__`, `__repr__` and `__eq__` for you. An unhashable
+default such as `items: list = []` (a list, dict or set) raises `ValueError` when
+the class is defined; use `field(default_factory=list)`. Because it writes
+`__eq__`, a plain dataclass is unhashable; `@dataclass(frozen=True)` makes
+fields read-only and also generates a `__hash__`.
 
 ### Properties and "private" names
 
@@ -255,6 +258,9 @@ def f():
     finally:
         return 2           # f() gives 2
 ```
+
+Avoid writing this: it can also hide an exception raised in the `try` block, and
+newer Python versions may warn about it (TODO-VERIFY which).
 
 ### Raising, chaining, and your own exceptions
 
@@ -320,9 +326,9 @@ already changed the data.
 - **Use `with` or `finally` for clean-up**: files, locks, temporary state. Do not
   rely on a line after the `try` block running.
 - **Keep per-instance data on `self`**, never a mutable value in the class body.
-  If you write `__eq__`, write `__hash__` too (or use `@dataclass(frozen=True)`
-  when you need hashable values; TODO-VERIFY the `frozen` details before teaching
-  them).
+  If you write `__eq__`, write `__hash__` too, or use `@dataclass(frozen=True)`
+  when you need hashable values. The generated hash is built from the fields, so a
+  frozen dataclass holding a list still cannot be hashed.
 - **Prefer small classes with a clear job.** If a class only holds data, a
   dataclass is shorter and less error-prone than hand-written `__init__` and
   `__repr__`.

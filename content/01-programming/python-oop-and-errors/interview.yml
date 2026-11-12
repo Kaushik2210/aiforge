@@ -1,5 +1,5 @@
 - question: "What is the difference between a class attribute and an instance attribute, and what bug does it cause?"
-  modelAnswer: "A class attribute is written in the class body and belongs to the class, so every instance shares it. An instance attribute is set on self, usually in __init__, and belongs to one object. Reading looks on the instance first and then the class. The classic bug is a mutable class attribute such as a list: appending through one instance changes it for all instances. Per-object data belongs in __init__."
+  modelAnswer: "A class attribute is written in the class body and belongs to the class, so every instance shares it. An instance attribute is set on self, usually in __init__, and belongs to one object. Reading looks on the instance first and then the class, except that a property takes priority. The classic bug is a mutable class attribute such as a list: appending through one instance changes it for all instances. Per-object data belongs in __init__."
   followUps: ["What does assigning obj.x = 2 do when the class has x?", "When is a class attribute the right choice?"]
 
 - question: "Explain self and what really happens when you call acct.deposit(5)."
@@ -15,7 +15,7 @@
   followUps: ["What does a default repr look like?", "What does an f-string use?"]
 
 - question: "Why does defining __eq__ make an object unhashable, and how do you fix it?"
-  modelAnswer: "Objects that compare equal must have equal hashes. If you define __eq__ without __hash__, Python sets __hash__ to None rather than keep a hash that no longer matches your equality, so the object cannot be a set member or dictionary key. Define __hash__ consistently with __eq__, or use a frozen dataclass for immutable value objects."
+  modelAnswer: "Objects that compare equal must have equal hashes. If you define __eq__ without __hash__, Python sets __hash__ to None rather than keep a hash that no longer matches your equality, so the object cannot be a set member or dictionary key. Define __hash__ consistently with __eq__, or use a frozen dataclass, which generates one, for immutable value objects."
   followUps: ["Why must equal objects hash equally?", "Should mutable objects be hashable?"]
 
 - question: "Walk through try, except, else and finally."
@@ -31,7 +31,7 @@
   followUps: ["Why not derive from BaseException?", "How do you hide the original cause on purpose?"]
 
 - question: "When would you use a dataclass, and what are its pitfalls?"
-  modelAnswer: "Use @dataclass for classes that mainly hold data: it generates __init__, __repr__ and __eq__ from annotated fields, which removes boilerplate. Pitfalls: a mutable default like a list is rejected with ValueError and needs field(default_factory=list), and because it defines __eq__ the instance is unhashable unless you make it frozen."
+  modelAnswer: "Use @dataclass for classes that mainly hold data: it generates __init__, __repr__ and __eq__ from annotated fields, which removes boilerplate. Pitfalls: an unhashable default such as a list is rejected with ValueError and needs field(default_factory=list), and because it defines __eq__ the instance is unhashable unless you make it frozen (or ask for unsafe_hash)."
   followUps: ["What does frozen=True change?", "How do you add computed fields?"]
 
 - question: "What is a property, and does Python have private attributes?"

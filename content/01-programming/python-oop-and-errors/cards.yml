@@ -3,7 +3,7 @@
 - { id: c-self, front: "What is self?", back: "The instance the method was called on. acct.deposit(5) is Account.deposit(acct, 5)." }
 - { id: c-class-attr, front: "What happens to a list written in the class body?", back: "It belongs to the class and is shared by every instance." }
 - { id: c-instance-attr, front: "Where does per-instance data go?", back: "On self, inside __init__ (self.items = [])." }
-- { id: c-lookup-order, front: "Where does obj.x look first?", back: "On the instance, then on the class." }
+- { id: c-lookup-order, front: "Where does obj.x look first?", back: "On the instance, then on the class (a property is the exception: it takes priority)." }
 - { id: c-shadow, front: "What does obj.x = 2 do when the class has x = 1?", back: "Creates an instance attribute that hides the class one; the class value stays 1." }
 - { id: c-super, front: "What does super() give you?", back: "Access to the parent class's version of a method, for example super().__init__()." }
 - { id: c-isinstance, front: "isinstance(x, C) is true when?", back: "x is an instance of C or of a subclass of C." }
