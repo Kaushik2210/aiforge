@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { CutIn } from "@/components/fx/CutIn";
 import { useProgress } from "@/lib/progress-store";
 
 /** Loads saved progress once, shows storage notices and the XP reward toast. */
@@ -10,6 +11,8 @@ export function ProgressInit() {
   const dismiss = useProgress((s) => s.dismissNotice);
   const reward = useProgress((s) => s.reward);
   const [visible, setVisible] = useState<typeof reward>(null);
+  const [cutIn, setCutIn] = useState<typeof reward>(null);
+  const endCutIn = useCallback(() => setCutIn(null), []);
 
   useEffect(() => {
     void init();
@@ -18,6 +21,7 @@ export function ProgressInit() {
   useEffect(() => {
     if (!reward) return;
     setVisible(reward);
+    if (reward.levelUp || reward.rankUp) setCutIn(reward);
     const t = setTimeout(() => setVisible(null), 4500);
     return () => clearTimeout(t);
   }, [reward]);
@@ -37,6 +41,15 @@ export function ProgressInit() {
             </button>
           </div>
         </div>
+      )}
+
+      {cutIn && (
+        <CutIn
+          key={cutIn.key}
+          title={cutIn.levelUp ? "LEVEL UP" : "NEW RANK"}
+          subtitle={cutIn.levelUp ? `Level ${cutIn.levelUp.to}` : cutIn.rankUp ? String(cutIn.rankUp.to) : undefined}
+          onDone={endCutIn}
+        />
       )}
 
       <div aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-50 max-w-xs">
