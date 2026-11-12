@@ -17,7 +17,13 @@ const LessonLink = ({ href, ...rest }: React.ComponentPropsWithoutRef<"a">) => <
 
 const LessonTitle = (props: React.ComponentPropsWithoutRef<"h2">) => <h2 {...props} />;
 
-export const lessonComponents = { Callout, Diagram, GradientDemo, Step, h1: LessonTitle, a: LessonLink };
+/**
+ * A code block that is wider than its column scrolls sideways. Keyboard users can only
+ * scroll it if it can take focus (WCAG 2.1.1), so every code block is a tab stop.
+ */
+const LessonCode = (props: React.ComponentPropsWithoutRef<"pre">) => <pre tabIndex={0} {...props} />;
+
+export const lessonComponents = { Callout, Diagram, GradientDemo, Step, h1: LessonTitle, a: LessonLink, pre: LessonCode };
 
 /** Compile lesson MDX (frontmatter already removed) into a React component. */
 export async function compileLesson(source: string) {
