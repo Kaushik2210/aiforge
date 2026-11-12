@@ -6,8 +6,8 @@ browser, anime-flavoured arcade mini-games that make hard ideas tangible, and
 real depth: intuition, mechanics, build-it-yourself, production failure modes,
 and the research frontier.
 
-> Status: early. One reference quest (*Gradient Descent*) is built end to end and
-> is the quality benchmark for the rest: lesson, in-browser Python challenges,
+> Status: early. Two quests exist (*Gradient Descent*, the quality benchmark, and
+> *Python Basics*, the first of Realm 1). The reference quest is built end to end: lesson, in-browser Python challenges,
 > quiz, flashcards, a playable mini-game, a world map, a skill tree, a Review
 > Tavern, a Daily Quest and a dashboard. The 23-realm syllabus is planned in
 > [PLAN.md](PLAN.md); progress is logged in [DAILY_LOG.md](DAILY_LOG.md).
@@ -23,7 +23,9 @@ and the research frontier.
 - **Gentle gamification**: XP, streaks with freezes, bosses and spaced
   repetition that support learning and never lock you out.
 - **Original anime-inspired art direction**: all characters, mascots and
-  backgrounds are original to this project.
+  backgrounds are original to this project. Effects (hit-stop, shake, speed
+  lines, cut-in banners) switch off with reduced motion or Focus mode and never
+  flash.
 
 ## Repository layout
 
@@ -33,9 +35,9 @@ and the research frontier.
 | `packages/content-schema` | Zod schemas and the `content:validate` CLI |
 | `packages/engine` | XP, streak, SRS, mastery (pure TypeScript) |
 | `packages/runner` | Pyodide worker and test harness |
-| `packages/minitorch` | Teaching tensor/autograd library (planned) |
-| `packages/mockllm` | Deterministic LLM simulator for offline lessons (planned) |
-| `packages/games` | Phaser mini-games |
+| `packages/minitorch` | Teaching tensor and autograd library in pure Python |
+| `packages/mockllm` | Deterministic LLM, embedding and vector-store simulator for offline lessons |
+| `packages/games` | Phaser mini-games and the FX kit for anime-style game feel (see [ADR 0012](docs/adr/0012-fx-kit.md)) |
 | `content/` | Lessons, quizzes, cards, challenges |
 | `research/` | Source notes behind each lesson |
 | `docs/adr/` | Architecture decision records |
