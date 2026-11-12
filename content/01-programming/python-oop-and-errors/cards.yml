@@ -1,0 +1,24 @@
+- { id: c-class-instance, front: "Class versus instance?", back: "A class is the blueprint; an instance is one object built from it." }
+- { id: c-init, front: "What is __init__ for?", back: "It sets up each new instance, usually by storing attributes on self." }
+- { id: c-self, front: "What is self?", back: "The instance the method was called on. acct.deposit(5) is Account.deposit(acct, 5)." }
+- { id: c-class-attr, front: "What happens to a list written in the class body?", back: "It belongs to the class and is shared by every instance." }
+- { id: c-instance-attr, front: "Where does per-instance data go?", back: "On self, inside __init__ (self.items = [])." }
+- { id: c-lookup-order, front: "Where does obj.x look first?", back: "On the instance, then on the class." }
+- { id: c-shadow, front: "What does obj.x = 2 do when the class has x = 1?", back: "Creates an instance attribute that hides the class one; the class value stays 1." }
+- { id: c-super, front: "What does super() give you?", back: "Access to the parent class's version of a method, for example super().__init__()." }
+- { id: c-isinstance, front: "isinstance(x, C) is true when?", back: "x is an instance of C or of a subclass of C." }
+- { id: c-repr-str, front: "__repr__ versus __str__?", back: "__repr__ is the unambiguous form (used in lists and by repr); __str__ is the friendly form used by print." }
+- { id: c-eq-hash, front: "What happens if you define __eq__ but not __hash__?", back: "__hash__ becomes None, so instances are unhashable (no sets, no dict keys)." }
+- { id: c-dataclass, front: "What does @dataclass write for you?", back: "__init__, __repr__ and __eq__ from the annotated fields." }
+- { id: c-dataclass-default, front: "How do you give a dataclass field a fresh list default?", back: "field(default_factory=list). A plain [] default raises ValueError." }
+- { id: c-property, front: "What is a property with no setter?", back: "A read-only attribute; assigning to it raises AttributeError." }
+- { id: c-underscore, front: "What does a leading underscore mean on an attribute?", back: "By convention: internal, please do not use. Python does not enforce it." }
+- { id: c-try-order, front: "Order of try, except, else, finally?", back: "try runs; if it raises, a matching except runs; else runs only if nothing was raised; finally always runs." }
+- { id: c-first-match, front: "Which except clause runs when several match?", back: "The first one that matches, in the order written. Put specific ones first." }
+- { id: c-bare-except, front: "What does a bare except: catch that except Exception does not?", back: "KeyboardInterrupt and SystemExit." }
+- { id: c-finally-return, front: "What does a return inside finally do?", back: "It overrides a return or exception from the try block." }
+- { id: c-raise-from, front: "What does raise X from Y do?", back: "Sets Y as the cause of X, shown in the traceback. 'from None' hides the context." }
+- { id: c-custom-exc, front: "How do you define your own exception?", back: "class MyError(Exception): ... Derive from Exception, not BaseException." }
+- { id: c-keyerror, front: "What do e.args hold for KeyError('k')?", back: "('k',): the missing key." }
+- { id: c-value-error, front: "When is ValueError the right choice?", back: "The argument has the right type but an unacceptable value, such as int('x')." }
+- { id: c-with, front: "Why use with open(path) as f?", back: "The file is closed for you, even if an error is raised inside the block." }

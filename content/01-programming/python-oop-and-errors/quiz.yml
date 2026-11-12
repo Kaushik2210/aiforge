@@ -1,0 +1,336 @@
+- id: predict-shared-class-list
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    class Dog:
+        tricks = []
+
+        def add(self, trick):
+            self.tricks.append(trick)
+
+    a = Dog()
+    b = Dog()
+    a.add("sit")
+    print(b.tricks)
+  options:
+    - "[]"
+    - "None"
+    - "An error"
+    - "['sit']"
+  answer: 3
+  explanation: "tricks is written in the class body, so it is one list belonging to the class. a.add appends to that shared list, and b reads the same one."
+  whyWrong:
+    "0": "That would be right if each dog had its own list created in __init__, which this code does not do."
+    "1": "b.tricks is a list, not None."
+    "2": "Nothing raises; reading a class attribute through an instance is allowed."
+
+- id: predict-shadowing
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    class C:
+        x = 1
+
+    c = C()
+    c.x = 2
+    print(C.x, C().x, c.x)
+  options:
+    - "1 1 2"
+    - "2 2 2"
+    - "1 2 2"
+    - "2 1 1"
+  answer: 0
+  explanation: "c.x = 2 creates an instance attribute on c that hides the class attribute. The class and new instances still see 1."
+  whyWrong:
+    "1": "Assigning through an instance never changes the class attribute."
+    "2": "A brand-new instance has no x of its own, so it sees the class value 1."
+    "3": "c has its own x equal to 2, so the last value is 2."
+
+- id: method-call-equivalence
+  question: "If acct is an Account, which call does the same thing as acct.deposit(5)?"
+  options:
+    - "Account.deposit(5)"
+    - "deposit(acct, 5)"
+    - "Account.deposit(acct, 5)"
+    - "acct.Account.deposit(5)"
+  answer: 2
+  explanation: "A method called on an instance receives that instance as self, so acct.deposit(5) is Account.deposit(acct, 5)."
+  whyWrong:
+    "0": "Called on the class with only 5, there is no instance to be self, so 5 would be taken as self and amount would be missing."
+    "1": "deposit is a method of the class, not a free function in scope."
+    "3": "Instances do not have an Account attribute."
+
+- id: predict-super-order
+  kind: predict-output
+  question: "What does B() print?"
+  code: |
+    class A:
+        def __init__(self):
+            print("A")
+
+    class B(A):
+        def __init__(self):
+            super().__init__()
+            print("B")
+
+    B()
+  options:
+    - "B then A"
+    - "A then B"
+    - "Only B"
+    - "Only A"
+  answer: 1
+  explanation: "B.__init__ calls super().__init__() first, which runs A's setup and prints A, and then it prints B."
+  whyWrong:
+    "0": "The print of B comes after the super call, not before."
+    "2": "super().__init__() runs A's __init__, so A is printed too."
+    "3": "B's own print still runs after the super call."
+
+- id: predict-isinstance
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    class A:
+        pass
+
+    class B(A):
+        pass
+
+    print(isinstance(B(), A), isinstance(A(), B))
+  options:
+    - "True False"
+    - "True True"
+    - "False True"
+    - "False False"
+  answer: 0
+  explanation: "A B instance is also an A, so the first check is True. A plain A is not a B, so the second is False."
+  whyWrong:
+    "1": "A parent instance is not an instance of its subclass."
+    "2": "That has the two answers the wrong way round."
+    "3": "isinstance is true for instances of subclasses."
+
+- id: repr-vs-str
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    class P:
+        def __repr__(self):
+            return "P()"
+
+        def __str__(self):
+            return "a P"
+
+    print(P())
+    print([P()])
+  options:
+    - "a P then [a P]"
+    - "P() then [P()]"
+    - "a P then [P()]"
+    - "P() then [a P]"
+  answer: 2
+  explanation: "print uses __str__ for the object itself, but a list shows its items with __repr__."
+  whyWrong:
+    "0": "Items inside a list are shown with __repr__, not __str__."
+    "1": "print(P()) uses __str__ when it exists."
+    "3": "This swaps the two: print of the object uses __str__ and the list uses __repr__."
+
+- id: eq-without-hash
+  question: "A class defines __eq__ but not __hash__. What happens with {Thing()} where Thing is that class?"
+  options:
+    - "It builds a set with one item"
+    - "It builds an empty set"
+    - "It raises AttributeError"
+    - "It raises TypeError because the instance is unhashable"
+  answer: 3
+  explanation: "Defining __eq__ alone sets __hash__ to None, so instances cannot be set members or dictionary keys."
+  whyWrong:
+    "0": "That works for a class with the default hash, but defining __eq__ removed it."
+    "1": "A set display with one element never builds an empty set."
+    "2": "The error is TypeError: unhashable type."
+
+- id: predict-try-order
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    try:
+        print("try")
+        raise ValueError
+    except ValueError:
+        print("except")
+    else:
+        print("else")
+    finally:
+        print("finally")
+  options:
+    - "try, except, finally"
+    - "try, except, else, finally"
+    - "try, else, finally"
+    - "try, finally"
+  answer: 0
+  explanation: "The ValueError is caught, so except runs. else is skipped because an exception happened, and finally always runs."
+  whyWrong:
+    "1": "else runs only when the try block finishes without raising."
+    "2": "That is the order when nothing is raised."
+    "3": "The matching except block runs before finally."
+
+- id: predict-finally-return
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    def f():
+        try:
+            return 1
+        finally:
+            return 2
+
+    print(f())
+  options:
+    - "1"
+    - "2"
+    - "None"
+    - "An error"
+  answer: 1
+  explanation: "finally runs before the function actually returns, and a return inside it replaces the earlier one."
+  whyWrong:
+    "0": "The return 1 is set aside while finally runs, and then replaced."
+    "2": "Both blocks return a value, so there is no None."
+    "3": "Two return statements like this are legal."
+
+- id: predict-except-order
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    class MyErr(Exception):
+        pass
+
+    class SubErr(MyErr):
+        pass
+
+    try:
+        raise SubErr()
+    except MyErr:
+        print("base")
+    except SubErr:
+        print("sub")
+  options:
+    - "sub"
+    - "Nothing"
+    - "base then sub"
+    - "base"
+  answer: 3
+  explanation: "except clauses are checked in order and the first match wins. A SubErr is a MyErr, so the base clause catches it."
+  whyWrong:
+    "0": "The more specific clause is never reached because the base class matched first."
+    "1": "The exception is caught, and the matching clause prints."
+    "2": "Only one except clause runs."
+
+- id: bare-except
+  question: "Which of these also catches KeyboardInterrupt (Ctrl+C)?"
+  options:
+    - "except:"
+    - "except Exception:"
+    - "except ValueError:"
+    - "except (TypeError, KeyError):"
+  answer: 0
+  explanation: "A bare except catches everything, including KeyboardInterrupt and SystemExit. except Exception leaves those alone."
+  whyWrong:
+    "1": "KeyboardInterrupt does not derive from Exception, so this does not catch it."
+    "2": "It only catches ValueError and its subclasses."
+    "3": "It only catches the two named types."
+
+- id: exception-cause
+  question: "What does raise ConfigError('bad') from original do that a plain raise inside except does not?"
+  options:
+    - "It runs the finally block twice"
+    - "It hides the original exception completely"
+    - "It records original as the __cause__ of the new exception"
+    - "It converts the error into a warning"
+  answer: 2
+  explanation: "raise X from Y sets Y as the explicit cause, so the traceback shows both. A plain raise inside except only records the earlier exception as context."
+  whyWrong:
+    "0": "finally behaves the same either way."
+    "1": "Hiding the context is what 'from None' does."
+    "3": "Exceptions are never converted into warnings by raise."
+
+- id: spot-bug-bare-except
+  kind: spot-bug
+  question: "This function should return a file's text, but sometimes it quietly returns None and nobody notices. What is the bug?"
+  code: |
+    def load(path):
+        try:
+            return open(path).read()
+        except:
+            pass
+  options:
+    - "open cannot be used inside try"
+    - "The bare except swallows every error, so failures turn into a silent None"
+    - "read() needs a size argument"
+    - "pass is not allowed in except"
+  answer: 1
+  explanation: "A bare except catches every error, even a typo or Ctrl+C, and pass hides it. The function then returns None. Catch the specific error you can handle, such as FileNotFoundError, or let it propagate."
+  whyWrong:
+    "0": "open works fine inside try; that is where you would expect errors."
+    "2": "read() with no argument reads the whole file."
+    "3": "pass is allowed; it is just a bad idea here."
+
+- id: dataclass-mutable-default
+  question: "What happens when Python runs this class definition?   @dataclass class A: xs: list = []"
+  options:
+    - "It works, and every instance gets its own list"
+    - "It raises SyntaxError"
+    - "It works, and every instance shares one list"
+    - "It raises ValueError because a mutable default is not allowed"
+  answer: 3
+  explanation: "dataclass rejects a list default at class definition to stop the shared-default bug. Use field(default_factory=list) for a fresh list per instance."
+  whyWrong:
+    "0": "A plain list default would not create separate lists; dataclass refuses it and offers default_factory instead."
+    "1": "The syntax is valid; the error is a ValueError raised at definition time."
+    "2": "Plain classes would share it, but dataclass raises before that can happen."
+
+- id: keyerror-args
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    try:
+        {}["k"]
+    except KeyError as e:
+        print(e.args)
+  options:
+    - "()"
+    - "'k'"
+    - "('k',)"
+    - "None"
+  answer: 2
+  explanation: "KeyError is raised with the missing key as its argument, so args is the one-item tuple ('k',)."
+  whyWrong:
+    "0": "The exception carries the key, so args is not empty."
+    "1": "args is always a tuple, so it prints as ('k',)."
+    "3": "Exceptions store their arguments in args."
+
+- id: property-readonly
+  question: "A class defines a property celsius with a getter and no setter. What does t.celsius = 5 do?"
+  options:
+    - "Raises AttributeError"
+    - "Sets the attribute normally"
+    - "Raises ValueError"
+    - "Silently does nothing"
+  answer: 0
+  explanation: "A property without a setter is read-only; assigning to it raises AttributeError."
+  whyWrong:
+    "1": "The property intercepts the assignment, and without a setter it refuses it."
+    "2": "The error type for a refused attribute assignment is AttributeError."
+    "3": "Python does not silently ignore the assignment; it raises."
+
+- id: custom-exception-base
+  question: "From which class should your own exception normally derive?"
+  options:
+    - "BaseException"
+    - "Exception"
+    - "object"
+    - "str"
+  answer: 1
+  explanation: "Custom exceptions derive from Exception, so a normal except Exception (or your own base class) can catch them, while KeyboardInterrupt and SystemExit stay separate."
+  whyWrong:
+    "0": "BaseException is reserved for system-level exits such as KeyboardInterrupt; code that catches Exception would miss yours."
+    "2": "An exception must derive from BaseException to be raised."
+    "3": "A string cannot be raised."
