@@ -1,0 +1,39 @@
+- question: "Why is using a list as a default argument a bug, and how do you fix it?"
+  modelAnswer: "A default value is evaluated once, when the function is defined, and the same object is reused on every call that omits the argument. A mutable default such as a list is therefore shared, so appending in one call shows up in the next. The fix is to default to None and create a new list inside the function when the argument is None."
+  followUps: ["Why is None a good sentinel?", "When is a shared default deliberately useful?"]
+
+- question: "Explain how arguments are passed in Python. Does the function see my variable or a copy?"
+  modelAnswer: "The function receives references to the same objects, often described as call by object reference or call by assignment. If the object is mutable, such as a list, changes made through the parameter are visible to the caller. Rebinding the parameter name to a different object only changes the function's local name, so the caller does not see it."
+  followUps: ["How do you avoid changing the caller's list?", "What about immutable arguments such as ints?"]
+
+- question: "Describe Python's name lookup order and what global and nonlocal do."
+  modelAnswer: "Python looks a name up in the local scope, then in any enclosing functions from the nearest outward, then in the module's global scope, then in the built-ins. Assigning to a name binds it in the current scope, which makes it local unless you declare global to rebind a module-level name or nonlocal to rebind a variable of an enclosing function."
+  followUps: ["Why does x += 1 raise UnboundLocalError?", "When would you avoid global?"]
+
+- question: "What is a closure, and give a use for one."
+  modelAnswer: "A closure is a function defined inside another function that keeps access to the outer function's variables after the outer function has returned. A typical use is a counter or a factory: make_counter returns an inner function that uses nonlocal to update a count that only that counter owns, so each counter has its own state without a global."
+  followUps: ["How is this different from a class with an attribute?", "What is the late-binding pitfall?"]
+
+- question: "Why do lambdas created in a loop often all return the same value, and how do you fix it?"
+  modelAnswer: "A lambda that uses the loop variable looks it up when the lambda is called, not when it is created. By the time you call them, the loop has finished and the variable holds its last value, so all of them return that value. Capture the value at creation by binding it as a default argument, lambda i=i: i, or use functools.partial."
+  followUps: ["Does a list comprehension create a new scope?", "How would partial solve it?"]
+
+- question: "What do *args and **kwargs do, and what are keyword-only parameters?"
+  modelAnswer: "*args collects extra positional arguments into a tuple and **kwargs collects extra keyword arguments into a dictionary. A bare * in a parameter list makes every parameter after it keyword-only, so it must be passed by name; a / makes the parameters before it positional-only. Keyword-only parameters make flags readable at the call site and prevent swapped positional arguments."
+  followUps: ["How do you forward arguments to another function?", "Give a function where positional-only helps."]
+
+- question: "When does the code in a module run, and what is the __main__ guard for?"
+  modelAnswer: "A module's top-level code runs the first time it is imported, and later imports reuse the already loaded module. A file run directly as a script has __name__ equal to __main__, so wrapping script code in if __name__ == '__main__' makes it run only when executed, not when the file is imported. That is why heavy work should live inside functions."
+  followUps: ["What happens on a second import?", "How do you force a reload?"]
+
+- question: "How does Python find a module you import?"
+  modelAnswer: "Python first checks the built-in modules, then searches the folders listed in sys.path, which begin with the directory of the script being run and then include PYTHONPATH entries and the installation's defaults. The first match wins, so a file of yours named like a standard-library module can hide the real one."
+  followUps: ["How would you see which file was imported?", "What is a package?"]
+
+- question: "Should a function modify its argument in place or return a new object?"
+  modelAnswer: "Either can be right, but the function should do one consistently and say so in the docstring, because both look the same at the call site. Returning a new object is easier to reason about and test. Editing in place avoids a copy for large data, as list.sort does, and by convention such methods return None so nobody mistakes them for returning a new value."
+  followUps: ["Why does list.sort return None?", "How do you copy a list safely?"]
+
+- question: "What is functools.partial and when would you use it?"
+  modelAnswer: "partial takes a function and some arguments and returns a new callable with those arguments already filled in, so partial(add, 10) is a function that adds 10. Use it to adapt a function to an interface that passes fewer arguments, for example a callback, or as an alternative to a lambda that fixes a value at creation time."
+  followUps: ["How does it differ from a lambda?", "What does lru_cache add?"]

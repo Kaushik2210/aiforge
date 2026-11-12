@@ -1,0 +1,31 @@
+- mistake: "Using a mutable object (a list or dict) as a default argument."
+  why: "The default is created once when the function is defined and shared by every call that omits the argument, so changes leak between calls."
+  detect: "A function returns data from earlier calls, or behaves differently the second time. Print f.__defaults__ to see the shared object."
+
+- mistake: "Testing 'if not bucket' when an empty list is a valid argument."
+  why: "An empty list is falsy, so the check treats a list the caller passed in as 'nothing given' and replaces it with a new one."
+  detect: "The caller's empty list never fills up. Test 'bucket is None' instead."
+
+- mistake: "Assigning to a module-level variable inside a function without global."
+  why: "Assignment makes the name local for the whole function, so reading it first raises UnboundLocalError, and writing it leaves the module-level value unchanged."
+  detect: "UnboundLocalError, or a global that never changes. Prefer passing values in and returning results."
+
+- mistake: "Expecting a function to change the caller's variable by rebinding its parameter."
+  why: "Rebinding the parameter name only affects the local name. Only mutating a shared mutable object is visible to the caller."
+  detect: "The caller's value is unchanged after the call. Return the new value and assign it at the call site."
+
+- mistake: "Building lambdas or inner functions in a loop that all use the loop variable."
+  why: "Closures look the variable up when called, so every function sees its last value."
+  detect: "All the functions return the same result. Bind the value as a default argument (lambda i=i: i) or use functools.partial."
+
+- mistake: "Forgetting return and using the result."
+  why: "A function that reaches the end without return gives back None, so later code fails far from the cause."
+  detect: "A 'NoneType' error on a later line. Print the function's result right after the call."
+
+- mistake: "Putting slow or noisy code at the top level of a module."
+  why: "Top-level code runs on import, so every program that imports the module pays for it and sees the output."
+  detect: "Importing a module is slow or prints something. Move the work into a function and guard scripts with if __name__ == '__main__'."
+
+- mistake: "Naming your own file like a standard-library module, such as random.py."
+  why: "Python searches built-in modules first, then sys.path, which starts with the script's folder, so your file can hide the real module."
+  detect: "An import error about a missing name from a standard module, or odd behaviour. Print the module's __file__ to see which file was loaded."
