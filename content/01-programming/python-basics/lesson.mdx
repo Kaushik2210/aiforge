@@ -1,0 +1,243 @@
+---
+id: python-basics
+title: Python Basics
+realm: 1
+zone: Python foundations
+prerequisites: []
+estimatedMinutes: 150
+verifiedOn: 2026-11-12
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "A variable is a name attached to an object. Assignment attaches a name; it never copies the object."
+  - "Objects are either mutable (list, dict, set) or immutable (int, float, str, tuple). Two names can point at the same mutable object, so a change through one name is visible through the other."
+  - "Python has a small set of built-in containers: list (ordered, changeable), tuple (ordered, fixed), dict (key to value, keeps insertion order) and set (unique items). Most programs are these four plus loops."
+  - "`for` loops walk over any iterable; `range(stop)` stops before `stop`; `break`, `continue` and the loop `else` control the flow."
+coreComplexity:
+  - "`==` asks whether two objects have equal values; `is` asks whether they are the same object. Using `is` for value checks works by accident on some small values and fails on others, because sharing of small numbers and strings is implementation-dependent."
+  - "Floats are binary fractions, so many decimals (0.1, 0.2, 0.3) have no exact form and `0.1 + 0.2 == 0.3` is False. Compare with `math.isclose`, or use `Decimal` or `Fraction` when exactness matters."
+  - "`/` always returns a float, `//` floors toward negative infinity, and `%` is the matching remainder, so `-7 // 2` is -4 and `-7 % 3` is 2. Languages that truncate toward zero give different answers."
+  - "Changing a list while looping over it skips items. Loop over a copy or build a new list."
+  - "`round()` sends exact ties to the even neighbour (`round(2.5)` is 2), and it cannot undo binary representation (`round(2.675, 2)` is 2.67)."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain to a friend why changing one list can unexpectedly change another, and show two ways to avoid it."
+  rubric:
+    - "Says assignment attaches a second name to the same list object instead of copying it."
+    - "Names that lists are mutable, so a change through either name shows up through both."
+    - "Gives two fixes, for example a slice copy `a[:]`, `a.copy()`, or building a new list."
+miniGame: none-yet
+bossId: python-basics-boss
+---
+
+# Python Basics
+
+> **Realm 1, Programming Fundamentals.** Guide: *Mira*, the lantern-bearer
+> (an original AIForge character), who has crossed over from the Loss Mountains
+> to teach you the language every later realm is written in.
+
+Almost everything in AI engineering is written in Python: data cleaning,
+training loops, evaluation scripts, the glue around an API. You do not need all
+of the language to start. You need a small core, understood properly, because
+the bugs that hurt later are almost all misunderstandings of this core.
+
+---
+
+## L1. Intuition
+
+**Names are sticky labels, not boxes.** When you write `x = 5`, Python makes an
+object (the number 5) and sticks the label `x` on it. When you write `y = x`
+you stick a second label on the same object. Nothing is copied.
+
+That picture is harmless for numbers, because numbers never change. It matters
+the moment the object *can* change:
+
+```python
+a = [1, 2]
+b = a          # a second label on the same list
+b.append(3)
+print(a)       # [1, 2, 3]  (a changed, because it is the same list)
+```
+
+**Changeable and fixed things.** Lists, dictionaries and sets are *mutable*:
+you can change them in place. Numbers, strings and tuples are *immutable*: any
+"change" makes a new object. Knowing which is which predicts most surprising
+behaviour.
+
+**Four containers do most of the work.**
+
+| container | what it is | example |
+|---|---|---|
+| list | ordered, changeable | `[3, 1, 2]` |
+| tuple | ordered, fixed | `(3, 1, 2)` |
+| dict | key to value, keeps the order you added keys | `{"lr": 0.1}` |
+| set | unique items, no duplicates | `{1, 2, 3}` |
+
+<Callout type="warn" title="Where the label picture breaks">
+Labels explain aliasing, but not everything. Whether two separate-looking
+values (like two small numbers that happen to be equal) share one object is up
+to the Python implementation. Never write code that depends on it; compare
+values with `==`.
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### Numbers
+
+```python
+7 / 2      # 3.5   (/ always gives a float)
+6 / 3      # 2.0
+7 // 2     # 3     (// floors)
+-7 // 2    # -4    (floors toward negative infinity, not toward zero)
+-7 % 3     # 2     (the remainder that matches //)
+2 ** 3     # 8     (power)
+-3 ** 2    # -9    (** binds tighter than the minus sign)
+```
+
+Mixing an `int` with a `float` gives a `float`.
+
+**Floats are approximate.** Computers store floats as binary fractions, and
+0.1, 0.2 and 0.3 have no exact binary form.
+
+```python
+0.1 + 0.2            # 0.30000000000000004
+0.1 + 0.2 == 0.3     # False
+import math
+math.isclose(0.1 + 0.2, 0.3)   # True
+```
+
+`round()` sends an exact tie to the even neighbour: `round(0.5)` is 0,
+`round(1.5)` is 2 and `round(2.5)` is 2. And `round(2.675, 2)` is 2.67
+because 2.675 is not exactly representable.
+
+### Strings and slicing
+
+Strings are immutable. Indexing starts at 0, negative indices count from the
+right, and a slice `s[start:stop]` includes `start` and excludes `stop`.
+
+```python
+s = "hello"
+s[1:3]     # "el"
+s[-1]      # "o"
+s[::-1]    # "olleh"
+```
+
+A slice is forgiving: out-of-range bounds are clipped, so `"abc"[1:99]` is
+`"bc"` and `"abc"[5:]` is `""`. A single index is strict: `"abc"[5]` raises
+`IndexError`.
+
+### Lists, tuples, dicts and sets
+
+```python
+nums = [3, 1, 2]
+nums.sort()            # sorts in place and returns None
+sorted([3, 1, 2])      # returns a NEW sorted list
+copy = nums[:]         # a shallow copy, so changing copy leaves nums alone
+
+(1,)                   # a one-item tuple needs the trailing comma
+{}                     # an EMPTY DICT; use set() for an empty set
+
+d = {"a": 1}
+d["a"]                 # 1
+d.get("b", 0)          # 0, no error
+d["b"]                 # KeyError
+```
+
+Dictionary keys must be hashable, which in practice means immutable: strings,
+numbers and tuples work, lists do not. Since Python 3.7, a dictionary keeps
+the order in which keys were inserted, and that is part of the language.
+
+Sequences compare item by item: `[1, 2] < [1, 3]` is True and `(1, 2) < (1, 2, 0)`
+is True because a prefix is smaller.
+
+### Loops
+
+```python
+for n in range(3):          # 0, 1, 2   (range stops BEFORE 3)
+    print(n)
+
+list(range(5, 0, -2))       # [5, 3, 1] (a negative step counts down)
+
+for n in [1, 2, 3]:
+    if n == 2:
+        break               # leave the loop now
+else:
+    print("done")           # runs only if the loop never hit break
+```
+
+`range` is lazy: it produces numbers as you ask, it is not a list.
+
+### Truthiness
+
+In an `if`, these count as false: `None`, `False`, zero of any number type
+(`0`, `0.0`), and empty containers (`""`, `[]`, `()`, `{}`, `set()`,
+`range(0)`). Everything else is true, including the string `"0"` and the list
+`[0]`.
+
+<Step prompt="what does print(-7 // 2, -7 % 3) print?">
+`-4 2`. Floor division rounds -3.5 down to -4. For the remainder, `-7 % 3`
+is 2 because `-3 * 3 + 2` is -7: the remainder always matches the floored
+quotient, so it takes the sign of the divisor.
+</Step>
+
+---
+
+## L3. Build it
+
+Two short challenges. Run them in the browser editor (Pyodide), or locally with
+`python tests.py <file>`.
+
+1. **`word-frequencies`**: count the words in a sentence, ignoring case and
+   punctuation at the ends, and return `(word, count)` pairs, most frequent
+   first, ties alphabetical. You will use `str.split`, `strip`, a dictionary
+   with `get`, and `sorted` with a key that returns a tuple.
+2. **`moving-average`**: average every run of `window` consecutive numbers.
+   This is how you read a noisy training-loss curve. You will use slicing,
+   `sum`, a list comprehension, and you must not change the list you were
+   given.
+
+**Why a tuple as a sort key.** `sorted` compares keys, and tuples compare item
+by item. Returning `(-count, word)` sorts by count from high to low, and only
+looks at the word when counts tie.
+
+---
+
+## L4. Production reality
+
+- **Never compare floats with `==`.** Use `math.isclose` or compare within a
+  tolerance. A test that passed on your machine and fails on another is often
+  exactly this.
+- **Do not change what you were given.** A function that sorts or edits its
+  argument in place changes the caller's data. Copy first (`values[:]`,
+  `list(values)`) or build a new list.
+- **Do not change a collection while looping over it.** Removing items from a
+  list inside a `for` over that list skips elements. Loop over a copy or build
+  a filtered list.
+- **Truthiness hides valid zeros.** `if not count:` is also true when `count`
+  is 0, which may be a real value. Write `if count is None:` when you mean
+  "missing".
+- **Use `get` for optional keys** and let `KeyError` surface when a key is
+  required: a loud failure beats a silent default.
+- **Use `is` only for `None`** (and a few sentinels). Use `==` for values.
+- **Failure at 3 a.m.:** a metric is "slightly off" after a refactor. Look for
+  an aliased list that two parts of the code both edit, a float compared with
+  `==`, or integer division where you wanted `/`.
+
+---
+
+## L5. Frontier
+
+Read, in this order, and look for the stated thing:
+
+1. The Python Tutorial, *An Informal Introduction to Python* and *Data
+   Structures*: read for what each type promises and what it does not.
+2. The Language Reference, *Data model*, section on objects, values and types:
+   read for the exact meaning of identity and mutability.
+3. The Tutorial, *Floating-Point Arithmetic: Issues and Limitations*: read for
+   why the answers in L2 are not bugs.
+
+Open questions to carry forward: how other implementations of the language
+choose to share objects (the docs leave it open), how type hints describe the
+containers you met here, and how performance changes when you move from Python
+lists to array libraries (revisited in Realm 3).
