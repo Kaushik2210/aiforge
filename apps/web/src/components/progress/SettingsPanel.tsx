@@ -1,6 +1,7 @@
 "use client";
 
 import { levelProgress, rankForLevel, streakStatus } from "@aiforge/engine";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_FX_LEVEL, FX_CHOICES, applyFxLevel, readFxLevel, type FxLevel } from "@/lib/effects";
 import { useProgress } from "@/lib/progress-store";
@@ -85,6 +86,9 @@ export function SettingsPanel() {
         <p className="mt-1 text-text-muted">
           How dramatic the game effects are: screen shake, freezes on impact, speed lines, level-up banners. Your
           system's reduced-motion setting and Focus mode always turn them off, whatever you pick here.
+        </p>
+        <p className="mt-2">
+          <Link href="/fx-lab/" className="font-semibold underline">Preview the effects in the lab</Link>
         </p>
         <fieldset className="mt-3">
           <legend className="sr-only">Effects level</legend>
