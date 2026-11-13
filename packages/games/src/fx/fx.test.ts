@@ -438,6 +438,7 @@ describe("FxKit afterimages (trace)", () => {
     expect(f.ghosts.length).toBe(2);
     expect(f.ghosts[0]!.x).toBe(20);
     expect(f.ghosts[0]!.alpha).toBeGreaterThan(f.ghosts[1]!.alpha);
+    expect(f.ghosts[0]!.alpha).toBeCloseTo(0.45 * (1 - 16 / 240), 2); // fades linearly over 240 ms from 0.45
     expect(run(kit, 600, 16).at(-1)!.ghosts).toEqual([]);
   });
   it("ignores tiny movements and keeps at most four ghosts", () => {
@@ -493,23 +494,42 @@ describe("FxKit impact frame", () => {
     expect(new FxKit({ level: 3, reducedMotion: true }).impactFrame()).toBe(false);
     expect(new FxKit({ level: 2 }).impactFrame()).toBe(true);
   });
-  it("is refused when asked for too often (at most 2 starts per second)", () => {
+  it("is refused when asked for again within a second", () => {
     const kit = new FxKit();
-    expect(kit.impactFrame()).toBe(true);
     expect(kit.impactFrame()).toBe(true);
     expect(kit.impactFrame()).toBe(false);
-    run(kit, 1100, 10); // a second later it is allowed again
+    run(kit, 500, 10);
+    expect(kit.impactFrame()).toBe(false);
+    run(kit, 600, 10); // more than a second after the first
     expect(kit.impactFrame()).toBe(true);
   });
-  it("any one second holds at most 2 impact starts, however it is driven", () => {
+  it("any one second holds at most 1 impact start, however it is driven", () => {
     const kit = new FxKit();
     const starts: number[] = [];
-    for (let t = 0; t < 5000; t += 20) {
+    for (let t = 0; t < 6000; t += 20) {
       if (kit.impactFrame()) starts.push(t);
       kit.update(20);
     }
-    for (const s of starts) expect(starts.filter((x) => x >= s && x < s + 1000).length).toBeLessThanOrEqual(2);
-    expect(starts.length).toBeGreaterThan(0);
+    for (const s of starts) expect(starts.filter((x) => x >= s && x < s + 1000).length).toBeLessThanOrEqual(1);
+    expect(starts.length).toBeGreaterThan(2);
+  });
+  it("plays exactly the two ink alphas, each held for about 83 ms (on twos at 24 fps)", () => {
+    const kit = new FxKit();
+    kit.impactFrame();
+    const values = run(kit, 400, 10).map((f) => f.impact).filter((v) => v > 0);
+    expect(values.filter((v) => v === 0.7)).toHaveLength(9);
+    expect(values.filter((v) => v === 0.35)).toHaveLength(8);
+    expect(new Set(values)).toEqual(new Set([0.7, 0.35]));
+  });
+  it("reset clears an impact and afterimages", () => {
+    const kit = new FxKit();
+    kit.impactFrame();
+    kit.trace(0, 0);
+    kit.trace(30, 0);
+    kit.trace(60, 0);
+    kit.update(16);
+    kit.reset();
+    expect(kit.update(16)).toMatchObject({ impact: 0, ghosts: [], active: false });
   });
   it("setMode to reduced motion stops one that is playing", () => {
     const kit = new FxKit();

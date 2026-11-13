@@ -84,7 +84,8 @@ export class FxKit {
   private waves: { x: number; y: number; size: number; ms: number; t: number; still: boolean }[] = [];
   private trail: { x: number; y: number; t: number }[] = [];
   private impactT: number | null = null;
-  private readonly flashes = new FlashLimiter(2);
+  // One impact frame a second at most: it is a full-canvas luminance change, so we keep clear of the WCAG limit of 3.
+  private readonly flashes = new FlashLimiter(1);
 
   constructor(mode: Partial<FxMode> = {}) {
     this.mode = { ...DEFAULT_FX_MODE, ...mode };
@@ -156,7 +157,7 @@ export class FxKit {
   /**
    * A dark, tinted "ink" frame held for two frames on twos, for the biggest moments
    * only (a boss defeated). Needs level 2 or higher and goes through the flash
-   * limiter, so at most 2 can start in any second; returns false when refused.
+   * limiter, so at most 1 can start in any second; returns false when refused.
    */
   impactFrame(): boolean {
     if (this.level < 2) return false;
