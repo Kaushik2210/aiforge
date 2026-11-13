@@ -18,7 +18,7 @@ coreComplexity:
   - "Because a generator function's body does not run until the first `next`, an argument check inside it fails late, not when you call it. To fail at the call, validate in a normal function and return the generator."
   - "Taking items from an iterator removes them. `zip(a, b)` asks `a` for its next item before it learns that `b` is empty, so one item of `a` can be lost; `itertools.islice` also consumes what it takes."
   - "A `StopIteration` raised inside a generator body is turned into a `RuntimeError`; use `return` to end a generator early."
-  - "A generator expression is read once, and what it reads is looked up when it runs. Calling `sum` twice on the same generator gives the real total and then 0."
+  - "A generator expression is read once: calling `sum` twice on the same one gives the real total and then 0. Its outermost iterable is evaluated when the generator is created; everything else is evaluated as items are asked for."
 explainItBack:
   prompt: "In 3 to 5 sentences, explain why you can loop over a list twice but loop over a generator only once, and what you would change to loop over the same data twice."
   rubric:
@@ -258,9 +258,10 @@ generator makes the failure happen at the call.
   re-raise.
 - **Do not raise `StopIteration` yourself inside a generator.** Python turns it
   into a `RuntimeError`. Use `return`.
-- **Do not hold on to a half-used generator you may not finish.** If it owns a
-  resource (a file, a connection), finish it or close it, or use a `with` block
-  around the loop.
+- **Do not abandon a half-used generator that owns a resource.** If it holds a file
+  or a connection, put the `with` inside the generator, and finish the loop or
+  call the generator's `close()` so the `with` can clean up. A `with` around the
+  loop does not close it.
 - **Prefer a generator expression to a list when you only need to loop once**,
   for example `sum(x * x for x in data)` or `any(...)`.
 - **Failure at 3 a.m.:** a second pass over a "dataset" returns nothing, or a

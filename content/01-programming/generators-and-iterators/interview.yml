@@ -23,7 +23,7 @@
   followUps: ["When is the list the better choice?", "What happens if you reuse a generator expression?"]
 
 - question: "What is yield from and what does it add over a loop with yield?"
-  modelAnswer: "yield from iterable hands over to another iterable inside a generator and gives its items one at a time, so yield from [1, 2] yields 1 and then 2. It is shorter than a for loop that yields each item and also passes through values sent into the generator and the sub-generator's return value."
+  modelAnswer: "yield from iterable hands over to another iterable inside a generator and gives its items one at a time, so yield from [1, 2] yields 1 and then 2. It is shorter than a for loop that yields each item, it passes values sent into the generator through to the sub-generator, and the sub-generator's return value becomes the value of the yield from expression."
   followUps: ["What value does a generator's return carry?", "How would you flatten nested lists with it?"]
 
 - question: "What happens if you raise StopIteration inside a generator?"
