@@ -1,0 +1,288 @@
+---
+id: generators-and-iterators
+title: Generators and Iterators
+realm: 1
+zone: Python foundations
+prerequisites: [python-oop-and-errors]
+estimatedMinutes: 150
+verifiedOn: 2026-11-13
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "An iterable is anything a `for` loop can walk over; an iterator is the object that remembers where you are in that walk. `iter(x)` gets an iterator from an iterable and `next(it)` asks it for the next item, raising `StopIteration` when there are no more."
+  - "A function containing `yield` is a generator function. Calling it does not run the body: it returns a generator, and the body runs a piece at a time, pausing at each `yield` and remembering its local variables."
+  - "Generators and generator expressions are lazy: they produce one item when asked, so they can be huge, or endless, and take little memory."
+  - "An iterator is used up once it has been walked through. A list can be looped over again and again; an iterator, a generator, and the result of `map` or `zip` cannot."
+coreComplexity:
+  - "An iterator is itself iterable: `iter(it)` returns `it`. That is why `for` works on one, and also why two loops over the same iterator share one position."
+  - "Because a generator function's body does not run until the first `next`, an argument check inside it fails late, not when you call it. To fail at the call, validate in a normal function and return the generator."
+  - "Taking items from an iterator removes them. `zip(a, b)` asks `a` for its next item before it learns that `b` is empty, so one item of `a` can be lost; `itertools.islice` also consumes what it takes."
+  - "A `StopIteration` raised inside a generator body is turned into a `RuntimeError`; use `return` to end a generator early."
+  - "A generator expression is read once, and what it reads is looked up when it runs. Calling `sum` twice on the same generator gives the real total and then 0."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain why you can loop over a list twice but loop over a generator only once, and what you would change to loop over the same data twice."
+  rubric:
+    - "Says a list is an iterable that gives a fresh walk each time, while a generator is an iterator whose position is used up as you go."
+    - "Mentions that the generator remembers where it is and has no way to go back, so a second loop finds it exhausted."
+    - "Gives a fix: keep the data in a list, call the generator function again to make a new generator, or make an iterable class that makes a fresh iterator in `__iter__`."
+miniGame: none-yet
+bossId: generators-and-iterators-boss
+---
+
+# Generators and Iterators
+
+> **Realm 1, Programming Fundamentals.** Guide: *Mira*, the lantern-bearer
+> (an original AIForge character). Today she lights lanterns along a road one at
+> a time, instead of carrying every lantern at once.
+
+Real data is big: a training set, a log file, a stream of tokens. You often
+cannot, or should not, hold all of it in memory. Iterators and generators let a
+program handle one piece at a time. They are also the idea behind every `for`
+loop you have written, so understanding them explains a lot of Python.
+
+---
+
+## L1. Intuition
+
+**A bookmark in a book.** A book is an *iterable*: you can read it from the
+start whenever you like. An *iterator* is the bookmark: it knows which page you
+are on and can hand you the next one. You can make a new bookmark from the
+book at any time, but a bookmark only moves forward.
+
+```python
+book = [10, 20, 30]        # an iterable: can be walked again and again
+mark = iter(book)          # an iterator: one walk, one position
+
+next(mark)                 # 10
+next(mark)                 # 20
+list(mark)                 # [30]  (what is left)
+list(mark)                 # []    (used up)
+```
+
+**A generator is a function that can pause.** An ordinary function runs to the
+end and returns. A generator function pauses at each `yield`, hands a value out,
+and carries on from the same spot the next time it is asked.
+
+```python
+def count_up(n):
+    for i in range(1, n + 1):
+        yield i
+
+list(count_up(3))          # [1, 2, 3]
+```
+
+**Lazy means "only when asked".** A generator does not compute item 5 until
+something asks for item 5. That is why you can write one that never ends and
+still use it safely, as long as you only take what you need.
+
+<Callout type="warn" title="Where the bookmark picture breaks">
+A real bookmark can be moved back. An iterator cannot: taking an item
+removes it from the walk. And a list is both the book and, in a `for` loop, the
+source of a fresh bookmark every time, which is why lists feel re-usable while
+iterators do not.
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### What a `for` loop really does
+
+```python
+for x in things:
+    ...
+```
+
+means: call `iter(things)` to get an iterator, then call `next` on it again and
+again, and stop quietly when it raises `StopIteration`. Any object can take part
+by providing the two methods:
+
+```python
+class Countdown:
+    def __init__(self, start):
+        self.start = start
+    def __iter__(self):            # called by iter() and by for
+        n = self.start
+        while n > 0:
+            yield n                # a generator method: a fresh walk per call
+            n -= 1
+
+list(Countdown(3))                 # [3, 2, 1]
+list(Countdown(3))                 # [3, 2, 1] again: each call to __iter__ starts over
+```
+
+A one-shot iterator class defines `__iter__` returning `self` and a
+`__next__` method. That is the rule for iterators: `iter(it) is it`.
+
+```python
+nums = [1, 2, 3]
+iter(nums) is nums                 # False: a list makes a new iterator
+it = iter(nums)
+iter(it) is it                     # True: an iterator is its own iterator
+```
+
+### Generators run a piece at a time
+
+```python
+def noisy():
+    print("start")
+    yield 1
+    yield 2
+
+g = noisy()      # nothing printed yet: the body has not started
+next(g)          # prints "start", gives 1
+next(g)          # gives 2
+next(g)          # StopIteration: the body ended
+```
+
+`next(it, default)` returns the default instead of raising when the iterator is
+finished. A `return` in a generator ends it early; the value in `return value`
+rides on the `StopIteration`.
+
+`yield from` hands over to another iterable:
+
+```python
+def both():
+    yield from [1, 2]
+    yield from "ab"
+
+list(both())     # [1, 2, 'a', 'b']
+```
+
+### Generator expressions
+
+```python
+squares = [n * n for n in range(5)]     # a list: built now, all at once
+squares_gen = (n * n for n in range(5)) # a generator: built as you ask
+
+sum(n * n for n in range(5))            # 30, with no list in memory
+```
+
+A generator expression is used up like any other iterator:
+
+```python
+g = (x for x in range(3))
+sum(g)       # 3
+sum(g)       # 0   (already used up)
+```
+
+### Lazy tools you already have
+
+`range`, `map`, `filter`, `zip` and `enumerate` all work lazily and (apart
+from `range`) hand back one-shot iterators.
+
+```python
+m = map(str, [1, 2])
+list(m)      # ['1', '2']
+list(m)      # []
+
+r = range(3)
+list(r)      # [0, 1, 2]
+list(r)      # [0, 1, 2]   range can be walked again
+```
+
+`itertools` offers more building blocks, for example `islice` to take a slice of
+any iterator:
+
+```python
+from itertools import count, islice
+list(islice(count(10), 3))     # [10, 11, 12]  from an endless counter
+```
+
+### Taking items uses them up
+
+```python
+a = iter([1, 2, 3])
+b = iter("ab")
+list(zip(a, b))    # [(1, 'a'), (2, 'b')]
+list(a)            # []   zip asked a for 3 before it found b was empty
+```
+
+### Late errors
+
+```python
+def check(n):
+    if n < 1:
+        raise ValueError("n must be at least 1")
+    yield n
+
+c = check(0)       # no error yet: nothing has run
+next(c)            # ValueError, only now
+```
+
+If you want the error at the call, check in a normal function and return the
+generator (L3 does exactly this).
+
+<Step prompt="what does list(zip(a, b)) leave in b if a = iter('ab') and b = iter([1, 2, 3])?">
+`[3]`. `zip` asks `a` first and stops when `a` runs out, so it never asks `b`
+for its third item: `b` still has `3`.
+</Step>
+
+---
+
+## L3. Build it
+
+Two short challenges. Run them in the browser editor (Pyodide), or locally with
+`python tests.py <file>`.
+
+1. **`chunked`**: write `chunked(iterable, size)`, which yields lists of up to
+   `size` items, taking only what each chunk needs, and which raises
+   `ValueError` for a bad `size` *when it is called*, not when the first chunk is
+   asked for. You will use `iter`, `itertools.islice` and a helper generator.
+2. **`countdown`**: write a `Countdown` class that you can loop over as many
+   times as you like, even with one loop inside another. You will write
+   `__iter__` as a generator so every loop gets its own position.
+
+Since Python 3.12 the standard library also has `itertools.batched`, which yields
+tuples. This challenge asks for lists, so write it yourself and see how it works.
+
+**Why two functions in `chunked`.** A function with `yield` in it is a
+generator function: its body, including the size check, only runs when the first
+item is requested. Doing the check in an ordinary function that then returns the
+generator makes the failure happen at the call.
+
+---
+
+## L4. Production reality
+
+- **Stream, do not load.** Reading a big file or dataset line by line, or batch
+  by batch, keeps memory flat. A list of everything is simple but may not fit.
+- **Remember what is one-shot.** A generator, a file object, `map`, `filter` and
+  `zip` results are used up by the first pass. If you need two passes, build a
+  list, or call the generator function again to make a fresh generator.
+- **Do not loop over an iterator you also consume elsewhere.** Two consumers of
+  one iterator split its items between them, which is rarely what you meant.
+- **Know where errors surface.** Problems inside a generator appear at the
+  `next` that runs that code, possibly far from where you made it. Validate
+  arguments before the `yield`-containing function, and add context when you
+  re-raise.
+- **Do not raise `StopIteration` yourself inside a generator.** Python turns it
+  into a `RuntimeError`. Use `return`.
+- **Do not hold on to a half-used generator you may not finish.** If it owns a
+  resource (a file, a connection), finish it or close it, or use a `with` block
+  around the loop.
+- **Prefer a generator expression to a list when you only need to loop once**,
+  for example `sum(x * x for x in data)` or `any(...)`.
+- **Failure at 3 a.m.:** a second pass over a "dataset" returns nothing, or a
+  metric computed twice is suddenly zero. The data was an iterator and the first
+  pass used it up.
+
+---
+
+## L5. Frontier
+
+Read, in this order, and look for the stated thing:
+
+1. The Python Tutorial, *Classes*, the sections *Iterators*, *Generators* and
+   *Generator Expressions*: read for how `for` uses `__iter__` and `__next__`
+   and what a generator saves between pauses.
+2. The Library Reference, *Iterator Types*: read for the rules an iterator must
+   follow, including that it stays finished once it raises `StopIteration`.
+3. The Library Reference, *itertools*: read for the building blocks, and for what
+   needs care because it consumes its input.
+4. The Language Reference, *Yield expressions*: read for the generator methods
+   beyond `next` (sending values in, closing, throwing).
+
+Open questions to carry forward: generators that receive values with `send`,
+asynchronous iteration (the next Realm 1 topic), and how deep-learning data
+loaders use the same idea to feed batches to a model.
