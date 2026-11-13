@@ -165,3 +165,83 @@ Caveats
 - Confirmed by running it there: `return` inside `finally` emits `SyntaxWarning: 'return' in a
   'finally' block` (this resolves the Day 18 note). The docs (PEP 765) were not re-read for the
   exact version rule; do not quote a version rule beyond "3.14 warns".
+
+## Iterators and generators (Day 21)
+
+verifiedOn 2026-11-13. All pages fetched 2026-11-13 from docs.python.org/3 (the live docs
+were the 3.15.2 build; local runs below on CPython 3.13.7). Paraphrased, not quoted.
+
+Sources:
+- https://docs.python.org/3/tutorial/classes.html (9.8 Iterators, 9.9 Generators, 9.10 Generator Expressions)
+- https://docs.python.org/3/glossary.html (iterable, iterator, generator, generator iterator)
+- https://docs.python.org/3/library/stdtypes.html (Iterator Types, Generator types, Ranges)
+- https://docs.python.org/3/library/itertools.html and /library/functions.html
+- https://docs.python.org/3/reference/expressions.html (6.2.8 Yield expressions)
+- https://docs.python.org/3/library/exceptions.html (StopIteration)
+- https://docs.python.org/3/whatsnew/3.3.html (PEP 380)
+
+Docs facts (verified):
+- `for` calls `iter()` on the container; the iterator's `__next__()` hands out items and raises
+  `StopIteration` at the end, which ends the loop. A class makes itself iterable by defining
+  `__iter__` returning an object with `__next__`; if the class has `__next__`, `__iter__` may return `self`.
+- Generators are written like functions with `yield`; each `next()` resumes where it left off,
+  with locals and execution state saved. `__iter__`/`__next__` are created automatically and
+  `StopIteration` is raised on termination. Tutorial: anything a generator does a class-based iterator can do.
+- Generator expressions: like list comprehensions with parentheses; meant for immediate use by
+  an enclosing function, and tend to use less memory than the equivalent list comprehension. Sole-argument calls need no extra parentheses.
+  Tutorial examples: `sum(i*i for i in range(10))` -> 285; `sum(x*y for x,y in zip(xvec, yvec))` -> 260.
+- Glossary: iterable = can return members one at a time (sequences, dict, files, classes with
+  `__iter__`/`__getitem__`); `iter()` on an iterable gives an iterator good for a single pass.
+  Iterator = stream of data; once exhausted, further `__next__` keep raising `StopIteration`.
+  Iterators must have `__iter__` returning themselves, so every iterator is iterable; the notable
+  exception is multi-pass code. A container yields a fresh iterator each time; an iterator
+  returns the same exhausted object, so it looks like an empty container. Glossary says CPython
+  does not consistently enforce the `__iter__` requirement.
+- Glossary has NO entry for lazy (checked); do not cite it. Generator informally means generator
+  function or generator iterator. Generator iterator = made by a generator function or generator expression.
+- stdtypes: container `__iter__` returns an iterator; iterator `__iter__` returns itself;
+  after `StopIteration`, an iterator must keep raising it (otherwise it is considered broken).
+- Yield expressions (language ref): calling a generator function returns a generator and runs
+  nothing until a generator method is called; also documents `send()`, `throw()`, `close()`
+  (pointers only for Day 21). `yield from` added in 3.3 (PEP 380): delegate to a subiterator;
+  for simple iterables it is shorthand for `for x in it: yield x`; subgenerator `return` value
+  becomes the expression's value.
+- `StopIteration.value` carries a generator's return value (3.3). A `StopIteration` raised inside a
+  generator becomes `RuntimeError` (opt-in 3.5, default 3.7, PEP 479).
+- Built-ins: `next(it, default)` returns default when exhausted. `zip`, `map`, `filter`,
+  `enumerate` return iterators and are lazy. `zip` stops at the shortest. `range` is an
+  immutable sequence (stdtypes). `map(..., strict=)` is new in 3.14; `zip(strict=)` is 3.10 per
+  my memory (TODO-VERIFY, not re-read).
+- itertools: building blocks forming an "iterator algebra"; `count(start=0, step=1)` infinite;
+  `islice` has no negative values, and consuming it advances an iterator input by max(start, stop);
+  `takewhile` consumes (and loses) the first failing element; `chain(*iterables)`.
+  `batched(iterable, n, *, strict=False)`: Added in 3.12; `strict` added in 3.13. Tuples of
+  length n, last may be shorter; input consumed lazily.
+
+Confirmed outputs (Python 3.13.7):
+- Generator list twice: `[0, 1, 4]` then `[]`. List twice: same both times.
+- `iter(list) is list` -> False; `iter(gen) is gen` -> True.
+- `next(exhausted_gen)` -> `StopIteration` (empty args, value None); `next(g, 'dflt')` -> 'dflt'.
+- Calling a generator function prints nothing; the body prints only at first `next()`.
+- `return 'done'` in a generator -> `StopIteration.value == 'done'`; `list()` ignores it.
+- Genexp with print side effect: nothing printed at creation, prints during consumption;
+  list comprehension prints at creation. `sum(x*x for x in range(5))` -> 30.
+- `islice(count(), 5)` -> [0,1,2,3,4]; `count(10,5)` first 3 -> [10,15,20].
+- islice on an iterator/generator consumes it: two `islice(g,3)` give [0,1,2] then [3,4,5].
+- `zip(a, b)` with a=iter([1,2,3]), b=iter('xy') -> [(1,'x'),(2,'y')]; `list(a)` afterwards is
+  `[]` (a lost 3 while zip discovered b was empty). Swapped as `zip(b, a)` leaves `[3]`.
+- `map` object: `iter(m) is m` True; second `list(m)` -> `[]`.
+- `range(3)` re-iterable; `iter(range(3)) is range(3)` False; `type(iter(range(3)))` is `range_iterator`.
+- `yield from`: `[0, 1, 2, 'a', 9]` with subgenerator return value 'ret' captured.
+- Late binding: `[lambda: i for i in range(3)]` called later -> `[2, 2, 2]` (only if natural).
+- `raise StopIteration` in generator -> `RuntimeError: generator raised StopIteration`,
+  `__cause__` is the StopIteration. Message wording is version-specific; assert on type not text.
+- Generator function validating args: `pos_gen(-1)` creates fine, ValueError only at first `next()`.
+  A plain wrapper that validates then returns an inner generator raises immediately.
+- `batched('ABCDEFG', 3)` -> ABC, DEF, G tuples; `batched([], 2)` -> empty.
+  `batched('abc', 0)` raises `ValueError` AT CALL TIME ("n must be at least one"), not at first
+  next (the docs' pseudo-code is a generator, which would suggest lazy; real C impl is eager).
+  `strict=True` with a short last batch raises ValueError while iterating ("batched(): incomplete batch").
+- Memory: list of 1,000,000 ints is megabytes (getsizeof counts only the list's pointer array);
+  generator object is a few hundred bytes; ratio ~4e4. Say "orders of magnitude" only; no exact numbers.
+  Caveat: getsizeof is shallow.
