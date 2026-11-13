@@ -1,4 +1,5 @@
-import { clamp01, easeOutCubic } from "./ease";
+import { clamp01, easeOutCubic, heldFrame } from "./ease";
+import { FlashLimiter } from "./flash";
 import { speedLines, type Segment, type SpeedLineSpec } from "./lines";
 import { DEFAULT_FX_MODE, MAX_HIT_STOP_MS, effectiveLevel, strength, type FxLevel, type FxMode } from "./mode";
 import { decayTrauma, shakeOffset } from "./shake";
@@ -13,6 +14,14 @@ export interface Shockwave {
   still: boolean;
 }
 
+/** A fading copy of a moving thing, left behind where it just was (an afterimage). */
+export interface Ghost {
+  x: number;
+  y: number;
+  /** 0 to 1; the newest ghost is the strongest. */
+  alpha: number;
+}
+
 /** Everything a renderer needs to draw one frame of effects. */
 export interface FxFrame {
   /** Multiply the game's own time by this: 0 while a hit-stop freeze is running, otherwise 1. */
@@ -24,12 +33,19 @@ export interface FxFrame {
   lines: Segment[];
   lineAlpha: number;
   shockwaves: Shockwave[];
+  /** Afterimages of whatever was passed to `trace`, newest first. */
+  ghosts: Ghost[];
+  /**
+   * Strength of the dark "ink" impact frame, 0 when there is none. It is one hit
+   * held for two frames on twos, then gone, and is never white (see ADR 0012).
+   */
+  impact: number;
   /** True while anything is animating, so a renderer can skip redraws when idle. */
   active: boolean;
 }
 
 /** A fresh idle frame each time, so a caller changing one cannot affect the next. */
-const idle = (): FxFrame => ({ timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], active: false });
+const idle = (): FxFrame => ({ timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], ghosts: [], impact: 0, active: false });
 
 const isFinite_ = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
 
@@ -37,6 +53,12 @@ const isFinite_ = (n: unknown): n is number => typeof n === "number" && Number.i
 const MAX_EFFECT_MS = 5000;
 const MAX_LINES = 200;
 const MAX_RING_SIZE = 2000;
+const MAX_GHOSTS = 4;
+const GHOST_LIFE_MS = 240;
+/** A ghost is only left behind once the thing has moved at least this far (in pixels) from the last one. */
+const GHOST_MIN_GAP = 7;
+/** The impact frame: two held frames on twos at 24 fps (about 83 ms each), strongest first. */
+const IMPACT_ALPHAS = [0.7, 0.35];
 
 /** The longest frame step we trust, so a background tab cannot skip an effect in one jump. */
 const MAX_STEP_MS = 100;
@@ -60,6 +82,9 @@ export class FxKit {
   private punch: { amount: number; ms: number; t: number } | null = null;
   private lineState: { spec: SpeedLineSpec; ms: number; t: number } | null = null;
   private waves: { x: number; y: number; size: number; ms: number; t: number; still: boolean }[] = [];
+  private trail: { x: number; y: number; t: number }[] = [];
+  private impactT: number | null = null;
+  private readonly flashes = new FlashLimiter(2);
 
   constructor(mode: Partial<FxMode> = {}) {
     this.mode = { ...DEFAULT_FX_MODE, ...mode };
@@ -116,6 +141,30 @@ export class FxKit {
     if (this.waves.length > 4) this.waves.shift();
   }
 
+  /**
+   * Call every frame with the position of something that moves fast. Afterimages
+   * are left behind it while it travels. Off at level 0 and under reduced motion.
+   */
+  trace(x: number, y: number): void {
+    if (strength(this.level) === 0 || !isFinite_(x) || !isFinite_(y)) return;
+    const last = this.trail[0];
+    if (last && Math.hypot(x - last.x, y - last.y) < GHOST_MIN_GAP) return;
+    this.trail.unshift({ x, y, t: this.nowMs });
+    if (this.trail.length > MAX_GHOSTS + 1) this.trail.pop();
+  }
+
+  /**
+   * A dark, tinted "ink" frame held for two frames on twos, for the biggest moments
+   * only (a boss defeated). Needs level 2 or higher and goes through the flash
+   * limiter, so at most 2 can start in any second; returns false when refused.
+   */
+  impactFrame(): boolean {
+    if (this.level < 2) return false;
+    if (!this.flashes.tryFlash(this.nowMs)) return false;
+    this.impactT = 0;
+    return true;
+  }
+
   /** Advance by `dtMs` of real time and return the frame to draw. */
   update(dtMs: number): FxFrame {
     const dt = isFinite_(dtMs) ? Math.min(MAX_STEP_MS, Math.max(0, dtMs)) : 0;
@@ -150,12 +199,27 @@ export class FxKit {
     }
     this.waves = this.waves.filter((w) => w.t < w.ms);
 
+    this.trail = this.trail.filter((g) => this.nowMs - g.t < GHOST_LIFE_MS);
+    // The newest point is where the thing is now, so ghosts start from the second one.
+    const ghosts: Ghost[] = this.trail.slice(1).map((g) => ({ x: g.x, y: g.y, alpha: 0.45 * (1 - (this.nowMs - g.t) / GHOST_LIFE_MS) }));
+
+    let impact = 0;
+    if (this.impactT !== null) {
+      const held = heldFrame(this.impactT, 2, 24);
+      if (held >= IMPACT_ALPHAS.length) {
+        this.impactT = null;
+      } else {
+        impact = IMPACT_ALPHAS[held] ?? 0;
+        this.impactT += dt;
+      }
+    }
+
     const shake = shakeOffset(this.trauma, this.nowMs);
     // The last frame of a line burst or ring still has something to draw, so it counts as active.
     const active =
-      frozen || this.trauma > 0 || this.punch !== null || this.lineState !== null || this.waves.length > 0 || lines.length > 0 || shockwaves.length > 0;
+      frozen || this.trauma > 0 || this.punch !== null || this.lineState !== null || this.waves.length > 0 || lines.length > 0 || shockwaves.length > 0 || ghosts.length > 0 || impact > 0;
     if (!active) return idle();
-    return { timeScale: frozen ? 0 : 1, shake, zoom, lines, lineAlpha, shockwaves, active };
+    return { timeScale: frozen ? 0 : 1, shake, zoom, lines, lineAlpha, shockwaves, ghosts, impact, active };
   }
 
   /** Stop everything now. */
@@ -165,5 +229,7 @@ export class FxKit {
     this.punch = null;
     this.lineState = null;
     this.waves = [];
+    this.trail = [];
+    this.impactT = null;
   }
 }

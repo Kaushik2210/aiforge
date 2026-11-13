@@ -426,3 +426,96 @@ describe("pinAgainstZoom", () => {
     expect(pinAgainstZoom(14, 10, 0, 640, 360).scale).toBe(1);
   });
 });
+
+describe("FxKit afterimages (trace)", () => {
+  it("leaves no ghosts until the thing has moved, then ghosts fade out", () => {
+    const kit = new FxKit();
+    kit.trace(0, 0);
+    expect(kit.update(16).ghosts).toEqual([]); // the newest point is the thing itself
+    kit.trace(20, 0);
+    kit.trace(40, 0);
+    const f = kit.update(16);
+    expect(f.ghosts.length).toBe(2);
+    expect(f.ghosts[0]!.x).toBe(20);
+    expect(f.ghosts[0]!.alpha).toBeGreaterThan(f.ghosts[1]!.alpha);
+    expect(run(kit, 600, 16).at(-1)!.ghosts).toEqual([]);
+  });
+  it("ignores tiny movements and keeps at most four ghosts", () => {
+    const kit = new FxKit();
+    kit.trace(0, 0);
+    kit.trace(2, 0); // under the gap: not recorded
+    expect(kit.update(16).ghosts).toEqual([]);
+    for (let i = 1; i <= 20; i++) kit.trace(i * 10, 0);
+    expect(kit.update(16).ghosts.length).toBeLessThanOrEqual(4);
+  });
+  it("draws nothing at level 0 or under reduced motion", () => {
+    for (const mode of [{ level: 0 as const }, { level: 3 as const, reducedMotion: true }]) {
+      const kit = new FxKit(mode);
+      kit.trace(0, 0);
+      kit.trace(50, 0);
+      kit.trace(100, 0);
+      expect(kit.update(16).ghosts).toEqual([]);
+    }
+  });
+  it("ignores NaN positions", () => {
+    const kit = new FxKit();
+    kit.trace(Number.NaN, 0);
+    kit.trace(0, 0);
+    kit.trace(30, 0);
+    kit.trace(60, 0);
+    expect(kit.update(16).ghosts.every((g) => Number.isFinite(g.x) && Number.isFinite(g.alpha))).toBe(true);
+  });
+});
+
+describe("FxKit impact frame", () => {
+  it("is two held frames, strongest first, then gone", () => {
+    const kit = new FxKit();
+    expect(kit.impactFrame()).toBe(true);
+    const frames = run(kit, 400, 10);
+    const values = frames.map((f) => f.impact);
+    const nonZero = values.filter((v) => v > 0);
+    expect(new Set(nonZero).size).toBe(2);
+    expect(nonZero[0]!).toBeGreaterThan(nonZero.at(-1)!);
+    expect(values.at(-1)).toBe(0);
+    // held for about 83 ms each, so about 17 steps of 10 ms in total
+    expect(nonZero.length).toBeGreaterThanOrEqual(14);
+    expect(nonZero.length).toBeLessThanOrEqual(20);
+    expect(frames.at(-1)!.active).toBe(false);
+  });
+  it("never goes above the ink alpha ceiling, so it is never a white-out", () => {
+    const kit = new FxKit({ level: 3 });
+    kit.impactFrame();
+    expect(Math.max(...run(kit, 400, 10).map((f) => f.impact))).toBeLessThanOrEqual(0.7);
+  });
+  it("needs level 2 or higher and is off under reduced motion", () => {
+    expect(new FxKit({ level: 1 }).impactFrame()).toBe(false);
+    expect(new FxKit({ level: 0 }).impactFrame()).toBe(false);
+    expect(new FxKit({ level: 3, reducedMotion: true }).impactFrame()).toBe(false);
+    expect(new FxKit({ level: 2 }).impactFrame()).toBe(true);
+  });
+  it("is refused when asked for too often (at most 2 starts per second)", () => {
+    const kit = new FxKit();
+    expect(kit.impactFrame()).toBe(true);
+    expect(kit.impactFrame()).toBe(true);
+    expect(kit.impactFrame()).toBe(false);
+    run(kit, 1100, 10); // a second later it is allowed again
+    expect(kit.impactFrame()).toBe(true);
+  });
+  it("any one second holds at most 2 impact starts, however it is driven", () => {
+    const kit = new FxKit();
+    const starts: number[] = [];
+    for (let t = 0; t < 5000; t += 20) {
+      if (kit.impactFrame()) starts.push(t);
+      kit.update(20);
+    }
+    for (const s of starts) expect(starts.filter((x) => x >= s && x < s + 1000).length).toBeLessThanOrEqual(2);
+    expect(starts.length).toBeGreaterThan(0);
+  });
+  it("setMode to reduced motion stops one that is playing", () => {
+    const kit = new FxKit();
+    kit.impactFrame();
+    kit.update(16);
+    kit.setMode({ reducedMotion: true });
+    expect(kit.update(16)).toMatchObject({ impact: 0, active: false });
+  });
+});
