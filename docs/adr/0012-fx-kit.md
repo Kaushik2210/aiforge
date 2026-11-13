@@ -62,12 +62,33 @@ written separately in each scene.
 - **Boss cut-ins** on the Hiker page: "BOSS BATTLE" when the boss level is picked and "BOSS
   DEFEATED" on a win.
 
+## Added on day 20
+- **Smear**: `smear(angle, { ms, stretch })` stretches a fast mover along its direction of
+  travel (peak 1.8 by default, capped at 3, scaled by the level) and slims it across, easing
+  back over about 120 ms. It is a stretched copy of the one sprite, which is how a smear
+  frame is usually faked in code; it is not a redrawn distorted frame.
+- **Canvas renderer** (`apps/web/src/lib/fx-canvas.ts`): draws an `FxFrame` on a plain 2D
+  canvas (camera zoom and shake, lines behind the mover, afterimages, smear, rings, and the
+  dark impact overlay on top). It needs no Phaser, so previews load fast.
+- **Effects lab** (`/fx-lab/`, linked from Settings): every effect on one canvas, a button for
+  each, slow motion at quarter speed, pause on a frame, and a level-up banner preview. It
+  follows the effects level, reduced motion and Focus mode, says in text what each button
+  played, and says why nothing shows when effects are off. Because it draws on a 2D canvas,
+  tests read real pixels: a shockwave changes the picture and the scene returns to normal,
+  the impact frame darkens it, Off, Low and reduced motion show nothing.
+- Found while building it: reading the saved effects level while rendering (rather than in an
+  effect) makes the first client render differ from the server's, React then recreates the
+  page and drops the `<html data-fx>` attribute the inline script set. Read saved settings
+  in an effect, and test a non-default level for hydration and console errors.
+
 ## Costs and limits
 - Only Gradient Hiker uses the Phaser adapter. The world map has no effects yet.
 - Effect strength numbers (hit-stop 60 to 90 ms, shake 0.5, zoom 5%) are tuned by feel;
   published guidance disagrees. Not tested on low-end phones.
-- Not built yet: cel-shading filters and pose stepping for mascots. The afterimage is a
-  fading copy, not a true smear (a stretched frame along the motion).
+- Not built yet: cel-shading filters and pose stepping for mascots. The Hiker scene does not
+  use the smear yet (only the lab does).
+- Pixel checks compare brightness within 0.2%: a redraw can differ from the first draw by a
+  rounding step.
 - The afterimage and impact frame were checked with fake-time unit tests and end-to-end
   tests of the setting and banners; they were not captured on screen (a screenshot is too
   slow to catch effects that last a fraction of a second).

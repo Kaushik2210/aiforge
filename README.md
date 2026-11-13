@@ -24,8 +24,9 @@ and the research frontier.
   repetition that support learning and never lock you out.
 - **Original anime-inspired art direction**: all characters, mascots and
   backgrounds are original to this project. Effects (hit-stop, shake, speed
-  lines, cut-in banners) switch off with reduced motion or Focus mode and never
-  flash.
+  lines, afterimages, smear, cut-in banners) can be previewed in the effects lab,
+  set to Off, Low, Normal or High, and switch off with reduced motion or Focus mode.
+  Nothing flashes white.
 
 ## Repository layout
 
