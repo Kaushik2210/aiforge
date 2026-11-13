@@ -441,3 +441,30 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 19: Realm 1 continues with Generators and iterators (`generators-and-iterators`), unless the owner asks for the next anime FX slice first.
+
+## Day 19: More anime FX (afterimages, impact frame, effects setting, boss cut-ins)
+
+Done
+- FX kit (`packages/games/src/fx`): `trace()` leaves up to four fading afterimages behind a moving thing; `impactFrame()` is a dark ink overlay (alpha 0.7 then 0.35, each held about 83 ms on twos), never white, level 2 or higher, off under reduced motion, and limited to one start per second by the flash limiter. 61 fx unit tests; the timing, alphas and ghost fade are pinned exactly after the reviewer showed four mutants survived.
+- Gradient Hiker: afterimages trail the hiker while it glides; the boss win also plays the impact frame.
+- Effects setting in Settings: Off, Low, Normal (default), High, saved on `<html data-fx>` and in localStorage and applied before first paint, like the theme. It feeds the Hiker game and the cut-in banners. Reduced motion and Focus mode still override it, and now also hide the banners.
+- Boss cut-ins on the Hiker page: "BOSS BATTLE" on picking the boss, "BOSS DEFEATED" on a win (after the glide, at the top so it never overlaps the level-up banner).
+- Checks: `pnpm verify` green (187 games and 87 web unit tests), web build OK, 42 Playwright tests pass (9 new for the setting, saving, bad values, banners at Normal and Off, and reduced motion).
+
+Sources used
+- `research/09-anime-animation.md` and WCAG 2.2 three-flashes page (re-read by the reviewer with numbers). No new sources.
+
+Review
+- A separate reviewer found: with the full-canvas impact frame on the light theme the limiter's old 2 per second sat exactly on the WCAG limit of 3 (one impact counts as a flash pair; two a second can count as three), so it is now 1 per second; Phaser's tween stop does not fire its completion, so the glide flag stayed set on reset and level change, leaving a stale ghost and letting a reset run play a boss effect; the "BOSS DEFEATED" banner started before the glide finished; it could overlap the level-up banner; banners ignored reduced motion and Focus mode; four mutants of the new kit survived. All fixed with tests.
+- Not fixed (low): `update(0)` repeated holds an impact frame (real frames always have time passing); the impact overlay briefly dims the goal labels; Settings briefly shows Normal before reading the saved choice.
+
+Decisions
+- ADR 0012 updated (afterimages, impact frame, the setting, banners and their accessibility rules).
+
+TODO-VERIFY / not done
+- Afterimages and the impact frame were not seen on screen: a screenshot is too slow to catch effects lasting a fraction of a second. They are covered by fake-time unit tests and the Hiker integration was reviewed by reading, not by an automated Phaser run.
+- Whether real users find 0.7 dark impact too strong on the light theme: untested. Low-end phone cost unmeasured.
+- Not built: cel-shaded map look, mascot pose stepping, effects on the world map, a true smear (stretched frame).
+
+Tomorrow
+- Day 20: Realm 1 continues with Generators and iterators (`generators-and-iterators`).
