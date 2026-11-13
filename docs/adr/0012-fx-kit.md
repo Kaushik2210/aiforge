@@ -45,11 +45,26 @@ written separately in each scene.
 - In Gradient Hiker the HUD is pinned against camera zoom and the camera has a solid
   background, so the zoom punch and shake never clip the text or show the page behind.
 
+## Added on day 19
+- **Afterimages**: `trace(x, y)` leaves up to four fading ghosts (240 ms life, at least
+  7 px apart) behind something that moves. The Hiker uses it while it glides along the trail.
+- **Impact frame**: `impactFrame()` is a dark ink overlay (alpha 0.7 then 0.35, each held
+  about 83 ms, on twos at 24 fps). It is never white, needs level 2 or higher, is off under
+  reduced motion, and goes through `FlashLimiter` (at most 2 starts per second). Only the boss
+  win uses it.
+- **Effects setting**: Settings has an Off, Low, Normal (default) and High choice, stored on
+  `<html data-fx>` and in localStorage like the theme, and applied before first paint. The
+  Hiker game receives it as `fxLevel`; the level-up and boss cut-in banners use it for their
+  length and are not shown at Off. Reduced motion and Focus mode still override it.
+- **Boss cut-ins** on the Hiker page: "BOSS BATTLE" when the boss level is picked and "BOSS
+  DEFEATED" on a win.
+
 ## Costs and limits
 - Only Gradient Hiker uses the Phaser adapter. The world map has no effects yet.
-- There is no in-app effects setting: the level is passed in code (default 2) and only
-  reduced motion and Focus mode change it for learners.
 - Effect strength numbers (hit-stop 60 to 90 ms, shake 0.5, zoom 5%) are tuned by feel;
   published guidance disagrees. Not tested on low-end phones.
-- Not built yet: impact frames, smear and afterimages, cel-shading filters, pose
-  stepping for mascots.
+- Not built yet: cel-shading filters and pose stepping for mascots. The afterimage is a
+  fading copy, not a true smear (a stretched frame along the motion).
+- The afterimage and impact frame were checked with fake-time unit tests and end-to-end
+  tests of the setting and banners; they were not captured on screen (a screenshot is too
+  slow to catch effects that last a fraction of a second).

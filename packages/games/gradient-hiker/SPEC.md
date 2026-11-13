@@ -47,5 +47,8 @@ reduced motion: swap bursts and speed lines for static icons and text.
 ## Effects (Day 16)
 - On a win: a 90 ms hit-stop, a 5% zoom punch, a ring around the hiker and radial focus lines for about 0.4 s, then the sparkle burst.
 - On flying past the goal: a 60 ms hit-stop, a short camera shake and streaks behind the hiker.
+- While the hiker glides, up to four fading afterimages trail behind it.
+- Winning the boss level (5) also plays a short dark ink impact frame (never white, at most 2 a second) and a "BOSS DEFEATED" banner; picking the boss shows "BOSS BATTLE".
+- The learner can choose Off, Low, Normal or High effects in Settings.
 - Reduced motion or Focus mode: none of this runs; the hiker jumps between points as before.
 - All of it comes from `packages/games/src/fx` (ADR 0012).
