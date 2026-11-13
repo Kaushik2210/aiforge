@@ -15,6 +15,7 @@ const brightness = (page: Page): Promise<number> => page.evaluate(MEASURE) as Pr
 
 /** Press a button, then watch the canvas for `ms` and return the base, lowest and highest brightness seen. */
 async function watch(page: Page, label: string, ms = 700) {
+  await page.waitForTimeout(400); // let the first frame of the scene be drawn before measuring the base
   return page.evaluate(
     async ({ label, ms, measure }) => {
       const m = () => eval(measure) as number;
