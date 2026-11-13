@@ -78,3 +78,46 @@ test("the cut-in never takes pointer events or screen-reader focus", async ({ pa
   });
   expect(info).toBe("none");
 });
+
+test.describe("effects setting and boss banners", () => {
+  test("the effects choice is saved, applied to the page and survives a reload", async ({ page }) => {
+    await page.goto("/settings/");
+    const group = page.getByRole("group", { name: "Effects level" });
+    await expect(group.getByRole("radio", { name: /Normal/ })).toBeChecked();
+    await group.getByRole("radio", { name: /Off/ }).check();
+    await expect(page.locator("html")).toHaveAttribute("data-fx", "0");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-fx", "0");
+    await expect(page.getByRole("group", { name: "Effects level" }).getByRole("radio", { name: /Off/ })).toBeChecked();
+  });
+
+  test("picking the boss level plays a cut-in at Normal and none when effects are Off", async ({ page }) => {
+    await page.goto("/games/gradient-hiker/");
+    const boss = page.getByRole("button", { name: /^5\./ });
+    await boss.click();
+    await expect(page.locator(".cutin-title")).toHaveText("BOSS BATTLE");
+    await expect(page.locator(".cutin")).toHaveCount(0, { timeout: 5000 });
+
+    await page.goto("/settings/");
+    await page.getByRole("group", { name: "Effects level" }).getByRole("radio", { name: /Off/ }).check();
+    await page.goto("/games/gradient-hiker/");
+    await page.getByRole("button", { name: /^5\./ }).click();
+    await page.waitForTimeout(500);
+    await expect(page.locator(".cutin")).toHaveCount(0);
+  });
+
+  test("a level-up shows no banner when effects are Off, but still announces it in text", async ({ page }) => {
+    await page.goto("/settings/");
+    await page.getByRole("group", { name: "Effects level" }).getByRole("radio", { name: /Off/ }).check();
+    const a = await finishQuest(page, "gradient-descent");
+    const b = await finishQuest(page, "python-basics");
+    expect(a || b).toBe(false);
+    await expect(page.getByText(/Level up! You reached level \d+\./)).toBeVisible();
+  });
+
+  test("a bad saved value falls back to Normal", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("aiforge-fx", "banana"));
+    await page.goto("/settings/");
+    await expect(page.getByRole("group", { name: "Effects level" }).getByRole("radio", { name: /Normal/ })).toBeChecked();
+  });
+});
