@@ -468,3 +468,31 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 20: Realm 1 continues with Generators and iterators (`generators-and-iterators`).
+
+## Day 20: Smear, canvas renderer and the effects lab
+
+Done
+- FX kit: `smear(angle, { ms, stretch })` stretches a fast mover along its direction of travel and slims it across, easing back in about 120 ms (peak 1.8 by default, capped at 3, scaled by the level; off at Off and under reduced motion; a stretch of 1 or less is no smear). 79 fx unit tests.
+- `apps/web/src/lib/fx-canvas.ts`: draws an FX frame on a plain 2D canvas (camera zoom and shake, speed lines, afterimages, smear, rings, dark impact overlay). 9 tests on what it draws, using a recording canvas.
+- Effects lab at `/fx-lab/` (linked from Settings): a button for every effect, slow motion at quarter speed, pause on a frame, a level-up banner preview. It follows the effects level, reduced motion and Focus mode, announces what played in text, and says why nothing shows when effects are off.
+- Pixel tests in Playwright (the lab is a normal 2D canvas, so pixels can be read): a shockwave changes the picture and the scene returns to normal; the impact frame darkens it and never brightens it; the smear moves the hiker; Off, Low and reduced motion show nothing (reduced motion shows only the still ring); pause freezes the picture and resume moves it again. Repeated three to four times with no flakes.
+- Checks: `pnpm verify` green (199 games and 96 web unit tests), web build OK, 56 Playwright tests pass.
+
+Found while building
+- A page that reads the saved effects level while rendering makes the first browser render differ from the server's; React then recreates the page and drops the `<html data-fx>` attribute the inline script set, so Off silently became Normal. Fixed in the lab (read it in an effect) and covered by a test that loads with a non-default level and checks for console errors.
+
+Sources used
+- No new sources; builds on `research/09-anime-animation.md` and ADR 0012 (updated).
+
+Review
+- A separate reviewer found: the lab's dash slid the hiker even with effects off or under reduced motion, and the "nothing is shown" text was then false; the still ring plays under reduced motion but the text said nothing plays; pressing a button while paused announced a play that did not happen; the pause button used a pressed state and a changing label; repeating the same effect did not re-announce; a stretch of 1 or less became the strongest default; the canvas was reallocated every frame at fractional device pixel ratios; and several mutants of the smear and the renderer (easing, restart, cap, camera order, alphas) survived. All fixed with tests.
+
+TODO-VERIFY / not done
+- The Hiker scene does not use the smear yet; only the lab does.
+- The lab was checked with Playwright pixel readbacks, not by eye on a phone. Cost on a low-end phone is unmeasured.
+- Pixel checks compare brightness within 0.2%, because a redraw can differ from the first draw by a rounding step.
+- The static test server answers optional Next prefetch files with 404 (ignored in the console check); still unverified on a real host.
+- Not built: cel-shaded map look, mascot pose stepping, effects on the world map.
+
+Tomorrow
+- Day 21: Realm 1 continues with Generators and iterators (`generators-and-iterators`). Day 21 is also a consolidation day per PLAN.md: read the last week's TODO-VERIFY items and burn some down.
