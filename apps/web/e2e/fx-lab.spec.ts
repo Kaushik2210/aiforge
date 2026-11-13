@@ -30,7 +30,8 @@ async function watch(page: Page, label: string, ms = 700) {
         const v = m();
         min = Math.min(min, v);
         max = Math.max(max, v);
-        if (v !== base) changedFrames++;
+        // A redraw can differ from the first draw by a rounding step or two, so count real changes only.
+        if (Math.abs(v - base) / base > 0.002) changedFrames++;
       }
       return { base, min, max, changedFrames };
     },
@@ -84,7 +85,8 @@ test.describe("when effects are Off", () => {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("console", (m) => {
-      if (m.type() === "error") errors.push(m.text());
+      // The static test server answers Next's optional prefetch files with 404; those are not page errors.
+      if (m.type() === "error" && !m.text().startsWith("Failed to load resource")) errors.push(m.text());
     });
     await page.goto("/fx-lab/");
     await page.waitForLoadState("networkidle");
