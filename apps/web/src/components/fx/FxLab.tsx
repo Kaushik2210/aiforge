@@ -112,11 +112,13 @@ export function FxLab() {
       canvas.dataset.active = frame.active || dashRef.current ? "true" : "false";
       if (frame.active || was || dashRef.current || dirtyRef.current) {
         const dpr = Math.min(2, window.devicePixelRatio || 1);
-        if (canvas.width !== SCENE_W * dpr) {
-          canvas.width = SCENE_W * dpr;
-          canvas.height = SCENE_H * dpr;
+        const pw = Math.round(SCENE_W * dpr);
+        const ph = Math.round(SCENE_H * dpr);
+        if (canvas.width !== pw || canvas.height !== ph) {
+          canvas.width = pw; // assigning a size clears the canvas, so only do it when it really changed
+          canvas.height = ph;
         }
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.setTransform(pw / SCENE_W, 0, 0, ph / SCENE_H, 0, 0);
         drawFxScene(ctx, frame, { hiker: hikerRef.current }, paletteRef.current);
         dirtyRef.current = false;
       }
@@ -132,9 +134,20 @@ export function FxLab() {
     };
   }, []);
 
+  /** Set the live-region text. An alternating trailing space makes a repeated message announce again. */
+  const flip = useRef(false);
+  const announce = useCallback((text: string) => {
+    flip.current = !flip.current;
+    setPlayed(flip.current ? text : `${text}\u00a0`);
+  }, []);
+
   const play = useCallback((name: EffectName) => {
     const kit = kitRef.current;
     if (!kit) return;
+    if (pausedRef.current) {
+      announce(`Paused. Resume to play ${name}.`);
+      return;
+    }
     const w = SCENE_W;
     const h = SCENE_H;
     const hk = hikerRef.current;
@@ -158,6 +171,7 @@ export function FxLab() {
         kit.shockwave(hk.x, hk.y - 20, { size: 150, ms: 700 });
         break;
       case "Smear and afterimages":
+        if (kit.level === 0) break; // with effects off (or reduced motion) the hiker does not slide across
         hk.x = HOME.x;
         dashRef.current = { t: 0 };
         kit.smear(0, { ms: 180, stretch: 2.2 });
@@ -165,7 +179,7 @@ export function FxLab() {
         break;
       case "Impact frame":
         if (!kit.impactFrame()) {
-          setPlayed(
+          announce(
             kit.level === 0
               ? "Impact frame: nothing to show, because effects are off."
               : "Impact frame skipped: it needs Normal or High effects, and only one can start each second.",
@@ -184,8 +198,10 @@ export function FxLab() {
         break;
     }
     dirtyRef.current = true;
-    setPlayed(kit.level === 0 ? `Played: ${name}. Nothing is shown because effects are off.` : `Played: ${name}.`);
-  }, []);
+    if (kit.level > 0) announce(`Played: ${name}.`);
+    else if (name === "Shockwave" && prefersReducedMotion() && readFxLevel() > 0) announce("Played: Shockwave, as a still ring that only fades, because reduced motion is on.");
+    else announce(`Played: ${name}. Nothing is shown because effects are off.`);
+  }, [announce]);
 
   const levelName = FX_CHOICES.find((c) => c.level === level)?.name ?? "Normal";
   const effects: EffectName[] = [
@@ -220,7 +236,7 @@ export function FxLab() {
       {off && (
         <p role="note" className="rounded-[var(--radius)] border-2 border-border bg-surface p-3">
           Effects are off right now because of your settings (the effects level is {levelName}, or reduced motion or Focus
-          mode is on). The buttons still work but play nothing. Change it in <Link href="/settings/" className="underline">Settings</Link>.
+          mode is on). The buttons still work but show almost nothing (under reduced motion, only a still ring that fades). Change it in <Link href="/settings/" className="underline">Settings</Link>.
         </p>
       )}
 
@@ -235,11 +251,11 @@ export function FxLab() {
           className={btn}
           onClick={() => {
             if (!bannersEnabled()) {
-              setPlayed("Banners are off at this effects level, or under reduced motion or Focus mode.");
+              announce("Banners are off at this effects level, or under reduced motion or Focus mode.");
               return;
             }
             setBanner(Date.now());
-            setPlayed("Played: level-up banner.");
+            announce("Played: level-up banner.");
           }}
         >
           Level-up banner
@@ -268,7 +284,7 @@ export function FxLab() {
             setPaused(pausedRef.current);
           }}
         >
-          {paused ? "Resume" : "Pause on this frame"}
+          Pause on this frame
         </button>
       </div>
 

@@ -102,6 +102,8 @@ test.describe("when effects are Off", () => {
     expect(r.changedFrames).toBe(0);
     const w = await watch(page, "Boss defeated combo", 500);
     expect(w.changedFrames).toBe(0);
+    const dash = await watch(page, "Smear and afterimages", 900);
+    expect(dash.changedFrames).toBe(0); // the hiker does not slide across when effects are off
     await page.getByRole("button", { name: "Level-up banner" }).click();
     await expect(page.getByRole("status")).toContainText("Banners are off");
     await expect(page.locator(".cutin")).toHaveCount(0);
@@ -133,6 +135,12 @@ test.describe("reduced motion", () => {
     expect(impact.changedFrames).toBe(0);
     const zoom = await watch(page, "Zoom punch", 500);
     expect(zoom.changedFrames).toBe(0);
+    const dash = await watch(page, "Smear and afterimages", 900);
+    expect(dash.changedFrames).toBe(0);
+    // The one thing that does play is a ring that fades in place.
+    const ring = await watch(page, "Shockwave", 900);
+    expect(ring.changedFrames).toBeGreaterThan(0);
+    await expect(page.getByRole("status")).toContainText("still ring");
     await page.getByRole("button", { name: "Level-up banner" }).click();
     await expect(page.locator(".cutin")).toHaveCount(0);
   });
@@ -140,18 +148,36 @@ test.describe("reduced motion", () => {
 
 test("pausing freezes the picture on its current frame, and resuming continues", async ({ page }) => {
   await page.goto("/fx-lab/");
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(400);
   await page.getByRole("checkbox", { name: /Slow motion/ }).check();
+  const base = await brightness(page);
   await page.getByRole("button", { name: "Smear and afterimages", exact: true }).click();
-  await page.waitForTimeout(500);
-  const pause = page.getByRole("button", { name: /Pause on this frame/ });
+  // the picture is changing before we pause (the dash and its afterimages)
+  await expect.poll(async () => Math.abs((await brightness(page)) - base) / base, { timeout: 3000 }).toBeGreaterThan(0.002);
+  const pause = page.getByRole("button", { name: "Pause on this frame" });
   await pause.click();
-  await expect(page.getByRole("button", { name: "Resume" })).toHaveAttribute("aria-pressed", "true");
+  await expect(pause).toHaveAttribute("aria-pressed", "true");
   const a = await brightness(page);
   await page.waitForTimeout(400);
   expect(await brightness(page)).toBe(a);
-  await page.getByRole("button", { name: "Resume" }).click();
-  await expect(page.getByRole("button", { name: /Pause on this frame/ })).toHaveAttribute("aria-pressed", "false");
+  // pressing an effect while paused says so instead of claiming it played
+  await page.getByRole("button", { name: "Shockwave", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Paused");
+  expect(await brightness(page)).toBe(a);
+  await pause.click();
+  await expect(pause).toHaveAttribute("aria-pressed", "false");
+  await expect.poll(async () => (await brightness(page)) !== a, { timeout: 4000 }).toBe(true); // it moves again
+});
+
+test("pressing the same effect twice changes the live-region text so it is announced again", async ({ page }) => {
+  await page.goto("/fx-lab/");
+  const status = page.getByRole("status");
+  await page.getByRole("button", { name: "Zoom punch", exact: true }).click();
+  const first = await status.textContent();
+  await page.getByRole("button", { name: "Zoom punch", exact: true }).click();
+  const second = await status.textContent();
+  expect(first).not.toBe(second);
+  expect(first?.trim()).toBe(second?.trim());
 });
 
 test("the Level-up banner button shows the banner at Normal", async ({ page }) => {
