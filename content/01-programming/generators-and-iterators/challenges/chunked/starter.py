@@ -3,6 +3,8 @@ def chunked(iterable, size):
 
     list(chunked([1, 2, 3, 4, 5, 6, 7], 3)) -> [[1, 2, 3], [4, 5, 6], [7]]
 
+    `size` is a whole number.
+
     - The last chunk may be shorter. An empty iterable gives no chunks.
     - Each chunk is a new list.
     - Be lazy: take only as many items from `iterable` as the chunk you are

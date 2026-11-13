@@ -82,6 +82,16 @@ def test_a_list_input_can_be_chunked_again_after_a_full_pass():
     assert list(chunked(data, 2)) == list(chunked(data, 2))
 
 
+def test_the_size_check_happens_at_the_call_even_for_a_one_item_input():
+    for bad in (0, -3):
+        raised = False
+        try:
+            chunked(Counting(1), bad)  # never iterated
+        except ValueError:
+            raised = True
+        assert raised, f"size {bad} should raise ValueError at the call"
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):
