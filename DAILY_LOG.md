@@ -496,3 +496,33 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 21: Realm 1 continues with Generators and iterators (`generators-and-iterators`). Day 21 is also a consolidation day per PLAN.md: read the last week's TODO-VERIFY items and burn some down.
+
+## Day 21: Generators and iterators quest (Realm 1) and a consolidation pass
+
+Done
+- Fourth Realm 1 quest, `content/01-programming/generators-and-iterators`: five-tier lesson (iterable versus iterator, what a `for` loop does, generators and `yield`, laziness, generator expressions, `yield from`, one-shot tools, late errors), 17 quiz items (all ten predict-output answers re-run as code), 23 flashcards, 8 common mistakes, 10 interview questions, 7 primary sources, a boss gauntlet interleaving Classes and exceptions, and two challenges (`chunked`, `countdown`) with hidden tests and 12 wrong-answer mutants, all caught.
+- Checks: `pnpm verify` green (including all 10 challenges in the real in-browser Pyodide), web build OK, 58 Playwright tests pass (the new page is in the axe list, light and dark).
+
+Consolidation (burned down open TODO-VERIFY items)
+- The in-browser runner uses Python 3.14.2 (checked by loading it). Every challenge, starter, solution, hidden test and mutant already runs there on every `pnpm verify`, so the old "challenges not run in real Pyodide" item is closed.
+- Confirmed in that runtime that `return` inside `finally` warns (`SyntaxWarning`); the Day 18 lesson now says so instead of "may warn".
+- `sys.modules` as the import cache is now backed by the import-system reference (Day 17 note closed).
+- The live site showed no failed requests or `__next` prefetch 404s on the home and quest pages, so those 404s look like a local test-server artefact. Not proof for every route.
+
+Sources used
+- docs.python.org: tutorial (Classes: iterators, generators, generator expressions), Built-in Types (Iterator Types), itertools, Yield expressions, the glossary, What's New 3.3, Built-in Exceptions, and the import system reference. Fetched 2026-11-13; every snippet re-run on Python 3.13.7. See `research/01-programming.md`.
+
+Review
+- A separate reviewer ran every snippet (all correct). Findings, all fixed: "use a `with` around the loop" does not close a generator (now: put the `with` inside the generator and finish or `close()` it); the `yield from` interview answer said the return value passes to the caller (it becomes the value of the `yield from` expression); a vague sentence about generator expressions; the hidden `chunked` tests did not repeat the call-time size check, so one mutant passed them alone (now caught on its own); `size` is now stated to be a whole number.
+
+Decisions
+- No new ADR. `miniGame` is `none-yet`.
+
+TODO-VERIFY / not done
+- `zip(strict=)` and `map(strict=)` version notes are from memory and are not in the lesson.
+- A class that defines both `__iter__` returning a fresh iterator and a stub `__next__` passes the Countdown tests; accepted, since it behaves correctly.
+- The public site at kaushik2210.github.io/aiforge is an older build than `main`: deploys are manual and the last one predates the FX work and the last four quests.
+- No manual screen-reader pass of the new page.
+
+Tomorrow
+- Day 22: Realm 1 continues with Async and concurrency (`async-and-concurrency`). The owner may prefer to redeploy the site first, or add more effects.
