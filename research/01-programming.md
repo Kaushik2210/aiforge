@@ -245,3 +245,13 @@ Confirmed outputs (Python 3.13.7):
 - Memory: list of 1,000,000 ints is megabytes (getsizeof counts only the list's pointer array);
   generator object is a few hundred bytes; ratio ~4e4. Say "orders of magnitude" only; no exact numbers.
   Caveat: getsizeof is shallow.
+
+## Consolidation checks (Day 21)
+
+- `sys.modules` as the import cache: the Language Reference, "The import system", section "The module cache"
+  (https://docs.python.org/3/reference/import.html, fetched 2026-11-13) says the first place checked during
+  import is `sys.modules`, a mapping of previously imported modules; a present entry satisfies the import.
+  This resolves the Day 17 note that the caching claim rested on a local run only.
+- Live site (https://kaushik2210.github.io/aiforge/, 2026-11-13): loading the home page and a quest page showed no
+  failed requests and no `__next` prefetch requests in the first seconds. The earlier 404s were seen only on the
+  local static test server. Not proof for every route; the deployed build is older than `main`.
