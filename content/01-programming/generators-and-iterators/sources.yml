@@ -1,0 +1,48 @@
+- title: "The Python Tutorial: Classes (Iterators, Generators and Generator Expressions)"
+  url: "https://docs.python.org/3/tutorial/classes.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-13
+  readFor: "How a for loop uses iter and next, how a generator saves its state between yields, and what generator expressions are."
+
+- title: "The Python Standard Library: Built-in Types (Iterator Types)"
+  url: "https://docs.python.org/3/library/stdtypes.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-13
+  readFor: "The iterator protocol: __iter__ returns an iterator, an iterator's __iter__ returns itself, and it must keep raising StopIteration once finished."
+
+- title: "The Python Standard Library: itertools"
+  url: "https://docs.python.org/3/library/itertools.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-13
+  readFor: "count, islice, batched (added in 3.12) and the other building blocks, and which of them consume their input."
+
+- title: "The Python Language Reference: Yield expressions"
+  url: "https://docs.python.org/3/reference/expressions.html#yield-expressions"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-13
+  readFor: "Generator functions, the generator methods (send, throw, close) and what yield from does."
+
+- title: "The Python Glossary: iterable, iterator and generator"
+  url: "https://docs.python.org/3/glossary.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-13
+  readFor: "The precise meanings of iterable, iterator, generator and generator iterator, including that iterating an iterator twice finds it exhausted."
+
+- title: "What's New in Python 3.3 (PEP 380: yield from)"
+  url: "https://docs.python.org/3/whatsnew/3.3.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-13
+  readFor: "Where yield from and a generator's return value on StopIteration were introduced."
+
+- title: "The Python Standard Library: Built-in Exceptions (StopIteration)"
+  url: "https://docs.python.org/3/library/exceptions.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-13
+  readFor: "StopIteration and its value attribute, and that a StopIteration raised inside a generator becomes RuntimeError."

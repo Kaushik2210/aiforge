@@ -1,0 +1,17 @@
+id: generators-and-iterators-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - predict-iterator-twice
+  - predict-iter-identity
+  - predict-generator-timing
+  - late-validation
+  - predict-zip-consumes
+  - spot-bug-second-pass
+  - iterable-class
+  - stopiteration-in-generator
+challenges:
+  - chunked
+  - countdown
+interleaveFrom:
+  - python-oop-and-errors

@@ -16,3 +16,6 @@ items:
   - quest: python-oop-and-errors
     claim: "Python behaviours and docs.python.org pages cited (classes, exceptions, data model, dataclasses)"
     verifiedOn: 2026-11-12
+  - quest: generators-and-iterators
+    claim: "Python behaviours and docs.python.org pages cited (iterator protocol, generators, itertools.batched since 3.12)"
+    verifiedOn: 2026-11-13
