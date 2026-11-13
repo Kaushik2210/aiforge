@@ -1,0 +1,2 @@
+title: Split a stream into chunks lazily
+summary: Write chunked, which yields lists of up to size items from any iterable, one chunk at a time, without reading ahead, and which rejects a bad size at the moment it is called.

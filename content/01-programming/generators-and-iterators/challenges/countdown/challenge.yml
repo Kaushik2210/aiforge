@@ -1,0 +1,2 @@
+title: Write a re-usable countdown
+summary: Write a Countdown class that can be looped over any number of times, each loop starting fresh, even when two loops over the same object run inside each other.
