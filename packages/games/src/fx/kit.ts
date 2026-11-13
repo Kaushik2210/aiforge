@@ -182,7 +182,8 @@ export class FxKit {
     const s = strength(this.level);
     if (s === 0 || !isFinite_(angle)) return;
     const ms = isFinite_(opts.ms) && opts.ms > 0 ? Math.min(MAX_EFFECT_MS, opts.ms) : 120;
-    const want = isFinite_(opts.stretch) && opts.stretch > 1 ? opts.stretch : 1.8;
+    const want = isFinite_(opts.stretch) ? opts.stretch : 1.8;
+    if (want <= 1) return; // a stretch of 1 or less is no stretch at all
     const stretch = Math.min(MAX_STRETCH, 1 + (want - 1) * s);
     this.smearState = { angle, stretch, ms, t: 0 };
   }

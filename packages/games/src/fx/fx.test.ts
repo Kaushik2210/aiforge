@@ -598,3 +598,35 @@ describe("FxKit smear", () => {
     expect(run(inf, 400, 10).at(-1)!.smear).toBeNull();
   });
 });
+
+describe("FxKit smear (found by mutation testing)", () => {
+  it("a stretch of 1 or less is no smear at all", () => {
+    for (const stretch of [1, 0.5, 0, -2]) {
+      const kit = new FxKit();
+      kit.smear(0, { stretch });
+      expect(kit.update(16).smear).toBeNull();
+    }
+  });
+  it("a second call restarts the smear from full stretch", () => {
+    const kit = new FxKit();
+    kit.smear(0);
+    run(kit, 100, 10);
+    kit.smear(1);
+    const f = kit.update(1).smear!;
+    expect(f.angle).toBe(1);
+    expect(f.along).toBeCloseTo(1.8, 6);
+  });
+  it("eases out: halfway through it has given back most of the stretch", () => {
+    const kit = new FxKit();
+    kit.smear(0, { ms: 100, stretch: 1.8 });
+    kit.update(50); // t is now 50
+    const mid = kit.update(1).smear!.along;
+    expect(mid).toBeCloseTo(1 + 0.8 * (1 - easeOutCubic(0.5)), 2); // about 1.1, not the 1.4 a straight line would give
+    expect(mid).toBeLessThan(1.2);
+  });
+  it("an enormous duration is capped at five seconds", () => {
+    const kit = new FxKit();
+    kit.smear(0, { ms: 1e9 });
+    expect(run(kit, 5300, 50).at(-1)!.smear).toBeNull();
+  });
+});
