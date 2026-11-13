@@ -22,6 +22,20 @@ export interface Ghost {
   alpha: number;
 }
 
+/**
+ * A smear: for a moment a fast-moving thing is stretched along its direction of
+ * travel and squashed across it. A renderer scales its sprite by `along` in the
+ * direction of `angle` and by `across` at right angles.
+ */
+export interface Smear {
+  /** Direction of travel, in radians (0 points right). */
+  angle: number;
+  /** Scale along the direction of travel, 1 or more. */
+  along: number;
+  /** Scale across it, at most 1. */
+  across: number;
+}
+
 /** Everything a renderer needs to draw one frame of effects. */
 export interface FxFrame {
   /** Multiply the game's own time by this: 0 while a hit-stop freeze is running, otherwise 1. */
@@ -40,12 +54,14 @@ export interface FxFrame {
    * held for two frames on twos, then gone, and is never white (see ADR 0012).
    */
   impact: number;
+  /** The smear to apply to the moving thing this frame, or null. */
+  smear: Smear | null;
   /** True while anything is animating, so a renderer can skip redraws when idle. */
   active: boolean;
 }
 
 /** A fresh idle frame each time, so a caller changing one cannot affect the next. */
-const idle = (): FxFrame => ({ timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], ghosts: [], impact: 0, active: false });
+const idle = (): FxFrame => ({ timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], ghosts: [], impact: 0, smear: null, active: false });
 
 const isFinite_ = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
 
@@ -55,6 +71,8 @@ const MAX_LINES = 200;
 const MAX_RING_SIZE = 2000;
 const MAX_GHOSTS = 4;
 const GHOST_LIFE_MS = 240;
+/** The most a smear may stretch, however hard a caller asks. */
+const MAX_STRETCH = 3;
 /** A ghost is only left behind once the thing has moved at least this far (in pixels) from the last one. */
 const GHOST_MIN_GAP = 7;
 /** The impact frame: two held frames on twos at 24 fps (about 83 ms each), strongest first. */
@@ -84,6 +102,7 @@ export class FxKit {
   private waves: { x: number; y: number; size: number; ms: number; t: number; still: boolean }[] = [];
   private trail: { x: number; y: number; t: number }[] = [];
   private impactT: number | null = null;
+  private smearState: { angle: number; stretch: number; ms: number; t: number } | null = null;
   // One impact frame a second at most: it is a full-canvas luminance change, so we keep clear of the WCAG limit of 3.
   private readonly flashes = new FlashLimiter(1);
 
@@ -155,6 +174,20 @@ export class FxKit {
   }
 
   /**
+   * Stretch a fast mover along `angle` (radians) for `ms` (default 120), easing back
+   * to normal. `stretch` is the peak length scale (default 1.8, capped at 3), scaled
+   * by the effects level. Off at level 0 and under reduced motion.
+   */
+  smear(angle: number, opts: { ms?: number; stretch?: number } = {}): void {
+    const s = strength(this.level);
+    if (s === 0 || !isFinite_(angle)) return;
+    const ms = isFinite_(opts.ms) && opts.ms > 0 ? Math.min(MAX_EFFECT_MS, opts.ms) : 120;
+    const want = isFinite_(opts.stretch) && opts.stretch > 1 ? opts.stretch : 1.8;
+    const stretch = Math.min(MAX_STRETCH, 1 + (want - 1) * s);
+    this.smearState = { angle, stretch, ms, t: 0 };
+  }
+
+  /**
    * A dark, tinted "ink" frame held for two frames on twos, for the biggest moments
    * only (a boss defeated). Needs level 2 or higher and goes through the flash
    * limiter, so at most 1 can start in any second; returns false when refused.
@@ -215,12 +248,21 @@ export class FxKit {
       }
     }
 
+    let smear: Smear | null = null;
+    if (this.smearState) {
+      const k = 1 - easeOutCubic(this.smearState.t / this.smearState.ms);
+      const along = 1 + (this.smearState.stretch - 1) * k;
+      smear = { angle: this.smearState.angle, along, across: 1 / Math.sqrt(along) };
+      this.smearState.t += dt;
+      if (this.smearState.t >= this.smearState.ms) this.smearState = null;
+    }
+
     const shake = shakeOffset(this.trauma, this.nowMs);
     // The last frame of a line burst or ring still has something to draw, so it counts as active.
     const active =
-      frozen || this.trauma > 0 || this.punch !== null || this.lineState !== null || this.waves.length > 0 || lines.length > 0 || shockwaves.length > 0 || ghosts.length > 0 || impact > 0;
+      frozen || this.trauma > 0 || this.punch !== null || this.lineState !== null || this.waves.length > 0 || lines.length > 0 || shockwaves.length > 0 || ghosts.length > 0 || impact > 0 || smear !== null;
     if (!active) return idle();
-    return { timeScale: frozen ? 0 : 1, shake, zoom, lines, lineAlpha, shockwaves, ghosts, impact, active };
+    return { timeScale: frozen ? 0 : 1, shake, zoom, lines, lineAlpha, shockwaves, ghosts, impact, smear, active };
   }
 
   /** Stop everything now. */
@@ -232,5 +274,6 @@ export class FxKit {
     this.waves = [];
     this.trail = [];
     this.impactT = null;
+    this.smearState = null;
   }
 }

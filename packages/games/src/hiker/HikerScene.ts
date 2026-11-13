@@ -53,7 +53,7 @@ export class HikerScene extends Phaser.Scene {
   private walk: Phaser.Tweens.Tween | null = null;
   private fx = { burst: 0 };
   private kit: FxKit;
-  private frame: FxFrame = { timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], ghosts: [], impact: 0, active: false };
+  private frame: FxFrame = { timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], ghosts: [], impact: 0, smear: null, active: false };
   private wasActive = false;
   /** True while the hiker is gliding along the trail, so afterimages are only left behind real movement. */
   private walking = false;

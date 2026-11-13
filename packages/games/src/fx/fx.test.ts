@@ -539,3 +539,62 @@ describe("FxKit impact frame", () => {
     expect(kit.update(16)).toMatchObject({ impact: 0, active: false });
   });
 });
+
+describe("FxKit smear", () => {
+  it("starts stretched along the angle, squashes across it, and eases back to nothing", () => {
+    const kit = new FxKit();
+    kit.smear(0.5);
+    const frames = run(kit, 400, 10);
+    const first = frames[0]!.smear!;
+    expect(first.angle).toBe(0.5);
+    expect(first.along).toBeCloseTo(1.8, 6);
+    expect(first.across).toBeCloseTo(1 / Math.sqrt(1.8), 6);
+    for (let i = 1; i < 12; i++) expect(frames[i]!.smear!.along).toBeLessThanOrEqual(frames[i - 1]!.smear!.along + 1e-12);
+    expect(frames.at(-1)!.smear).toBeNull();
+    expect(frames.at(-1)!.active).toBe(false);
+  });
+  it("is stronger at higher levels and capped at three times the length", () => {
+    const peak = (level: 1 | 2 | 3, stretch?: number) => {
+      const k = new FxKit({ level });
+      k.smear(0, stretch === undefined ? {} : { stretch });
+      return k.update(1).smear!.along;
+    };
+    expect(peak(1)).toBeLessThan(peak(2));
+    expect(peak(2)).toBeLessThan(peak(3));
+    expect(peak(3, 50)).toBeLessThanOrEqual(3);
+  });
+  it("is off at level 0, under reduced motion and for a NaN angle", () => {
+    for (const k of [new FxKit({ level: 0 }), new FxKit({ level: 3, reducedMotion: true })]) {
+      k.smear(0);
+      expect(k.update(16).smear).toBeNull();
+    }
+    const nan = new FxKit();
+    nan.smear(Number.NaN);
+    expect(nan.update(16).smear).toBeNull();
+  });
+  it("slims as it stretches: across is one over the square root of along", () => {
+    const kit = new FxKit();
+    kit.smear(0, { stretch: 2.5 });
+    const s = kit.update(1).smear!;
+    expect(s.along * s.across).toBeCloseTo(Math.sqrt(s.along), 9);
+  });
+  it("reset and a switch to reduced motion clear it", () => {
+    const kit = new FxKit();
+    kit.smear(1);
+    kit.update(16);
+    kit.setMode({ reducedMotion: true });
+    expect(kit.update(16).smear).toBeNull();
+    const k2 = new FxKit();
+    k2.smear(1);
+    k2.reset();
+    expect(k2.update(16).smear).toBeNull();
+  });
+  it("a longer duration lasts longer, and an infinite one is capped", () => {
+    const longer = new FxKit();
+    longer.smear(0, { ms: 400 });
+    expect(run(longer, 300, 10).at(-1)!.smear).not.toBeNull();
+    const inf = new FxKit();
+    inf.smear(0, { ms: Infinity }); // ignored: falls back to the default 120 ms
+    expect(run(inf, 400, 10).at(-1)!.smear).toBeNull();
+  });
+});
