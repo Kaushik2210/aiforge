@@ -1,7 +1,8 @@
 "use client";
 
 import { levelProgress, rankForLevel, streakStatus } from "@aiforge/engine";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { DEFAULT_FX_LEVEL, FX_CHOICES, applyFxLevel, readFxLevel, type FxLevel } from "@/lib/effects";
 import { useProgress } from "@/lib/progress-store";
 
 const btn =
@@ -16,6 +17,9 @@ export function SettingsPanel() {
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [mode, setMode] = useState<"merge" | "replace">("merge");
   const fileRef = useRef<HTMLInputElement>(null);
+  const [fx, setFx] = useState<FxLevel>(DEFAULT_FX_LEVEL);
+  // Read the saved choice after the first paint so the server and browser render the same thing.
+  useEffect(() => setFx(readFxLevel()), []);
 
   const p = levelProgress(snapshot.xpTotal);
   const st = streakStatus(snapshot.streak, Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
@@ -74,6 +78,36 @@ export function SettingsPanel() {
             <dd>{Object.values(snapshot.challenges).filter((c) => c.passed).length}</dd>
           </dl>
         )}
+      </section>
+
+      <section aria-labelledby="fx-h" className="rounded-[var(--radius)] border border-border bg-surface p-4">
+        <h2 id="fx-h" className="text-xl">Effects</h2>
+        <p className="mt-1 text-text-muted">
+          How dramatic the game effects are: screen shake, freezes on impact, speed lines, level-up banners. Your
+          system's reduced-motion setting and Focus mode always turn them off, whatever you pick here.
+        </p>
+        <fieldset className="mt-3">
+          <legend className="sr-only">Effects level</legend>
+          <div className="flex flex-wrap gap-3">
+            {FX_CHOICES.map((c) => (
+              <label key={c.level} className="tap flex cursor-pointer items-center gap-2 rounded-[var(--radius)] border-2 border-border bg-surface px-3">
+                <input
+                  type="radio"
+                  name="fx"
+                  checked={fx === c.level}
+                  onChange={() => {
+                    setFx(c.level);
+                    applyFxLevel(c.level);
+                  }}
+                />
+                <span>
+                  <span className="font-semibold">{c.name}</span>
+                  <span className="block text-sm text-text-muted">{c.blurb}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </section>
 
       <section aria-labelledby="backup-h" className="rounded-[var(--radius)] border border-border bg-surface p-4">
