@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CutIn } from "@/components/fx/CutIn";
+import { cutInDuration, readFxLevel } from "@/lib/effects";
 import { useProgress } from "@/lib/progress-store";
 
 /** Loads saved progress once, shows storage notices and the XP reward toast. */
@@ -21,7 +22,7 @@ export function ProgressInit() {
   useEffect(() => {
     if (!reward) return;
     setVisible(reward);
-    if (reward.levelUp || reward.rankUp) setCutIn(reward);
+    if ((reward.levelUp || reward.rankUp) && cutInDuration(readFxLevel()) > 0) setCutIn(reward);
     const t = setTimeout(() => setVisible(null), 4500);
     return () => clearTimeout(t);
   }, [reward]);
@@ -48,6 +49,7 @@ export function ProgressInit() {
           key={cutIn.key}
           title={cutIn.levelUp ? "LEVEL UP" : "NEW RANK"}
           subtitle={cutIn.levelUp ? `Level ${cutIn.levelUp.to}` : cutIn.rankUp ? String(cutIn.rankUp.to) : undefined}
+          durationMs={cutInDuration(readFxLevel())}
           onDone={endCutIn}
         />
       )}

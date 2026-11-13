@@ -12,9 +12,12 @@ import {
   type LevelId,
 } from "@aiforge/games";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CutIn } from "@/components/fx/CutIn";
+import { cutInDuration, readFxLevel } from "@/lib/effects";
 import { prefersReducedMotion, readMapTheme } from "@/lib/map-data";
 import { useProgress } from "@/lib/progress-store";
 
+const BOSS_LEVEL: LevelId = 5;
 const LEVEL_TITLES = LEVEL_IDS.map((id) => ({ id, title: getLevel(id).title }));
 const btn =
   "tap rounded-[var(--radius)] border-2 border-border bg-surface px-4 font-semibold text-text disabled:opacity-50";
@@ -40,15 +43,24 @@ export function HikerGame() {
   const [error, setError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<HikerResult | null>(null);
   const [themeVersion, setThemeVersion] = useState(0);
+  const [banner, setBanner] = useState<{ key: number; title: string; subtitle: string } | null>(null);
+  const endBanner = useCallback(() => setBanner(null), []);
+
+  /** A big cut-in for boss moments. Not shown when effects are off. */
+  const showBanner = useCallback((title: string, subtitle: string) => {
+    if (cutInDuration(readFxLevel()) === 0) return;
+    setBanner({ key: Date.now(), title, subtitle });
+  }, []);
   const dispatch = useProgress((s) => s.dispatch);
   const games = useProgress((s) => s.snapshot.games);
 
   const onComplete = useCallback(
     (r: HikerResult) => {
       setLastResult(r);
+      if (r.won && r.levelId === BOSS_LEVEL) showBanner("BOSS DEFEATED", getLevel(r.levelId).title);
       void dispatch({ type: "game-result", id: `gradient-hiker:level-${r.levelId}`, won: r.won });
     },
-    [dispatch],
+    [dispatch, showBanner],
   );
 
   // One game for the life of the page; its session survives theme changes.
@@ -70,7 +82,7 @@ export function HikerGame() {
   useEffect(() => {
     const bump = () => setThemeVersion((v) => v + 1);
     const observer = new MutationObserver(bump);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-focus"] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-focus", "data-fx"] });
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     mq.addEventListener("change", bump);
     return () => {
@@ -91,6 +103,7 @@ export function HikerGame() {
         difficulty: 1,
         seed: 1,
         reducedMotion: prefersReducedMotion(),
+        fxLevel: readFxLevel(),
         onComplete: () => {}, // the page already listens to the session
         onError: (message) => {
           setError(message);
@@ -119,6 +132,7 @@ export function HikerGame() {
 
   return (
     <div className="space-y-5">
+      {banner && <CutIn key={banner.key} title={banner.title} subtitle={banner.subtitle} durationMs={cutInDuration(readFxLevel())} onDone={endBanner} />}
       <div role="group" aria-label="Choose a level" className="flex flex-wrap gap-2">
         {LEVEL_TITLES.map(({ id, title }) => (
           <button
@@ -128,6 +142,7 @@ export function HikerGame() {
             onClick={() => {
               setLastResult(null);
               session.setLevel(id);
+              if (id === BOSS_LEVEL) showBanner("BOSS BATTLE", getLevel(id).title);
             }}
             className={`tap rounded-[var(--radius)] border-2 px-3 text-sm font-semibold ${
               level.id === id ? "border-primary bg-primary text-on-primary" : "border-border bg-surface text-text"
