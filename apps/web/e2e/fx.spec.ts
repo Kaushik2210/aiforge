@@ -121,3 +121,14 @@ test.describe("effects setting and boss banners", () => {
     await expect(page.getByRole("group", { name: "Effects level" }).getByRole("radio", { name: /Normal/ })).toBeChecked();
   });
 });
+
+test.describe("reduced motion hides the decorative banners", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  test("picking the boss level shows no banner under reduced motion", async ({ page }) => {
+    await page.goto("/games/gradient-hiker/");
+    await page.getByRole("button", { name: /^5\./ }).click();
+    await page.waitForTimeout(500);
+    await expect(page.locator(".cutin")).toHaveCount(0);
+  });
+});

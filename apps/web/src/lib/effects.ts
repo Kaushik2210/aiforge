@@ -38,6 +38,17 @@ export function applyFxLevel(level: FxLevel): void {
   }
 }
 
+/**
+ * True when decorative banners may be shown: effects are not Off, and neither the
+ * system reduced-motion setting nor Focus mode is on. (Those two always win.)
+ */
+export function bannersEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  if (cutInDuration(readFxLevel()) === 0) return false;
+  if (document.documentElement.dataset.focus === "on") return false;
+  return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 /** How long the cut-in banner stays at each level, in milliseconds (0 means it is not shown). */
 export function cutInDuration(level: FxLevel): number {
   return [0, 1200, 1800, 2400][level] ?? 0;

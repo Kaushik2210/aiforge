@@ -50,12 +50,15 @@ written separately in each scene.
   7 px apart) behind something that moves. The Hiker uses it while it glides along the trail.
 - **Impact frame**: `impactFrame()` is a dark ink overlay (alpha 0.7 then 0.35, each held
   about 83 ms, on twos at 24 fps). It is never white, needs level 2 or higher, is off under
-  reduced motion, and goes through `FlashLimiter` (at most 2 starts per second). Only the boss
-  win uses it.
+  reduced motion, and goes through `FlashLimiter` (at most 1 start per second: review counted opposing luminance
+  changes on the light theme, where 2 a second sits exactly on the WCAG limit of 3, so we
+  keep a margin). Only the boss win uses it.
 - **Effects setting**: Settings has an Off, Low, Normal (default) and High choice, stored on
   `<html data-fx>` and in localStorage like the theme, and applied before first paint. The
   Hiker game receives it as `fxLevel`; the level-up and boss cut-in banners use it for their
-  length and are not shown at Off. Reduced motion and Focus mode still override it.
+  length and are not shown at Off, nor under reduced motion or Focus mode (which override
+  it). The boss banner sits at the top so it never overlaps a level-up banner, and it waits
+  for the hiker's glide to finish.
 - **Boss cut-ins** on the Hiker page: "BOSS BATTLE" when the boss level is picked and "BOSS
   DEFEATED" on a win.
 

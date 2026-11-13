@@ -11,6 +11,8 @@ interface Props {
   onDone: () => void;
   /** How long it stays, in milliseconds. */
   durationMs?: number;
+  /** Where it sits. A banner that can appear with another one uses "top" so they never overlap. */
+  position?: "center" | "top";
 }
 
 /**
@@ -23,14 +25,14 @@ interface Props {
  * band then just appears and disappears, and the text stays readable.
  * Nothing in it flashes.
  */
-export function CutIn({ title, subtitle, onDone, durationMs = 1800 }: Props) {
+export function CutIn({ title, subtitle, onDone, durationMs = 1800, position = "center" }: Props) {
   useEffect(() => {
     const t = setTimeout(onDone, durationMs);
     return () => clearTimeout(t);
   }, [onDone, durationMs]);
 
   return (
-    <div className="cutin" aria-hidden="true" style={{ ["--cutin-ms" as string]: `${durationMs}ms` }}>
+    <div className={position === "top" ? "cutin cutin--top" : "cutin"} aria-hidden="true" style={{ ["--cutin-ms" as string]: `${durationMs}ms` }}>
       <div className="cutin-band">
         <div className="cutin-lines" />
         <div className="cutin-text">

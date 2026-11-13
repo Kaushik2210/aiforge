@@ -13,11 +13,12 @@ import {
 } from "@aiforge/games";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CutIn } from "@/components/fx/CutIn";
-import { cutInDuration, readFxLevel } from "@/lib/effects";
+import { bannersEnabled, cutInDuration, readFxLevel } from "@/lib/effects";
 import { prefersReducedMotion, readMapTheme } from "@/lib/map-data";
 import { useProgress } from "@/lib/progress-store";
 
 const BOSS_LEVEL: LevelId = 5;
+const GLIDE_WAIT_MS = 1600;
 const LEVEL_TITLES = LEVEL_IDS.map((id) => ({ id, title: getLevel(id).title }));
 const btn =
   "tap rounded-[var(--radius)] border-2 border-border bg-surface px-4 font-semibold text-text disabled:opacity-50";
@@ -43,13 +44,16 @@ export function HikerGame() {
   const [error, setError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<HikerResult | null>(null);
   const [themeVersion, setThemeVersion] = useState(0);
+  const bannerTimer = useRef<number | undefined>(undefined);
   const [banner, setBanner] = useState<{ key: number; title: string; subtitle: string } | null>(null);
   const endBanner = useCallback(() => setBanner(null), []);
+  useEffect(() => () => window.clearTimeout(bannerTimer.current), []); // no banner after leaving the page
 
   /** A big cut-in for boss moments. Not shown when effects are off. */
-  const showBanner = useCallback((title: string, subtitle: string) => {
-    if (cutInDuration(readFxLevel()) === 0) return;
-    setBanner({ key: Date.now(), title, subtitle });
+  const showBanner = useCallback((title: string, subtitle: string, delayMs = 0) => {
+    if (!bannersEnabled()) return;
+    window.clearTimeout(bannerTimer.current);
+    bannerTimer.current = window.setTimeout(() => setBanner({ key: Date.now(), title, subtitle }), delayMs);
   }, []);
   const dispatch = useProgress((s) => s.dispatch);
   const games = useProgress((s) => s.snapshot.games);
@@ -57,7 +61,8 @@ export function HikerGame() {
   const onComplete = useCallback(
     (r: HikerResult) => {
       setLastResult(r);
-      if (r.won && r.levelId === BOSS_LEVEL) showBanner("BOSS DEFEATED", getLevel(r.levelId).title);
+      // The win is reported at once but the hiker glides for up to about 2.4 s first, so wait for the finish.
+      if (r.won && r.levelId === BOSS_LEVEL) showBanner("BOSS DEFEATED", getLevel(r.levelId).title, GLIDE_WAIT_MS);
       void dispatch({ type: "game-result", id: `gradient-hiker:level-${r.levelId}`, won: r.won });
     },
     [dispatch, showBanner],
@@ -132,7 +137,7 @@ export function HikerGame() {
 
   return (
     <div className="space-y-5">
-      {banner && <CutIn key={banner.key} title={banner.title} subtitle={banner.subtitle} durationMs={cutInDuration(readFxLevel())} onDone={endBanner} />}
+      {banner && <CutIn key={banner.key} position="top" title={banner.title} subtitle={banner.subtitle} durationMs={cutInDuration(readFxLevel())} onDone={endBanner} />}
       <div role="group" aria-label="Choose a level" className="flex flex-wrap gap-2">
         {LEVEL_TITLES.map(({ id, title }) => (
           <button
