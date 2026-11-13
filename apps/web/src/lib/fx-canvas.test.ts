@@ -87,4 +87,20 @@ describe("drawFxScene", () => {
     const { calls } = draw({ ...idle, shockwaves: [{ x: 5, y: 5, radius: -5, alpha: 1, still: false }], active: true });
     for (const c of calls.filter((x) => x.op === "arc")) expect(c.args[2] as number).toBeGreaterThanOrEqual(0);
   });
+
+  it("moves to the centre plus shake, then zooms, then moves back (in that order)", () => {
+    const { calls } = draw({ ...idle, zoom: 1.1, shake: { x: 4, y: 5 }, active: true });
+    const camera = calls.filter((c) => c.op === "translate" || c.op === "scale").slice(0, 3);
+    expect(camera.map((c) => c.op)).toEqual(["translate", "scale", "translate"]);
+    expect(camera[0]!.args).toEqual([SCENE_W / 2 + 4, SCENE_H / 2 + 5]);
+    expect(camera[2]!.args).toEqual([-SCENE_W / 2, -SCENE_H / 2]);
+  });
+
+  it("draws each ghost at its own alpha and speed lines at 60 percent of the frame's line alpha", () => {
+    const ghostArcs = draw({ ...idle, ghosts: [{ x: 5, y: 5, alpha: 0.3 }], active: true }).calls.filter((c) => c.op === "arc" && c.alpha === 0.3);
+    expect(ghostArcs.length).toBeGreaterThan(0);
+    const lineStrokes = draw({ ...idle, lines: [{ x1: 0, y1: 0, x2: 9, y2: 9, width: 2 }], lineAlpha: 0.5, active: true }).calls.filter((c) => c.op === "stroke" && c.alpha === 0.3);
+    expect(lineStrokes).toHaveLength(1);
+  });
 });
+
