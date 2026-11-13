@@ -1,0 +1,293 @@
+- id: predict-iterator-twice
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    it = iter([1, 2, 3])
+    print(list(it), list(it))
+  options:
+    - "[1, 2, 3] [1, 2, 3]"
+    - "[] []"
+    - "[1, 2, 3] []"
+    - "[1, 2, 3] [2, 3]"
+  answer: 2
+  explanation: "The first list() walks the iterator to the end and uses it up. The second finds nothing left."
+  whyWrong:
+    "0": "That is what you would get from the list itself, which can be walked again, but an iterator cannot."
+    "1": "The first call still gets all three items."
+    "3": "An iterator does not restart or keep a copy; after the first walk it is empty."
+
+- id: predict-generator-sum-twice
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    g = (n * n for n in range(3))
+    print(sum(g), sum(g))
+  options:
+    - "5 0"
+    - "5 5"
+    - "0 0"
+    - "5 10"
+  answer: 0
+  explanation: "0 + 1 + 4 is 5 the first time. The generator is used up, so the second sum has nothing to add and gives 0."
+  whyWrong:
+    "1": "That would need a fresh generator for the second sum."
+    "2": "The first sum sees all three squares."
+    "3": "The second sum cannot see the items again, so it does not double."
+
+- id: predict-iter-identity
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    nums = [1, 2, 3]
+    it = iter(nums)
+    print(iter(nums) is nums, iter(it) is it)
+  options:
+    - "True True"
+    - "False False"
+    - "True False"
+    - "False True"
+  answer: 3
+  explanation: "A list makes a brand-new iterator each time, so iter(nums) is not nums. An iterator is its own iterator, so iter(it) is it."
+  whyWrong:
+    "0": "A list is iterable but not an iterator, so it is not what iter(nums) returns."
+    "1": "Iterators return themselves from iter(), which is what lets a for loop accept them."
+    "2": "That has the two answers the wrong way round."
+
+- id: predict-generator-timing
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    def noisy():
+        print("start")
+        yield 1
+
+    g = noisy()
+    print("made")
+    next(g)
+  options:
+    - "start, then made"
+    - "made, then start"
+    - "Only made"
+    - "Only start"
+  answer: 1
+  explanation: "Calling noisy() only creates the generator. The body, including the first print, runs when next() asks for the first item."
+  whyWrong:
+    "0": "That would be true for an ordinary function, which runs its body at the call."
+    "2": "next(g) does run the body up to the first yield, so start is printed."
+    "3": "The line print('made') runs before next(g) is called."
+
+- id: predict-next-default
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    print(next(iter([]), "none"))
+  options:
+    - "None"
+    - "An empty list"
+    - "StopIteration"
+    - "none"
+  answer: 3
+  explanation: "The iterator over an empty list is already finished, so next returns the default you gave it instead of raising."
+  whyWrong:
+    "0": "The default is the string you passed, not None."
+    "1": "The default is the string 'none'."
+    "2": "Without the default it would raise StopIteration; with one, it returns the default."
+
+- id: exhausted-raises
+  question: "What does next(it) do when the iterator is finished and you gave no default?"
+  options:
+    - "Raises StopIteration"
+    - "Returns None"
+    - "Starts over from the first item"
+    - "Raises IndexError"
+  answer: 0
+  explanation: "StopIteration is how an iterator says it is done. A for loop catches it and ends quietly."
+  whyWrong:
+    "1": "Returning None would be ambiguous because an iterator can legitimately yield None."
+    "2": "Iterators cannot restart; make a new one from the iterable."
+    "3": "IndexError belongs to indexing sequences, not to the iterator protocol."
+
+- id: late-validation
+  question: "def check(n): if n < 1: raise ValueError  ...  yield n.  When does check(0) raise ValueError?"
+  options:
+    - "At the call check(0)"
+    - "When the first item is requested, for example with next()"
+    - "Never, because generators ignore exceptions"
+    - "When the generator is deleted"
+  answer: 1
+  explanation: "A function containing yield is a generator function. Calling it only creates the generator, so the body, including the check, does not run until the first next."
+  whyWrong:
+    "0": "That would be true for a normal function. A generator function defers all of its body."
+    "2": "Exceptions in generators behave normally; they just happen late."
+    "3": "Deleting a generator does not run its body or raise this error."
+
+- id: predict-zip-consumes
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    a = iter([1, 2, 3])
+    b = iter("ab")
+    list(zip(a, b))
+    print(list(a))
+  options:
+    - "[3]"
+    - "[1, 2, 3]"
+    - "[]"
+    - "[2, 3]"
+  answer: 2
+  explanation: "zip asks a for its next item (3) before it finds that b is empty, so the 3 is taken and thrown away. Nothing is left in a."
+  whyWrong:
+    "0": "That would be the leftover if the arguments were the other way round, because zip asks the first iterator first."
+    "1": "The items were consumed by zip, so a is not untouched."
+    "3": "zip took three items from a, not one."
+
+- id: predict-map-once
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    m = map(str, [1, 2])
+    print(list(m), list(m))
+  options:
+    - "['1', '2'] []"
+    - "['1', '2'] ['1', '2']"
+    - "[] []"
+    - "[1, 2] []"
+  answer: 0
+  explanation: "In Python 3 map returns a one-shot iterator, so the second list() finds it used up."
+  whyWrong:
+    "1": "A list would give the same result twice, but map returns an iterator, not a list."
+    "2": "The first list() still sees both converted items."
+    "3": "map applies str, so the items are strings, not the original numbers."
+
+- id: predict-range-twice
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    r = range(3)
+    print(list(r), list(r))
+  options:
+    - "[0, 1, 2] []"
+    - "range(0, 3) range(0, 3)"
+    - "[] []"
+    - "[0, 1, 2] [0, 1, 2]"
+  answer: 3
+  explanation: "range is a sequence, not an iterator, so each loop over it makes a fresh walk."
+  whyWrong:
+    "0": "That is what an iterator would do, but range can be walked again."
+    "1": "list() turns the range into its numbers, not its repr."
+    "2": "Both walks see all three numbers."
+
+- id: predict-yield-from
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    def both():
+        yield from [1, 2]
+        yield from "ab"
+
+    print(list(both()))
+  options:
+    - "[[1, 2], 'ab']"
+    - "[1, 2, 'a', 'b']"
+    - "[1, 2, 'ab']"
+    - "[1, 'a']"
+  answer: 1
+  explanation: "yield from hands over item by item, so the items of the list and then each character of the string come out one at a time."
+  whyWrong:
+    "0": "A plain yield of the whole list would give it as one item; yield from delivers its items."
+    "2": "A string is iterable, so yield from gives its characters separately."
+    "3": "Both sources are used up completely."
+
+- id: stopiteration-in-generator
+  question: "What happens if a generator body executes raise StopIteration?"
+  options:
+    - "The generator ends quietly, like return"
+    - "The loop that uses it keeps going"
+    - "Python turns it into a RuntimeError"
+    - "The generator restarts"
+  answer: 2
+  explanation: "A StopIteration that escapes a generator body is converted to RuntimeError, so a bug cannot silently end a loop early. Use return to finish a generator."
+  whyWrong:
+    "0": "That is what return does. Raising StopIteration by hand is converted into an error instead."
+    "1": "The error stops the loop with a traceback."
+    "3": "Generators never restart; once finished, they stay finished."
+
+- id: spot-bug-second-pass
+  kind: spot-bug
+  question: "This code raises ZeroDivisionError. What is the bug?"
+  code: |
+    squares = (n * n for n in range(4))
+    total = sum(squares)
+    average = total / len(list(squares))
+  options:
+    - "sum already used up the generator, so list(squares) is empty"
+    - "A generator has no length, so len cannot be used"
+    - "total is a float"
+    - "range(4) starts at 1"
+  answer: 0
+  explanation: "sum(squares) walks the generator to the end. The second pass, list(squares), finds nothing, so the length is 0 and the division fails. Build a list first (or compute the count another way) if you need two passes."
+  whyWrong:
+    "1": "len is applied to the list built from the generator, and that is allowed; the list is simply empty."
+    "2": "total is an int here, and the type is not the problem."
+    "3": "range(4) starts at 0, and that is not related to the error."
+
+- id: predict-islice-count
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    from itertools import count, islice
+
+    print(list(islice(count(10), 3)))
+  options:
+    - "It never finishes"
+    - "[11, 12, 13]"
+    - "[10, 11, 12, 13]"
+    - "[10, 11, 12]"
+  answer: 3
+  explanation: "count(10) is an endless counter, but islice takes only 3 items from it and stops, so it finishes with [10, 11, 12]."
+  whyWrong:
+    "0": "That would happen with list(count(10)); islice limits how much is taken."
+    "1": "count(10) starts at 10, which is the first item."
+    "2": "islice stops after exactly three items."
+
+- id: iterable-class
+  question: "A class defines __iter__ as a generator method (it uses yield). What happens when you loop over one instance twice?"
+  options:
+    - "The second loop is empty"
+    - "The second loop continues where the first stopped"
+    - "Each loop starts from the beginning"
+    - "It raises RuntimeError"
+  answer: 2
+  explanation: "Every call to __iter__ runs the generator body from the top with its own variables, so each loop is a fresh walk."
+  whyWrong:
+    "0": "That would happen if __iter__ returned self and the position lived on the object."
+    "1": "The position is stored in each generator, not on the instance, so loops do not share it."
+    "3": "Nothing here is an error."
+
+- id: for-on-iterator
+  question: "Why can a for loop run directly over an iterator?"
+  options:
+    - "Because iterators are lists"
+    - "Because iter(it) returns the iterator itself, so it counts as iterable"
+    - "Because for converts everything to a list first"
+    - "Because iterators define __len__"
+  answer: 1
+  explanation: "An iterator's __iter__ returns itself, so the loop can ask it for an iterator and then call next on it."
+  whyWrong:
+    "0": "Iterators are not lists; that is why they are used up."
+    "2": "A for loop does not build a list; it calls next one item at a time."
+    "3": "Most iterators have no length at all."
+
+- id: genexp-memory
+  question: "What is the main difference between sum(x * x for x in data) and sum([x * x for x in data])?"
+  options:
+    - "The first never builds the whole list of squares in memory"
+    - "The first gives a different answer"
+    - "The second is lazy"
+    - "Only the second works on a list"
+  answer: 0
+  explanation: "The generator expression yields one square at a time to sum, while the list comprehension builds all the squares first. The totals are the same."
+  whyWrong:
+    "1": "Both add the same numbers, so the answer is the same."
+    "2": "It is the generator expression that is lazy; the list comprehension builds everything at once."
+    "3": "Both work on any iterable, including a list."

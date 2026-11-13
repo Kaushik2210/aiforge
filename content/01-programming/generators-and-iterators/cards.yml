@@ -1,0 +1,23 @@
+- { id: c-iterable, front: "What is an iterable?", back: "Anything a for loop can walk over: a list, string, dict, range, file, or an object with __iter__." }
+- { id: c-iterator, front: "What is an iterator?", back: "An object that remembers a position and gives the next item each time next() is called." }
+- { id: c-iter-fn, front: "What does iter(x) do?", back: "Returns an iterator for the iterable x. For an iterator it returns the same object." }
+- { id: c-next-fn, front: "What does next(it) do?", back: "Gives the next item, or raises StopIteration when there are none left." }
+- { id: c-next-default, front: "next(it, default)?", back: "Returns default instead of raising StopIteration when the iterator is finished." }
+- { id: c-for-protocol, front: "What does a for loop do under the hood?", back: "Calls iter() once, then next() repeatedly until StopIteration, which it catches." }
+- { id: c-iter-self, front: "What is true of iter(it) for an iterator it?", back: "iter(it) is it: an iterator is its own iterator." }
+- { id: c-one-shot, front: "Can you loop over an iterator twice?", back: "No. The first pass uses it up; the second finds it empty." }
+- { id: c-list-twice, front: "Can you loop over a list twice?", back: "Yes. A list makes a fresh iterator for every loop." }
+- { id: c-generator-fn, front: "What makes a function a generator function?", back: "A yield inside it. Calling it returns a generator without running the body." }
+- { id: c-yield, front: "What does yield do?", back: "Pauses the function, hands a value out, and resumes from the same spot on the next request." }
+- { id: c-lazy, front: "What does lazy mean for a generator?", back: "It produces each item only when asked, so it can be huge or endless and uses little memory." }
+- { id: c-genexp, front: "What is a generator expression?", back: "(x * x for x in data): like a list comprehension but lazy, with round brackets." }
+- { id: c-genexp-once, front: "Why does sum(g) give 0 the second time?", back: "A generator is used up by the first pass." }
+- { id: c-late-error, front: "When does a check inside a generator function run?", back: "At the first next(), not at the call. Validate in a normal function and return the generator to fail early." }
+- { id: c-return-gen, front: "How do you end a generator early?", back: "return. Raising StopIteration inside it becomes a RuntimeError." }
+- { id: c-yield-from, front: "What does yield from do?", back: "Hands over to another iterable, giving its items one at a time." }
+- { id: c-zip-extra, front: "What does zip(a, b) do to a that is easy to miss?", back: "It asks a first, so one item of a can be lost when b runs out before it." }
+- { id: c-map-once, front: "Is the result of map() reusable?", back: "No. In Python 3 map is a one-shot iterator, like filter and zip." }
+- { id: c-range-seq, front: "Is range an iterator?", back: "No. It is a sequence that can be walked again; iter(range(n)) makes an iterator." }
+- { id: c-islice, front: "What does itertools.islice do?", back: "Takes a slice of any iterator lazily, for example the first n items of an endless counter. It consumes what it takes." }
+- { id: c-iterable-class, front: "How do you write a class that can be looped over repeatedly?", back: "Define __iter__ as a generator (or return a new iterator each call), and keep no position on the object." }
+- { id: c-batched, front: "What does itertools.batched do (Python 3.12+)?", back: "Yields tuples of up to n items from an iterable." }
