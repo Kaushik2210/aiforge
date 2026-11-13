@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
 // Runs before paint so the saved theme never flashes the wrong colours.
-const themeInit = `try{var t=localStorage.getItem("aiforge-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;if(localStorage.getItem("aiforge-focus")==="on")document.documentElement.dataset.focus="on"}catch(e){}`;
+const themeInit = `try{var t=localStorage.getItem("aiforge-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;if(localStorage.getItem("aiforge-focus")==="on")document.documentElement.dataset.focus="on";var f=localStorage.getItem("aiforge-fx");if(f==="0"||f==="1"||f==="2"||f==="3")document.documentElement.dataset.fx=f}catch(e){}`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
