@@ -26,6 +26,7 @@ export interface HikerSceneOptions {
 }
 
 const MARGIN = 44;
+const INK = 0x0b0b1a; // a deep blue-black; the impact frame is dark ink, never white
 const HUD_X = 14;
 const HUD_Y = 10;
 const css = (n: number) => `#${n.toString(16).padStart(6, "0")}`;
@@ -52,8 +53,10 @@ export class HikerScene extends Phaser.Scene {
   private walk: Phaser.Tweens.Tween | null = null;
   private fx = { burst: 0 };
   private kit: FxKit;
-  private frame: FxFrame = { timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], active: false };
+  private frame: FxFrame = { timeScale: 1, shake: { x: 0, y: 0 }, zoom: 1, lines: [], lineAlpha: 0, shockwaves: [], ghosts: [], impact: 0, active: false };
   private wasActive = false;
+  /** True while the hiker is gliding along the trail, so afterimages are only left behind real movement. */
+  private walking = false;
   private cleanups: (() => void)[] = [];
 
   constructor(private readonly opts: HikerSceneOptions) {
@@ -148,6 +151,7 @@ export class HikerScene extends Phaser.Scene {
     }
     const from = this.progress;
     const duration = Math.min(2400, 260 * (target - from));
+    this.walking = true;
     this.walk = this.tweens.addCounter({
       from,
       to: target,
@@ -159,6 +163,7 @@ export class HikerScene extends Phaser.Scene {
       },
       onComplete: () => {
         this.progress = target;
+        this.walking = false;
         this.celebrate(status, overshot(snap.state.losses));
         this.drawDynamic();
       },
@@ -178,6 +183,8 @@ export class HikerScene extends Phaser.Scene {
       this.kit.zoomPunch(0.05, 260);
       this.kit.shockwave(at.x, at.y - 20, { size: 130, ms: 650 });
       this.kit.speedLines({ kind: "radial", cx: at.x, cy: at.y - 20, w, h, count: 16, seed: "win" }, 420);
+      // Only the boss gets the ink impact frame; it is refused if effects are low or flashes are too frequent.
+      if (this.opts.session.snapshot.level.id === 5) this.kit.impactFrame();
     } else if (overshoot) {
       // Flying past the goal: a sharp stop, a jolt and streaks behind the hiker.
       this.kit.hitStop(60);
@@ -327,10 +334,13 @@ export class HikerScene extends Phaser.Scene {
     pts.forEach((pt, i) => this.marker(g, pt.x, pt.y, i));
 
     this.effectLines(g);
+    if (this.walking) this.kit.trace(ball.x, ball.y);
+    this.effectGhosts(g);
     this.hiker(g, ball.x, ball.y, snap.state.status);
     if (snap.state.status === "won") this.star(g, ball.x, ball.y - 54, 12);
     if (this.fx.burst > 0 && this.fx.burst < 1 && !this.opts.reducedMotion) this.sparkles(g, ball.x, ball.y - 20, this.fx.burst);
     this.effectRings(g);
+    this.effectImpact(g);
 
     const s = snap.state;
     const status = s.status === "running" ? "" : s.status === "won" ? "  Goal reached!" : s.status === "diverged" ? "  Flew off the map" : "  Out of steps";
@@ -419,6 +429,22 @@ export class HikerScene extends Phaser.Scene {
     for (const s of lines) {
       g.lineStyle(s.width, theme.text, lineAlpha * 0.6).lineBetween(s.x1, s.y1, s.x2, s.y2);
     }
+  }
+
+  /** Fading copies of the hiker left behind while it glides (smear/afterimage). */
+  private effectGhosts(g: Phaser.GameObjects.Graphics) {
+    const { theme } = this.opts;
+    for (const gh of this.frame.ghosts) {
+      g.fillStyle(theme.accent, gh.alpha).fillTriangle(gh.x - 10, gh.y, gh.x + 10, gh.y, gh.x, gh.y - 14);
+      g.fillCircle(gh.x, gh.y - 24, 10);
+    }
+  }
+
+  /** The dark ink impact frame: tinted, never white, and drawn under the HUD so the text stays readable. */
+  private effectImpact(g: Phaser.GameObjects.Graphics) {
+    const a = this.frame.impact;
+    if (a <= 0) return;
+    g.fillStyle(INK, a).fillRect(-60, -60, this.scale.width + 120, this.scale.height + 120);
   }
 
   /** Expanding rings (a plain fading ring under reduced motion). */
