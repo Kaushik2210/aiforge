@@ -155,3 +155,13 @@ Caveats
 - Exception message wording is version-specific (the property message and dataclass ValueError text have changed across releases; Pyodide may differ). Tests and checkers should assert exception types, not messages.
 - `except` ordering: put subclasses before superclasses, or the subclass handler never runs.
 - Tutorial/reference claims above come from fetch-tool page summaries, not verbatim reading; wording is mine. TODO-VERIFY exact phrasing before quoting anything.
+
+## Runner Python version (Day 21 consolidation)
+
+- AIForge's bundled Pyodide runs Python 3.14.2 (`sys.version`, checked 2026-11-13 by loading the
+  package in `packages/runner`). Local development used 3.13.7 and CI uses 3.12.
+- `pnpm verify` runs every challenge (starter, solution, hidden tests and every mutant) in this
+  Pyodide through `packages/runner`, so all challenge content is known to pass on 3.14 as well.
+- Confirmed by running it there: `return` inside `finally` emits `SyntaxWarning: 'return' in a
+  'finally' block` (this resolves the Day 18 note). The docs (PEP 765) were not re-read for the
+  exact version rule; do not quote a version rule beyond "3.14 warns".

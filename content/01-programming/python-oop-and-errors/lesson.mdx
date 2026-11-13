@@ -260,7 +260,8 @@ def f():
 ```
 
 Avoid writing this: it can also hide an exception raised in the `try` block, and
-newer Python versions may warn about it (TODO-VERIFY which).
+Python 3.14 (the version AIForge's in-browser runner uses) warns about it with a
+`SyntaxWarning`.
 
 ### Raising, chaining, and your own exceptions
 
