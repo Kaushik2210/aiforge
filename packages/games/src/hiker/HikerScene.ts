@@ -130,21 +130,32 @@ export class HikerScene extends Phaser.Scene {
     const key = this.levelKey();
     if (key !== this.layoutKey) {
       this.layoutKey = key;
-      this.walk?.stop();
+      this.stopWalk();
       this.progress = 0;
       this.drawStatic();
     }
 
     const target = snap.state.trail.length - 1;
-    if (target < this.progress) this.progress = target; // reset: jump back to the start
+    if (target < this.progress) {
+      // Reset: stop any glide still running, or it would pull the hiker back past the new trail.
+      this.stopWalk();
+      this.progress = target;
+    }
     if (target > this.progress) this.walkTo(target, snap.state.status);
     this.drawDynamic();
+  }
+
+  /** Stop the glide. Phaser's stop() does not call onComplete, so clear the flag here. */
+  private stopWalk() {
+    this.walk?.stop();
+    this.walk = null;
+    this.walking = false;
   }
 
   /** Glide along the new trail points one after another (instantly under reduced motion). */
   private walkTo(target: number, status: string) {
     const snap = this.opts.session.snapshot;
-    this.walk?.stop();
+    this.stopWalk();
     if (this.opts.reducedMotion) {
       this.progress = target;
       return;
@@ -458,7 +469,6 @@ export class HikerScene extends Phaser.Scene {
 
   private release() {
     for (const fn of this.cleanups.splice(0)) fn();
-    this.walk?.stop();
-    this.walk = null;
+    this.stopWalk();
   }
 }
