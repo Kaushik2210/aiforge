@@ -1,0 +1,31 @@
+- mistake: "Looping over a generator or map result twice and getting nothing the second time."
+  why: "Generators, map, filter and zip results are iterators, and an iterator is used up by the first pass."
+  detect: "The second pass returns an empty result, or a total is 0. Build a list if you need two passes, or create a fresh generator."
+
+- mistake: "Expecting a check at the top of a generator function to fail when the function is called."
+  why: "A function with yield only creates the generator when called. The body, including the check, runs at the first next()."
+  detect: "No error at the call, then a surprise error much later. Validate in a normal function that returns the generator."
+
+- mistake: "Using two consumers on one iterator."
+  why: "Each next() removes an item, so two loops, or a loop and a next(), split the items between them."
+  detect: "Each consumer sees only some of the data. Give each its own iterator, or use a list."
+
+- mistake: "Raising StopIteration by hand inside a generator."
+  why: "A StopIteration that escapes a generator body is turned into a RuntimeError."
+  detect: "RuntimeError: generator raised StopIteration. Use return to finish the generator."
+
+- mistake: "Putting the position on the object in a class that should be re-usable."
+  why: "If __iter__ returns self and the current index is an attribute, every loop shares one position and the object is used up after one pass."
+  detect: "The second loop is empty, or a nested loop over the same object behaves strangely. Make __iter__ return a fresh iterator, for example by making it a generator."
+
+- mistake: "Calling len() on a generator or taking its [0]."
+  why: "A generator does not know its length and cannot be indexed; it only gives the next item."
+  detect: "TypeError: object of type 'generator' has no len(). Convert to a list (if it fits in memory), or count as you go."
+
+- mistake: "Building a huge list just to loop over it once."
+  why: "A list holds every item at once. A generator expression holds one at a time."
+  detect: "Memory use grows with the data size. Replace [f(x) for x in data] with (f(x) for x in data) when you only loop once."
+
+- mistake: "Assuming zip leaves its inputs untouched."
+  why: "zip asks the first iterator for an item before it learns the next one is empty, so one item can be consumed and lost."
+  detect: "An iterator you reuse after zip is missing an item. Put the longer or still-needed iterator second, or use itertools.zip_longest if every item matters."

@@ -1,0 +1,39 @@
+- question: "What is the difference between an iterable and an iterator?"
+  modelAnswer: "An iterable is anything you can loop over; asking it for iter() gives an iterator. An iterator keeps a position and returns the next item each time next() is called, raising StopIteration at the end. An iterator is itself iterable because iter(it) returns it. A list is iterable and can be looped over again and again; an iterator is used up by one pass."
+  followUps: ["Is a list an iterator?", "What does iter(it) return for an iterator it?"]
+
+- question: "What does a for loop do under the hood?"
+  modelAnswer: "It calls iter() on the object once to get an iterator, then calls next() on that iterator repeatedly, running the loop body for each item, and stops quietly when next() raises StopIteration. That is why any object with __iter__ works in a for loop, and why an iterator can be looped over directly."
+  followUps: ["How would you write the loop by hand with while?", "What if __iter__ returns a list?"]
+
+- question: "What is a generator and how does yield work?"
+  modelAnswer: "A generator function is a function containing yield. Calling it returns a generator without running the body. Each next() runs the body until the next yield, hands the value out and pauses, keeping local variables, then resumes there on the next request. When the body ends, StopIteration is raised. Generators produce items lazily, so they use little memory and can be endless."
+  followUps: ["What does return do inside a generator?", "How is a generator different from returning a list?"]
+
+- question: "Why can you loop over a list twice but not over a generator?"
+  modelAnswer: "A list is an iterable that makes a new iterator each time you loop. A generator is an iterator: it remembers one position and cannot go back, so the first pass uses it up and the second finds nothing. To loop twice, keep the data in a list, call the generator function again for a fresh generator, or write an iterable class whose __iter__ returns a new iterator."
+  followUps: ["How would you detect that you have been given an iterator?", "What does iter(x) is x tell you?"]
+
+- question: "When does the body of a generator function run, and what does that mean for errors?"
+  modelAnswer: "The body runs only when items are requested, starting at the first next(). Calling the function just makes the generator. So an argument check or other error inside the body appears at the first next, possibly far from the call. To raise at the call, check arguments in an ordinary function that then returns the generator."
+  followUps: ["How does itertools.batched behave for a bad n?", "Where would you put cleanup for a generator holding a file?"]
+
+- question: "Compare a list comprehension with a generator expression."
+  modelAnswer: "A list comprehension builds the whole list now and can be used many times. A generator expression, written with round brackets, produces one item at a time and can be used once. For a single pass, such as sum or any, a generator expression avoids building the list and saves memory, and the result is the same."
+  followUps: ["When is the list the better choice?", "What happens if you reuse a generator expression?"]
+
+- question: "What is yield from and what does it add over a loop with yield?"
+  modelAnswer: "yield from iterable hands over to another iterable inside a generator and gives its items one at a time, so yield from [1, 2] yields 1 and then 2. It is shorter than a for loop that yields each item and also passes through values sent into the generator and the sub-generator's return value."
+  followUps: ["What value does a generator's return carry?", "How would you flatten nested lists with it?"]
+
+- question: "What happens if you raise StopIteration inside a generator?"
+  modelAnswer: "Python converts it into a RuntimeError, so that a bug cannot silently end a loop early. To end a generator, use return, which raises StopIteration for the caller in the right way, and its value is available as the StopIteration's value."
+  followUps: ["Why was that behaviour introduced?", "How does next(it, default) differ?"]
+
+- question: "How would you process a file or dataset too large for memory?"
+  modelAnswer: "Process it as a stream: read it piece by piece with an iterator or generator, for example a generator that yields lines, records or batches, and combine lazy steps such as map, filter, a generator expression or itertools.islice. Keep only what you need, such as running totals, and make sure you do not iterate the same one-shot stream twice."
+  followUps: ["How do you split a stream into batches lazily?", "How do you handle needing two passes?"]
+
+- question: "How do you make your own class work in a for loop and be re-usable?"
+  modelAnswer: "Give it an __iter__ method that returns a new iterator each time, the simplest way being to write __iter__ as a generator with yield, so each loop gets its own position and the object keeps only its configuration. If __iter__ returned self and the position were an attribute, the object would be a one-shot iterator and nested loops would interfere."
+  followUps: ["What does __next__ do?", "How can you tell an iterator from an iterable in code?"]
