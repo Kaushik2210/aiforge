@@ -4,7 +4,7 @@ import { FxKit, type FxFrame } from "@aiforge/games";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CutIn } from "@/components/fx/CutIn";
-import { FX_CHOICES, bannersEnabled, cutInDuration, readFxLevel } from "@/lib/effects";
+import { DEFAULT_FX_LEVEL, FX_CHOICES, bannersEnabled, cutInDuration, readFxLevel, type FxLevel } from "@/lib/effects";
 import { SCENE_H, SCENE_W, drawFxScene, readPalette, type Palette } from "@/lib/fx-canvas";
 import { prefersReducedMotion } from "@/lib/map-data";
 
@@ -45,7 +45,9 @@ export function FxLab() {
   const rateRef = useRef(1);
   const pausedRef = useRef(false);
 
-  const [level, setLevel] = useState(readFxLevel());
+  // Start from the default and read the saved choice in the effect: the server cannot know it, and a
+  // different first render would be a hydration mismatch, which makes React discard the page's <html> attributes.
+  const [level, setLevel] = useState<FxLevel>(DEFAULT_FX_LEVEL);
   const [off, setOff] = useState(false);
   const [slow, setSlow] = useState(false);
   const [paused, setPaused] = useState(false);
