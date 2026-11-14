@@ -1,0 +1,23 @@
+- { id: c-concurrency, front: "What is concurrency?", back: "Several tasks making progress over the same period. It does not require them to run at the same instant." }
+- { id: c-parallelism, front: "What is parallelism?", back: "Several tasks actually running at the same instant, on different CPU cores." }
+- { id: c-coroutine-fn, front: "What does calling an async def function return?", back: "A coroutine object. Its body has not run yet." }
+- { id: c-await, front: "What does await do?", back: "Pauses the current coroutine until the awaited thing is ready, letting the event loop run other tasks meanwhile." }
+- { id: c-event-loop, front: "What is the event loop?", back: "The manager on one thread that runs coroutines and resumes each when what it awaits is ready." }
+- { id: c-cooperative, front: "Why is async called cooperative?", back: "Tasks switch only at await points. Nothing interrupts a task that does not await." }
+- { id: c-asyncio-run, front: "What does asyncio.run(main()) do?", back: "Starts an event loop, runs main to completion and closes the loop. It is the usual single entry point." }
+- { id: c-run-inside, front: "Can you call asyncio.run inside a running loop?", back: "No: it raises RuntimeError. Inside async code, just await." }
+- { id: c-forgot-await, front: "What happens if you forget await?", back: "You get a coroutine object, nothing runs, and Python warns that the coroutine was never awaited." }
+- { id: c-sequential, front: "How long do three awaited sleeps of 1 s take one after another?", back: "About 3 seconds: the waits add up." }
+- { id: c-gather, front: "How long do three sleeps of 1 s take with asyncio.gather?", back: "About 1 second: the waits overlap." }
+- { id: c-gather-order, front: "In what order does gather return results?", back: "The order of its arguments, not the order they finished." }
+- { id: c-create-task, front: "When does a task from create_task start running?", back: "At the next await of the current coroutine, not at the moment it is created." }
+- { id: c-blocking, front: "What does time.sleep do inside a coroutine?", back: "Blocks the whole event loop, so no other task runs. Use await asyncio.sleep instead." }
+- { id: c-to-thread, front: "How do you call a blocking function from async code?", back: "await asyncio.to_thread(func, arg): it runs in a worker thread and the loop stays free." }
+- { id: c-taskgroup, front: "What does a TaskGroup do when one task fails?", back: "Cancels the others and raises an ExceptionGroup when the block ends." }
+- { id: c-timeout, front: "What does asyncio.timeout do?", back: "Cancels the work inside the block when time is up and raises TimeoutError." }
+- { id: c-semaphore, front: "What is a semaphore for?", back: "Limiting how many tasks may be inside a block at once: async with sem." }
+- { id: c-aexit, front: "What does returning True from __aexit__ do?", back: "Suppresses the exception from the block. Return False or None to let it propagate." }
+- { id: c-io-bound, front: "When does async help?", back: "When the time goes on waiting (network, disk, timers): I/O-bound work." }
+- { id: c-cpu-bound, front: "What helps CPU-bound Python code use several cores?", back: "Several processes (ProcessPoolExecutor or multiprocessing). Coroutines and, in the standard build, threads do not run Python code in parallel." }
+- { id: c-gil, front: "What does the global interpreter lock do?", back: "In the standard CPython build it lets only one thread run Python bytecode at a time." }
+- { id: c-pause, front: "What is the smallest possible await point?", back: "An awaitable whose __await__ just yields, such as the Pause class in the challenges." }

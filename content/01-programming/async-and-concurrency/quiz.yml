@@ -1,0 +1,325 @@
+- id: predict-forgotten-await
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    async def hello():
+        return "hi"
+
+    r = hello()
+    print(type(r).__name__)
+    r.close()
+  options:
+    - "str"
+    - "function"
+    - "coroutine"
+    - "Task"
+  answer: 2
+  explanation: "Calling an async def function does not run its body. It returns a coroutine object, and the body only runs when the coroutine is awaited (or driven by a loop)."
+  whyWrong:
+    "0": "That would be the type of the result after awaiting it, which did not happen here."
+    "1": "hello is the function; calling it gives a coroutine object."
+    "3": "A Task is only made when you schedule a coroutine with something like asyncio.create_task."
+
+- id: sequential-versus-gather
+  question: "Three coroutines each run await asyncio.sleep(1). About how long do they take (a) awaited one after another, and (b) passed together to asyncio.gather?"
+  options:
+    - "(a) about 3 seconds, (b) about 1 second"
+    - "(a) about 1 second, (b) about 3 seconds"
+    - "(a) about 3 seconds, (b) about 3 seconds"
+    - "(a) about 1 second, (b) about 1 second"
+  answer: 0
+  explanation: "Awaiting them one after another adds the waits up to about 3 seconds. gather starts all three and lets them wait together, so the total is about the longest single wait, about 1 second."
+  whyWrong:
+    "1": "That has the two cases swapped."
+    "2": "gather overlaps the waits, so it is not the sum."
+    "3": "Awaiting one after another does not overlap the waits."
+
+- id: predict-gather-order
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    import asyncio
+
+    async def work(name, delay):
+        await asyncio.sleep(delay)
+        return name
+
+    async def main():
+        return await asyncio.gather(work("slow", 0.2), work("fast", 0.05))
+
+    print(asyncio.run(main()))
+  options:
+    - "['fast', 'slow']"
+    - "('slow', 'fast')"
+    - "['slow']"
+    - "['slow', 'fast']"
+  answer: 3
+  explanation: "gather returns results in the order of its arguments, not the order the awaitables finished, even though fast finished first."
+  whyWrong:
+    "0": "That would be completion order, which gather does not use."
+    "1": "gather returns a list, which prints with square brackets."
+    "2": "gather waits for all of its arguments and returns every result."
+
+- id: predict-create-task-order
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    import asyncio
+
+    async def job():
+        print("job runs")
+
+    async def main():
+        task = asyncio.create_task(job())
+        print("created")
+        await task
+
+    asyncio.run(main())
+  options:
+    - "job runs, then created"
+    - "created, then job runs"
+    - "Only created"
+    - "Only job runs"
+  answer: 1
+  explanation: "create_task schedules the job, but it only starts when the current coroutine reaches an await. main prints created first and then awaits the task, which lets it run."
+  whyWrong:
+    "0": "The task does not start at the moment create_task is called; it starts at the next await."
+    "2": "main awaits the task, so the job does run."
+    "3": "The line print('created') runs before main awaits."
+
+- id: blocking-call
+  question: "Inside a coroutine you call time.sleep(2) while other tasks are waiting to run. What happens to the other tasks?"
+  options:
+    - "They keep running because async handles it"
+    - "time.sleep automatically becomes asyncio.sleep"
+    - "They are cancelled"
+    - "They cannot run until time.sleep returns, because the whole loop is blocked"
+  answer: 3
+  explanation: "time.sleep blocks the thread, and the event loop runs on that thread, so nothing else can be resumed until it returns. Use await asyncio.sleep, or move blocking work to a thread."
+  whyWrong:
+    "0": "async only switches tasks at await points; a blocking call never gives control back."
+    "1": "Python does not swap one for the other."
+    "2": "Nothing is cancelled; they are just stuck waiting for a turn."
+
+- id: run-inside-loop
+  question: "What happens if you call asyncio.run(...) from inside a coroutine that is already running in an event loop?"
+  options:
+    - "It raises RuntimeError"
+    - "It starts a second loop that runs in parallel"
+    - "It silently does nothing"
+    - "It returns the coroutine unchanged"
+  answer: 0
+  explanation: "asyncio.run cannot be called while another event loop is running in the same thread. Inside async code, use await instead."
+  whyWrong:
+    "1": "Two loops in one thread are not allowed."
+    "2": "Python raises an error rather than silently doing nothing."
+    "3": "It does not return the coroutine; it refuses to run."
+
+- id: switch-point
+  question: "When can the event loop switch from one task to another?"
+  options:
+    - "At any moment, like a timer interrupt"
+    - "Only at an await (a point where the running coroutine pauses)"
+    - "Only when a task finishes"
+    - "Every 10 milliseconds"
+  answer: 1
+  explanation: "Async tasks are cooperative. The loop gets control back only when a coroutine awaits something that is not ready (or finishes)."
+  whyWrong:
+    "0": "That is how threads are switched, not async tasks."
+    "2": "Tasks can switch at every await, long before they finish."
+    "3": "There is no fixed time slice for coroutines."
+
+- id: taskgroup-failure
+  question: "In an asyncio.TaskGroup, one task raises ValueError while others are still running. What happens?"
+  options:
+    - "The other tasks keep running and the error is ignored"
+    - "The group restarts the failed task"
+    - "The other tasks are cancelled and an ExceptionGroup containing the ValueError is raised when the block ends"
+    - "Nothing is raised until the program exits"
+  answer: 2
+  explanation: "A TaskGroup cancels the remaining tasks when one fails and then raises an ExceptionGroup with the errors."
+  whyWrong:
+    "0": "Errors are never ignored, and the others are cancelled."
+    "1": "TaskGroup does not retry anything."
+    "3": "The error appears when the async with block finishes."
+
+- id: timeout-error
+  question: "What does async with asyncio.timeout(0.05): await asyncio.sleep(1) raise when the time runs out?"
+  options:
+    - "TimeoutError"
+    - "CancelledError reaching the caller"
+    - "ValueError"
+    - "Nothing: it waits the full second"
+  answer: 0
+  explanation: "asyncio.timeout cancels the work inside the block and converts that into a TimeoutError raised at the end of the block."
+  whyWrong:
+    "1": "The cancellation is handled inside the context manager; the caller sees TimeoutError."
+    "2": "A timeout is not a value error."
+    "3": "The whole point of the timeout is to stop waiting."
+
+- id: predict-semaphore-peak
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    import asyncio
+
+    async def main():
+        sem = asyncio.Semaphore(2)
+        now = peak = 0
+
+        async def job():
+            nonlocal now, peak
+            async with sem:
+                now += 1
+                peak = max(peak, now)
+                await asyncio.sleep(0.01)
+                now -= 1
+
+        await asyncio.gather(*[job() for _ in range(6)])
+        print(peak)
+
+    asyncio.run(main())
+  options:
+    - "1"
+    - "3"
+    - "6"
+    - "2"
+  answer: 3
+  explanation: "The semaphore lets only 2 jobs be inside the block at once, so the most that are ever inside together is 2."
+  whyWrong:
+    "0": "Two places are available, so two jobs can be inside together."
+    "1": "The semaphore was created with 2 places, not 3."
+    "2": "That would be the peak without the semaphore."
+
+- id: concurrency-versus-parallelism
+  question: "Which statement describes async concurrency in a single event loop correctly?"
+  options:
+    - "Several coroutines run at the same instant on different CPU cores"
+    - "Several coroutines make progress over the same period by taking turns, one running at any instant"
+    - "Each coroutine gets its own thread"
+    - "It makes CPU-heavy code faster"
+  answer: 1
+  explanation: "One event loop runs on one thread, so only one coroutine runs at a time. They overlap because they spend most of their time waiting."
+  whyWrong:
+    "0": "That is parallelism, which needs several processes or threads that can run at once."
+    "2": "Coroutines live on one thread; they are not threads."
+    "3": "Taking turns does not add computing power, so CPU-heavy work gets no faster."
+
+- id: cpu-bound
+  question: "Which approach can speed up heavy pure-Python computation on several CPU cores in the standard Python build?"
+  options:
+    - "More coroutines with asyncio.gather"
+    - "More threads"
+    - "More processes (for example ProcessPoolExecutor)"
+    - "Adding await asyncio.sleep(0) in the loop"
+  answer: 2
+  explanation: "Each process has its own interpreter and its own lock, so they can compute at the same time. Coroutines never run at the same instant, and threads share the global interpreter lock."
+  whyWrong:
+    "0": "Coroutines take turns on one thread, so they add no computing power."
+    "1": "In the standard build the global interpreter lock lets only one thread run Python code at a time."
+    "3": "That only lets other tasks run; the loop's own work is not faster."
+
+- id: spot-bug-await-in-loop
+  kind: spot-bug
+  question: "This function is correct but far too slow when there are many urls. What is the problem?"
+  code: |
+    async def fetch_all(urls):
+        results = []
+        for url in urls:
+            results.append(await fetch(url))
+        return results
+  options:
+    - "Each fetch is awaited before the next starts, so the waits add up; use asyncio.gather"
+    - "append cannot be used with await"
+    - "A for loop is not allowed in async def"
+    - "fetch must be a normal function"
+  answer: 0
+  explanation: "await inside the loop waits for each fetch to finish before starting the next, so the total is the sum. Start them together with asyncio.gather(*(fetch(u) for u in urls)), perhaps with a semaphore to limit how many run at once."
+  whyWrong:
+    "1": "await fetch(url) is just an expression and can be used inside append."
+    "2": "Loops are fine in async functions."
+    "3": "fetch is meant to be a coroutine function; that is why it is awaited."
+
+- id: spot-bug-blocking-sleep
+  kind: spot-bug
+  question: "A program starts many tasks, but they run strictly one at a time and the whole program feels frozen during each pause. What is the bug?"
+  code: |
+    import time
+
+    async def fetch(url):
+        time.sleep(1)      # pretend to wait for the network
+        return url
+  options:
+    - "async functions cannot return a value"
+    - "fetch must return a coroutine object"
+    - "The url argument is missing a type"
+    - "time.sleep blocks the whole event loop; use await asyncio.sleep(1)"
+  answer: 3
+  explanation: "time.sleep blocks the thread the event loop runs on, so no other task can run during the pause. await asyncio.sleep(1) gives control back to the loop."
+  whyWrong:
+    "0": "Coroutines can return values; the awaiter receives them."
+    "1": "An async def already returns a coroutine object when called."
+    "2": "Type annotations are optional and unrelated."
+
+- id: predict-pause-driver
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    class Pause:
+        def __await__(self):
+            yield
+
+    log = []
+
+    async def worker(name):
+        for i in range(2):
+            log.append(f"{name}{i}")
+            await Pause()
+
+    a, b = worker("A"), worker("B")
+    for _ in range(3):
+        for coro in (a, b):
+            try:
+                coro.send(None)
+            except StopIteration:
+                pass
+    print(log)
+  options:
+    - "['A0', 'A1', 'B0', 'B1']"
+    - "['A0', 'B0']"
+    - "['A0', 'B0', 'A1', 'B1']"
+    - "['B0', 'A0', 'B1', 'A1']"
+  answer: 2
+  explanation: "Each send(None) runs a worker until its next await Pause(). Driving A then B in each round makes them take turns: A0, B0, A1, B1."
+  whyWrong:
+    "0": "That would need A to run to the end before B started, which Pause prevents."
+    "1": "Each worker pauses once and then continues, so both reach their second step."
+    "3": "In every round A is driven before B."
+
+- id: aexit-true
+  question: "In an async context manager, __aexit__ returns True while the block inside raised an exception. What happens to the exception?"
+  options:
+    - "It is raised twice"
+    - "It is suppressed and the code after the block carries on"
+    - "It is converted to a warning"
+    - "It is raised after a delay"
+  answer: 1
+  explanation: "Returning a true value from __aexit__ (or __exit__) tells Python the exception was handled, so it is swallowed. Return False or None to let it propagate."
+  whyWrong:
+    "0": "An exception is not duplicated."
+    "2": "Python does not turn exceptions into warnings this way."
+    "3": "There is no delay; it is either suppressed or propagates at once."
+
+- id: to-thread
+  question: "You must call a slow blocking function from async code without freezing the loop. Which is the right tool?"
+  options:
+    - "await asyncio.to_thread(function, arg)"
+    - "Call it directly inside the coroutine"
+    - "Put time.sleep(0) before it"
+    - "Call asyncio.run(function(arg))"
+  answer: 0
+  explanation: "asyncio.to_thread runs the function in a worker thread and lets you await its result, so the event loop stays free."
+  whyWrong:
+    "1": "A direct call blocks the loop for as long as the function runs."
+    "2": "Sleeping zero seconds with time.sleep does not make anything run elsewhere."
+    "3": "asyncio.run cannot be called inside a running loop, and it does not move work to another thread."
