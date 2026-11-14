@@ -27,6 +27,7 @@ class Limiter:
       finished normally or raised an exception. The exception must still reach
       the caller: do not hide it.
     - Each Limiter has its own count.
+    - The order in which waiting tasks get in is not specified.
     """
 
     def __init__(self, limit):

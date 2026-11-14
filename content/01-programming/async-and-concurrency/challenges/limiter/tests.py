@@ -64,9 +64,12 @@ def test_limit_one_runs_tasks_one_after_another():
     limiter = Limiter(1)
     log = []
     drive([make_job(limiter, n, log) for n in "abc"])
-    # each task leaves before the next one enters
-    kinds = [(kind, name) for kind, name, _ in log]
-    assert kinds == [("in", "a"), ("out", "a"), ("in", "b"), ("out", "b"), ("in", "c"), ("out", "c")]
+    # each task leaves before the next one enters (the order they get in is not specified)
+    assert [kind for kind, _, _ in log] == ["in", "out", "in", "out", "in", "out"]
+    entered = [name for kind, name, _ in log if kind == "in"]
+    assert sorted(entered) == ["a", "b", "c"]
+    for i in range(0, 6, 2):
+        assert log[i][1] == log[i + 1][1]  # the same task goes in and then out
 
 
 def test_a_big_limit_lets_everyone_in_together():
