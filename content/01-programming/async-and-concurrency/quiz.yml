@@ -81,9 +81,9 @@
     - "Only created"
     - "Only job runs"
   answer: 1
-  explanation: "create_task schedules the job, but it only starts when the current coroutine reaches an await. main prints created first and then awaits the task, which lets it run."
+  explanation: "create_task schedules the job, but it only starts when the current coroutine reaches an await that actually pauses. main prints created first and then awaits the task, which lets it run."
   whyWrong:
-    "0": "The task does not start at the moment create_task is called; it starts at the next await."
+    "0": "The task does not start at the moment create_task is called; it starts when the current coroutine next pauses at an await."
     "2": "main awaits the task, so the job does run."
     "3": "The line print('created') runs before main awaits."
 

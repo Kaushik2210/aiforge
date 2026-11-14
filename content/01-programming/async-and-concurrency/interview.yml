@@ -35,5 +35,5 @@
   followUps: ["Does cooperative scheduling need locks?", "How can you yield control manually?"]
 
 - question: "How does an event loop work, roughly?"
-  modelAnswer: "It keeps a collection of tasks. It repeatedly picks a ready task and runs it until it awaits something not yet ready or finishes; tasks waiting on timers or I/O are registered with the operating system and become ready when their event happens. A simple version is a round-robin over coroutines, calling send on each until it raises StopIteration, which is the mechanism the challenges build by hand."
+  modelAnswer: "It keeps a collection of tasks. It repeatedly picks a ready task and runs it until it awaits something not yet ready or finishes; tasks waiting on a timer are kept in the loop's own schedule, and tasks waiting on I/O are registered with the operating system's readiness mechanism, so each becomes ready when its time or event arrives. A simple version is a round-robin over coroutines, calling send on each until it raises StopIteration, which is the mechanism the challenges build by hand."
   followUps: ["What carries a coroutine's return value?", "How does the loop know I/O is ready?"]

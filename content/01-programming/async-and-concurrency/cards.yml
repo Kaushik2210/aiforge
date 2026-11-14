@@ -10,7 +10,7 @@
 - { id: c-sequential, front: "How long do three awaited sleeps of 1 s take one after another?", back: "About 3 seconds: the waits add up." }
 - { id: c-gather, front: "How long do three sleeps of 1 s take with asyncio.gather?", back: "About 1 second: the waits overlap." }
 - { id: c-gather-order, front: "In what order does gather return results?", back: "The order of its arguments, not the order they finished." }
-- { id: c-create-task, front: "When does a task from create_task start running?", back: "At the next await of the current coroutine, not at the moment it is created." }
+- { id: c-create-task, front: "When does a task from create_task start running?", back: "When the current coroutine next pauses at an await that really suspends, not at the moment it is created." }
 - { id: c-blocking, front: "What does time.sleep do inside a coroutine?", back: "Blocks the whole event loop, so no other task runs. Use await asyncio.sleep instead." }
 - { id: c-to-thread, front: "How do you call a blocking function from async code?", back: "await asyncio.to_thread(func, arg): it runs in a worker thread and the loop stays free." }
 - { id: c-taskgroup, front: "What does a TaskGroup do when one task fails?", back: "Cancels the others and raises an ExceptionGroup when the block ends." }

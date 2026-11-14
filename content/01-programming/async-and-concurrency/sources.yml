@@ -31,7 +31,14 @@
   type: docs
   primary: true
   verifiedOn: 2026-11-14
-  readFor: "What the global interpreter lock does in the standard build and that it can be disabled in free-threaded builds from 3.13."
+  readFor: "What the global interpreter lock does in the standard build."
+
+- title: "Python HOWTO: Python support for free threading"
+  url: "https://docs.python.org/3/howto/free-threading-python.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "That builds without the global interpreter lock exist from 3.13, and what changes for thread advice."
 
 - title: "concurrent.futures (ThreadPoolExecutor and ProcessPoolExecutor)"
   url: "https://docs.python.org/3/library/concurrent.futures.html"
@@ -40,9 +47,16 @@
   verifiedOn: 2026-11-14
   readFor: "Thread and process pools for blocking and CPU-bound work."
 
-- title: "Pyodide: Python event loop and wasm constraints"
-  url: "https://pyodide.org/en/stable/"
+- title: "Pyodide: Type translations and limits (wasm constraints)"
+  url: "https://pyodide.org/en/stable/usage/wasm-constraints.html"
   type: docs
   primary: true
   verifiedOn: 2026-11-14
-  readFor: "How Pyodide's own event loop differs, and that threads and multiprocessing do not work in the browser."
+  readFor: "What does not work in the browser: threading and multiprocessing are importable but not functional."
+
+- title: "Pyodide: WebLoop (the Python event loop in Pyodide)"
+  url: "https://pyodide.org/en/stable/usage/api/python-api/webloop.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "How Pyodide's loop works, and that run_until_complete cannot block like a normal event loop."
