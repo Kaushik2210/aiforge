@@ -19,3 +19,6 @@ items:
   - quest: generators-and-iterators
     claim: "Python behaviours and docs.python.org pages cited (iterator protocol, generators, itertools.batched since 3.12)"
     verifiedOn: 2026-11-13
+  - quest: async-and-concurrency
+    claim: "asyncio, GIL and Pyodide behaviours and docs pages cited (TaskGroup and timeout 3.11, to_thread 3.9, Pyodide limits)"
+    verifiedOn: 2026-11-14

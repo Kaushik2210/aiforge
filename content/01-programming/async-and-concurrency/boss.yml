@@ -1,0 +1,17 @@
+id: async-and-concurrency-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - predict-forgotten-await
+  - sequential-versus-gather
+  - predict-gather-order
+  - blocking-call
+  - taskgroup-failure
+  - spot-bug-await-in-loop
+  - predict-pause-driver
+  - cpu-bound
+challenges:
+  - mini-loop
+  - limiter
+interleaveFrom:
+  - generators-and-iterators

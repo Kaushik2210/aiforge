@@ -1,0 +1,48 @@
+- title: "asyncio: Coroutines and Tasks"
+  url: "https://docs.python.org/3/library/asyncio-task.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "Coroutine functions versus objects, create_task, gather's result order and error behaviour, TaskGroup, timeout, cancellation and to_thread, with the versions each was added."
+
+- title: "asyncio: Runners (asyncio.run)"
+  url: "https://docs.python.org/3/library/asyncio-runner.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "What asyncio.run does, that it is the main entry point, and that it cannot be called while another loop is running in the same thread."
+
+- title: "asyncio: Developing with asyncio"
+  url: "https://docs.python.org/3/library/asyncio-dev.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "Debug mode, why blocking code stalls the loop, running blocking code in an executor, never-awaited coroutines, and thread-safety notes."
+
+- title: "asyncio: Synchronization Primitives"
+  url: "https://docs.python.org/3/library/asyncio-sync.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "Lock, Event and Semaphore, the async with form, and the note that they are not thread-safe."
+
+- title: "The Python Glossary: global interpreter lock"
+  url: "https://docs.python.org/3/glossary.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "What the global interpreter lock does in the standard build and that it can be disabled in free-threaded builds from 3.13."
+
+- title: "concurrent.futures (ThreadPoolExecutor and ProcessPoolExecutor)"
+  url: "https://docs.python.org/3/library/concurrent.futures.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "Thread and process pools for blocking and CPU-bound work."
+
+- title: "Pyodide: Python event loop and wasm constraints"
+  url: "https://pyodide.org/en/stable/"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-14
+  readFor: "How Pyodide's own event loop differs, and that threads and multiprocessing do not work in the browser."
