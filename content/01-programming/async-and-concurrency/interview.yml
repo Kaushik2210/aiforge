@@ -1,0 +1,39 @@
+- question: "What is the difference between concurrency and parallelism?"
+  modelAnswer: "Concurrency is structuring a program so several tasks make progress over the same period, for example by switching while one waits. Parallelism is several tasks running at the same instant on different cores. Async code on one event loop is concurrent but not parallel: only one coroutine runs at a time, and the benefit comes from overlapping waits."
+  followUps: ["Can threads give parallelism in CPython?", "Which gives a speed-up for CPU-heavy work?"]
+
+- question: "What does async def, await and the event loop mean, in plain terms?"
+  modelAnswer: "async def defines a coroutine function: calling it returns a coroutine object without running anything. await pauses the current coroutine until the awaited thing is ready, and while it is paused the event loop, which runs on a single thread, can resume other coroutines. asyncio.run starts a loop and runs a main coroutine to the end."
+  followUps: ["What happens if you forget await?", "Who decides which task runs next?"]
+
+- question: "Why does awaiting calls in a for loop not run them concurrently, and how do you fix it?"
+  modelAnswer: "await waits for each result before the loop continues, so the waits add up. To overlap them, start all the coroutines and wait for them together, for example with asyncio.gather, a TaskGroup, or create_task for each and then await the tasks. Often you also add a semaphore so that you do not start too many at once."
+  followUps: ["What order does gather return results in?", "What if one of them raises?"]
+
+- question: "What happens if you call a blocking function like time.sleep or requests.get inside a coroutine?"
+  modelAnswer: "It blocks the thread the event loop runs on, so no other coroutine can run until it returns; the whole program stalls. Use the async equivalent (asyncio.sleep, an async HTTP client), or run the blocking call in a worker thread with asyncio.to_thread or run_in_executor so the loop stays responsive."
+  followUps: ["How would you notice a blocked loop?", "When is a thread the right answer?"]
+
+- question: "Compare asyncio, threads and processes in Python."
+  modelAnswer: "asyncio uses one thread and switches tasks at await points; it suits many network or disk waits and needs async-aware libraries. Threads let blocking libraries overlap waiting, but in the standard CPython build the global interpreter lock lets only one thread run Python code at a time, so they do not speed up computation. Processes each have their own interpreter, so CPU-bound work can use several cores, at the cost of more memory and passing data between processes."
+  followUps: ["What does the global interpreter lock protect?", "What about free-threaded Python builds?"]
+
+- question: "What is the difference between asyncio.gather and a TaskGroup when a task fails?"
+  modelAnswer: "With gather, by default the first exception is raised to the caller of gather but the other awaitables keep running unless you cancel them, and return_exceptions=True collects exceptions as results instead. A TaskGroup cancels the remaining tasks as soon as one fails and raises an ExceptionGroup when the block ends, which gives a cleaner structure for cleanup."
+  followUps: ["How do you handle an ExceptionGroup?", "Why does cancellation matter?"]
+
+- question: "How would you limit concurrency when calling an API from many tasks?"
+  modelAnswer: "Use an asyncio.Semaphore with the allowed number of places and wrap each call in async with sem, so at most that many are inside at once and the rest wait. Alternatively, start a fixed number of worker tasks that pull jobs from a queue. Combine this with timeouts and retries so slow calls do not hold their place forever."
+  followUps: ["What does the semaphore do when a call raises?", "How would you add rate limiting?"]
+
+- question: "What is the correct way to handle timeouts and cancellation?"
+  modelAnswer: "Wrap the call in asyncio.timeout (or wait_for), which cancels the work when time runs out and raises TimeoutError. Cancellation is delivered to the task as CancelledError at its next await. If you catch it to clean up, re-raise it afterwards, otherwise timeouts and task groups cannot stop the task."
+  followUps: ["What should happen to partial results on a timeout?", "How do you cancel a task yourself?"]
+
+- question: "What does it mean that async is cooperative, and what are the consequences?"
+  modelAnswer: "The loop can only switch tasks when a coroutine awaits, because nothing interrupts a running coroutine. That makes data races within one loop less likely and the code easier to reason about, but a task that never awaits, such as a long computation or a blocking call, stalls all other tasks. Coroutines should do short amounts of work between awaits."
+  followUps: ["Does cooperative scheduling need locks?", "How can you yield control manually?"]
+
+- question: "How does an event loop work, roughly?"
+  modelAnswer: "It keeps a collection of tasks. It repeatedly picks a ready task and runs it until it awaits something not yet ready or finishes; tasks waiting on timers or I/O are registered with the operating system and become ready when their event happens. A simple version is a round-robin over coroutines, calling send on each until it raises StopIteration, which is the mechanism the challenges build by hand."
+  followUps: ["What carries a coroutine's return value?", "How does the loop know I/O is ready?"]

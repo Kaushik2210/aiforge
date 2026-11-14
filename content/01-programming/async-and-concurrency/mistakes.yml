@@ -1,0 +1,31 @@
+- mistake: "Awaiting each call inside a for loop and expecting them to overlap."
+  why: "await waits for the result before the loop moves on, so the waits add up instead of overlapping."
+  detect: "Total time is the sum of the individual calls. Collect the coroutines and await asyncio.gather(...) (or use a TaskGroup)."
+
+- mistake: "Calling time.sleep or another blocking function inside a coroutine."
+  why: "It blocks the thread the event loop runs on, so no other task can make progress."
+  detect: "Everything freezes during the call, and ticker-style tasks stop. Use await asyncio.sleep, an async library, or await asyncio.to_thread(...)."
+
+- mistake: "Forgetting await in front of a coroutine call."
+  why: "The call returns a coroutine object and the work never runs."
+  detect: "RuntimeWarning: coroutine '...' was never awaited, and missing results or side effects. Add await, or schedule it with create_task."
+
+- mistake: "Calling asyncio.run from code that is already running inside an event loop."
+  why: "asyncio.run starts a new loop, and a thread can only run one loop at a time."
+  detect: "RuntimeError: asyncio.run() cannot be called from a running event loop. Use await inside async code, and keep a single asyncio.run at the program entry point."
+
+- mistake: "Starting thousands of tasks at once with no limit."
+  why: "A server or API may rate-limit or fail, and sockets or memory can run out."
+  detect: "Bursts of timeouts or 429 errors. Use asyncio.Semaphore, a fixed pool of worker tasks, or batches."
+
+- mistake: "Using async to speed up heavy computation."
+  why: "Only one coroutine runs at a time and nothing switches during a long calculation, so there is no speed-up."
+  detect: "CPU stays at one core and total time does not shrink. Use processes, or vectorised libraries."
+
+- mistake: "Swallowing CancelledError or hiding errors inside a task."
+  why: "Cancellation is how timeouts and task groups stop work. Catching it without re-raising can leave the program hanging."
+  detect: "A timeout never fires or a program will not shut down. Re-raise CancelledError after cleanup."
+
+- mistake: "Never setting a timeout on a network call."
+  why: "A stalled call can wait forever and hold a place in your limits."
+  detect: "Some tasks never finish. Wrap awaits on external calls in asyncio.timeout and decide what a TimeoutError should do."
