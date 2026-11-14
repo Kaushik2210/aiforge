@@ -255,3 +255,93 @@ Confirmed outputs (Python 3.13.7):
 - Live site (https://kaushik2210.github.io/aiforge/, 2026-11-13): loading the home page and a quest page showed no
   failed requests and no `__next` prefetch requests in the first seconds. The earlier 404s were seen only on the
   local static test server. Not proof for every route; the deployed build is older than `main`.
+
+## Async and concurrency (Day 22)
+
+verifiedOn: 2026-11-14. docs.python.org pages and Pyodide (stable 314.0.8) pages fetched 2026-11-14 (Python docs served as
+3.15.2). Local runs: CPython 3.13.7, Windows, GIL on. Timings approximate; message wording is version-specific.
+
+### asyncio (docs)
+- Coroutines and Tasks (https://docs.python.org/3/library/asyncio-task.html): "coroutine" = coroutine function (an
+  `async def`) or coroutine object (what calling it returns). Calling it does not run it; run it with `asyncio.run()`,
+  `await`, or `create_task()`.
+- `asyncio.run()` (https://docs.python.org/3/library/asyncio-runner.html): runs the awaitable, manages and closes the loop,
+  finalizes async generators; cannot be called when another loop runs in the same thread; the main entry point, ideally
+  called once. Added 3.7; `Runner` added 3.11.
+- `create_task`: schedules a Task. Keep a reference: the loop holds only weak references, so an unreferenced task may be
+  garbage collected before it finishes. `eager_start` param added 3.14.
+- `gather`: results in argument order. Default `return_exceptions=False`: the first exception propagates and the other
+  awaitables are NOT cancelled, they keep running. `True`: exceptions come back in the result list. Cancelling gather
+  cancels the children. Docs point to TaskGroup for stronger guarantees.
+- `TaskGroup`: Added 3.11. When one task fails the rest are cancelled and the failures raise as `ExceptionGroup`.
+- `asyncio.timeout()`: Added 3.11. On expiry cancels the task and converts CancelledError to `TimeoutError`, catchable only
+  outside the `async with`. `wait_for` raises builtin `TimeoutError` since 3.11; reimplemented on `timeout()` in 3.12.
+- `sleep(0)`: sleep always suspends the task; delay 0 is an optimized path that lets other tasks run.
+- Cancellation: CancelledError is raised in the task at the next opportunity; it subclasses BaseException. If caught,
+  generally re-raise after cleanup; TaskGroup and timeout() break if it is swallowed. Prefer try/finally.
+- `asyncio.to_thread()`: Added 3.9. Docs: because of the GIL it typically helps only IO-bound functions.
+- Developing with asyncio (https://docs.python.org/3/library/asyncio-dev.html): debug mode via `PYTHONASYNCIODEBUG=1`,
+  `-X dev` or `asyncio.run(debug=True)`; logs callbacks slower than 100 ms. While one task runs no other can in that
+  thread; a 1 s CPU call delays everything 1 s; use an executor (`run_in_executor`). Never-awaited coroutine gives
+  RuntimeWarning "coroutine 'x' was never awaited". Most asyncio objects are not thread safe (`call_soon_threadsafe`,
+  `run_coroutine_threadsafe`). Fire-and-forget errors show only as "Task exception was never retrieved".
+- Intro (https://docs.python.org/3/library/asyncio.html): "often a perfect fit for IO-bound and high-level structured network
+  code". It also says not available on WebAssembly; see Pyodide below (own loop).
+- Sync primitives (https://docs.python.org/3/library/asyncio-sync.html): modelled on `threading` but not thread-safe and
+  no timeout argument (use `wait_for`). Lock, Event, Condition, Semaphore, BoundedSemaphore, Barrier. `async with sem:`
+  is the preferred form.
+
+### Threads, processes, GIL
+- Glossary (https://docs.python.org/3/glossary.html) "global interpreter lock": one thread runs Python bytecode at a time
+  in CPython; some extensions release it for heavy work; always released during IO. "As of Python 3.13" it can be disabled
+  with a `--disable-gil` build (PEP 703); "free threading" = threads run bytecode simultaneously.
+- Free-threading HOWTO (https://docs.python.org/3/howto/free-threading-python.html): supported "starting with the 3.13
+  release"; installers for macOS/Windows optionally include it; some extension packages re-enable the GIL;
+  `sys._is_gil_enabled()`; single-thread overhead about 1 to 8%. TODO-VERIFY: page does not say "experimental" vs
+  "supported" for 3.14 (PEP 779). Say "available since 3.13, not the default" and link the HOWTO.
+- threading (https://docs.python.org/3/library/threading.html): good for IO-bound; GIL limits CPU-bound; for multi-core use
+  `multiprocessing` or `ProcessPoolExecutor`. Page says not available on WASI/WebAssembly.
+- concurrent.futures (https://docs.python.org/3/library/concurrent.futures.html): one Executor interface over Thread,
+  Process (and Interpreter) pools; `map` is like builtin `map` but concurrent, errors raise on retrieval; `as_completed`
+  yields futures as they finish.
+
+### Data model pointers (https://docs.python.org/3/reference/datamodel.html, glossary)
+- awaitable: usable in `await`; a coroutine or object with `__await__` returning an iterator (what it yields is up to
+  the framework). Coroutine object: `send(None)` starts/resumes; result is `StopIteration.value`; awaiting twice is a
+  RuntimeError. `async with` = `__aenter__`/`__aexit__`; `async for` = `__aiter__` + `__anext__` (awaitable; ends with
+  StopAsyncIteration); async generator = `async def` containing `yield`.
+
+### Pyodide (https://pyodide.org/en/stable/usage/wasm-constraints.html, .../api/python-api/webloop.html,
+.../api/python-api/ffi.html, .../project/changelog.html)
+- `threading`, `multiprocessing`, sockets: importable but not functional; Pyodide does not support threads.
+- WebLoop: custom loop scheduling on the browser event loop via `setTimeout`; `run_forever()` and `run_until_complete()`
+  cannot block like a normal loop (one thread).
+- `pyodide.ffi.run_sync(x)`: blocks until an awaitable resolves; Experimental; needs JS Promise integration (JSPI) and a
+  stack entered via `runPythonAsync()`, an async function, or `callPromising()`. `can_run_sync` added 0.26.2.
+- Changelog: 0.26.1 added `enableRunUntilComplete` (blocks via stack switching, else crashes); 0.27.7 made it default;
+  0.27.6: stack switching and `asyncio.run()` work in the `python` CLI.
+- The text "WebAssembly stack switching not supported" was NOT found in the docs fetched; treat as a runtime message
+  matching the above (blocking needs JSPI). TODO-VERIFY JSPI availability per browser/Node. Teaching: in the browser
+  runner use top-level await / `runPythonAsync`, not `asyncio.run()`, unless JSPI is confirmed.
+
+### Confirmed local outputs (Python 3.13.7)
+- 3 sequential `await asyncio.sleep(.2)` ~0.6 s; `gather` of the same ~0.2 s, result `['a','b','c']`.
+- `create_task` then log: `after create_task`, `w ran`, `after await` (task starts at the next await).
+- `gather(slow .3, fast .05, mid .15)` returns `['slow','fast','mid']` (argument order).
+- gather with a failing task: `ValueError('boom')` propagates at ~0.05 s; sibling still finished later. With
+  `return_exceptions=True`: `[ValueError('boom'), 1]`.
+- `time.sleep(.5)` in a coroutine froze a ticker: stamps `[0.0, 0.5, 0.6]`; with `await asyncio.to_thread(time.sleep, .5)`:
+  `[0.0, 0.1, 0.2]`.
+- Un-awaited call: type `coroutine`; `RuntimeWarning: coroutine 'noawait.<locals>.f' was never awaited` (at garbage collection).
+- `asyncio.run(c)` in a running loop: `RuntimeError: asyncio.run() cannot be called from a running event loop`.
+- TaskGroup: one failure cancels the sibling; `except*` catches `ExceptionGroup`; message
+  `unhandled errors in a TaskGroup (1 sub-exception)`.
+- `asyncio.timeout(.1)` and `wait_for(.., .1)` raise builtin `TimeoutError`; on 3.13 `asyncio.TimeoutError is TimeoutError`.
+- `Semaphore(2)`, 6 jobs of 0.1 s: max concurrent 2, elapsed ~0.3 s.
+- Hand-driven scheduler (`Pause.__await__` does a bare `yield`; round-robin `c.send(None)`): prints `A0 B0 A1 B1 A2`,
+  results `['B done', 'A done']` via `StopIteration.value`. `@types.coroutine` + bare `yield` also works. Re-sending to a
+  finished coroutine: `RuntimeError: cannot reuse already awaited coroutine`.
+- ThreadPoolExecutor: 8 x `time.sleep(.2)` serial ~1.6 s vs 8 threads ~0.2 s; `map` kept input order. CPU loops
+  (4 x 3M): serial ~0.5 to 0.9 s vs 4 threads ~0.5 to 0.8 s (no real gain, noisy); ProcessPoolExecutor(4) ~0.25 s.
+  `as_completed` yielded `[0.1, 0.2, 0.3]` for submits of 0.3, 0.1, 0.2.
+- Caveat: on Windows, process-pool workers re-import the main module; guard with `if __name__ == "__main__":`.
