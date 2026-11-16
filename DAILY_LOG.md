@@ -623,4 +623,17 @@ TODO-VERIFY / not done
 - Not deployed; the public site is still at Day 24.
 
 Tomorrow
-- Slice 2: restyle quest cards, realm path and footer; typed boot line; then Loss Mountains page.
+- Slice 2 (below), then the Loss Mountains page.
+
+## Day 25 (continued): ASCII redesign, slice 2
+
+What shipped
+- `typedPrefix` and `asciiRule` in `lib/ascii-fx.ts` (3 more unit tests; 115 web tests pass).
+- `BootLine`: the home hero types `$ forge start gradient-descent` once; the whole command is always in the page and still with motion off.
+- `AsciiRule`: decorative text dividers above the quest map and in the footer (aria-hidden, clipped, `text-text-muted` so axe contrast passes; my first colour failed axe on every page).
+- Realm nodes are `[n]`, tile titles start with `//` (generated text with the alt-text form), footer credits the effects as original work.
+- Tests: 3 new Playwright tests; two slow tests given longer timeouts (48 page loads, 8 pages by 25 Tab presses). Full e2e run: 88 passed, 3 failed from a machine sleep and load, all three pass when rerun alone.
+
+TODO-VERIFY / not done
+- Dashboard, map, skills, review and quest pages have the terminal header and tokens only; no ASCII components yet.
+- The Loss Mountains page is still unbuilt. Not deployed.
