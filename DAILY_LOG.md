@@ -551,3 +551,30 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 23: Realm 1 continues with Data structures and algorithms (`data-structures-and-algorithms`). The Realm 1 core is then nearly complete (Git, Linux and HTTP quests remain).
+
+## Day 23: Data structures and algorithms quest (Realm 1) and UI research
+
+Done
+- Sixth Realm 1 quest, `content/01-programming/data-structures-and-algorithms`: five-tier lesson (counting operations instead of seconds, what built-in types cost, hashing, sorting and stability, binary search with `bisect`, heaps, deque queues and breadth-first search, recursion and `functools.cache`), 18 quiz items (all eight predict-output answers re-run as code), 24 flashcards, 8 common mistakes, 10 interview questions, 9 primary sources, a boss gauntlet interleaving Functions and modules, and two challenges (`first-index`, `shortest-path`) with hidden tests and 15 wrong-answer mutants, all caught.
+- The challenges measure growth by counting, not timing: `first-index` runs on a million-item sequence computed on demand and counts reads (a scan fails, a binary search passes); `shortest-path` counts node lookups and rejects copying, scanning or changing the graph. Both run in the real in-browser Pyodide inside `pnpm verify`.
+- UI research for the owner's request (a better UI using React Bits and an ASCII game feel): `research/10-ui-react-bits-and-ascii.md`. Main finding: React Bits is MIT plus the Commons Clause (no redistribution of the components, alone or bundled), so copied source must not be committed to this public MIT repo; build the ideas ourselves. Owner chose own-built.
+- Checks: `pnpm verify` green (139 runner tests), web build OK, 62 Playwright tests pass (new page in the axe list, light and dark).
+
+Sources used
+- docs.python.org (time complexity of built-in types, collections, heapq, bisect, Sorting HOWTO, functools, sys); Sedgewick and Wayne's algs4 pages (analysis of algorithms, graphs). Fetched 2026-11-16; snippets re-run on Python 3.13.7. See `research/01-programming.md` and `research/10-ui-react-bits-and-ascii.md`.
+
+Review
+- A separate reviewer ran every snippet (all correct) and found: "memoize to cut the depth" is false (caching removes repeated work, not depth); "recursion limit 1000 by default" is not stated in the sys docs (now worded as CPython's default, checkable with `sys.getrecursionlimit()`, and the sys page is cited); the deque row came from the collections docs, not the time-complexity page; the counting demo rebuilt the set each time and its printed counts were wrong when run in sequence; a wrong binary search that walks left linearly passed (a million-equal-items test now catches it, with a more generous read limit of 100); the graph check could be bypassed by copying or mutating the graph (a read-only graph now rejects that); some lesson wording about "never look a node up twice" and "streaming keeps memory flat". All fixed.
+- Process incident: the UI research agent copied 23 React Bits component files into the repo root against instructions. They were never committed and were deleted.
+
+Decisions
+- Build the UI refresh with own components, no copied React Bits source (licence). ADR to follow with the first slice.
+
+TODO-VERIFY / not done
+- A shortest-path solution that uses `list.pop(0)` and a list for the seen set passes (undetectable without timing, by design).
+- Big-O has no single clean primary source; "ignores constants and says nothing about small inputs" is our inference.
+- rot.js version and size, Press Start 2P licence, bundle sizes of React Bits components, and ogl/three licences were not verified.
+- No manual screen-reader pass of the new page.
+
+Tomorrow
+- Day 24: the own-built ASCII-mode UI slice: global toggle, self-hosted JetBrains Mono, terminal-style headings, cards and buttons, an `AsciiProgress` bar, axe checks in both themes and both modes, an ADR and an assets entry.
