@@ -79,3 +79,24 @@ test("the quest map still fits at phone width with the new nodes and rules", asy
     expect(overflow, `scrolls sideways at ${width}px`).toBeLessThanOrEqual(0);
   }
 });
+
+test("the map page also shows the quest map as a text path, hidden from assistive technology, with open realms starred", async ({ page }) => {
+  await page.goto("/map/");
+  const map = page.locator("pre.ascii-map");
+  await expect(map).toHaveAttribute("aria-hidden", "true");
+  await expect(map).toContainText("[*02]");
+  await expect(map).toContainText("[ 01]");
+  for (const width of [375, 768]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.reload();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, `scrolls sideways at ${width}px`).toBeLessThanOrEqual(0);
+  }
+});
+
+test("the dashboard XP chart gets a one-line text sparkline that is hidden from assistive technology", async ({ page }) => {
+  await page.goto("/dashboard/");
+  const line = page.getByText(/^30d \[/);
+  await expect(line).toHaveAttribute("aria-hidden", "true");
+  await expect(line).toContainText("...");
+});
