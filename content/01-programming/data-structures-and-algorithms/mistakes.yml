@@ -23,8 +23,8 @@
   detect: "A longer path is returned on graphs with shortcuts. Use breadth-first search with a queue."
 
 - mistake: "Recursing to a depth of thousands."
-  why: "Python limits recursion depth (1000 by default) and raises RecursionError."
-  detect: "RecursionError on large inputs. Use a loop with an explicit stack or queue, or memoize to cut the depth."
+  why: "Python limits recursion depth (1000 by default in CPython) and raises RecursionError."
+  detect: "RecursionError on large inputs. Use a loop with an explicit stack or queue. Memoizing removes repeated work but does not reduce the depth."
 
 - mistake: "Trusting Big-O instead of measuring."
   why: "Constant factors and small inputs can reverse the order, and real data decides close calls."

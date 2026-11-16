@@ -40,6 +40,13 @@
   verifiedOn: 2026-11-16
   readFor: "How cache memoizes results, that arguments must be hashable, and cache_info."
 
+- title: "The Python Standard Library: sys (getrecursionlimit and setrecursionlimit)"
+  url: "https://docs.python.org/3/library/sys.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "That the interpreter limits recursion depth, how to read it, and the warning against raising it too high."
+
 - title: "Sedgewick and Wayne, Algorithms: Analysis of Algorithms"
   url: "https://algs4.cs.princeton.edu/14analysis/"
   type: course

@@ -147,7 +147,7 @@
     - "It is always slower than O(1) operations, even for tiny inputs"
     - "It uses n bytes of memory"
   answer: 0
-  explanation: "Big-O describes the growth rate of the cost as the input grows, up to a constant factor. It is not an exact count and does not compare small inputs."
+  explanation: "Big-O describes (an upper bound on) the growth rate of the cost as the input grows, up to a constant factor. It is not an exact count and does not compare small inputs."
   whyWrong:
     "1": "O(n) hides constants, so it may be 3n or n/2 steps."
     "2": "On a tiny input an O(n) method with a small constant can beat an O(1) method with a large one."
@@ -250,7 +250,7 @@
     - "too deep"
     - "0"
   answer: 2
-  explanation: "Each call adds a frame to the stack and Python stops the recursion at its limit (1000 by default), raising RecursionError, which the except catches."
+  explanation: "Each call adds a frame to the stack and Python stops the recursion at its depth limit (1000 in CPython by default), raising RecursionError, which the except catches."
   whyWrong:
     "0": "The error is raised, but the except clause handles it."
     "1": "Python guards recursion with a depth limit, so it does stop."
@@ -286,7 +286,7 @@
     - "The cost is constant only for the first few appends"
     - "The cost is constant only for sorted lists"
   answer: 0
-  explanation: "Now and then the list has to grow and copy its items. Because that is rare and the list grows by a proportion each time, the average cost per append stays constant."
+  explanation: "Now and then the list has to grow and copy its items. That cost is spread over many appends, so the average cost per append stays constant."
   whyWrong:
     "1": "Some appends are noticeably more expensive; it is the average that is constant."
     "2": "The average stays constant however many items are added."

@@ -35,5 +35,5 @@
   followUps: ["How do you tell n log n from n squared in measurements?", "What tools profile Python code?"]
 
 - question: "What happens with very deep recursion and what are your options?"
-  modelAnswer: "Each recursive call adds a frame to the stack, and Python stops runaway recursion at a limit, by default 1000 frames, by raising RecursionError. For a problem that goes deep, convert it to a loop with an explicit stack or queue, as breadth-first search does, or reduce the depth by memoizing, rather than just raising the limit, which risks crashing the interpreter."
+  modelAnswer: "Each recursive call adds a frame to the stack, and Python stops runaway recursion at a limit, 1000 frames by default in CPython, by raising RecursionError. For a problem that goes deep, convert it to a loop with an explicit stack or queue, as breadth-first search does, rather than just raising the limit, which risks crashing the interpreter. Memoizing removes repeated work but does not reduce how deep the first call recurses."
   followUps: ["Why does breadth-first search not need recursion?", "When is raising the limit acceptable?"]

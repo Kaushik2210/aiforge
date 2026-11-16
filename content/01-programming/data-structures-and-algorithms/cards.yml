@@ -20,5 +20,5 @@
 - { id: c-nlargest, front: "When use heapq.nlargest?", back: "For a small number of top items; sort when you want many, and max() when you want one." }
 - { id: c-bfs, front: "What does breadth-first search use and give?", back: "A FIFO queue; it finds the route with the fewest steps when every step counts the same." }
 - { id: c-seen, front: "Why keep a seen set in graph search?", back: "So loops do not trap the search and each node is expanded once." }
-- { id: c-recursion, front: "What happens when recursion goes too deep?", back: "Python raises RecursionError (the default limit is 1000 frames)." }
+- { id: c-recursion, front: "What happens when recursion goes too deep?", back: "Python raises RecursionError (CPython's default limit is 1000 frames; see sys.getrecursionlimit())." }
 - { id: c-cache, front: "What does functools.cache do?", back: "Remembers results by argument, so repeated calls are instant. Arguments must be hashable." }

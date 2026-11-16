@@ -11,13 +11,13 @@ skipTiers: []
 coreFundamentals:
   - "Choosing the right data structure often matters more than clever code. A list is good for ordered items you index or append to, a dict or set for fast lookup by value, a deque for a queue, and a heap for always taking the smallest item next."
   - "Big-O describes how the cost of an operation grows as the data grows, with constant factors set aside. Searching a list with `in` grows in proportion to its length (O(n)); looking a key up in a dict or set is about constant time on average (O(1))."
-  - "Binary search finds an item in a sorted sequence by halving the range each step, so about 17 reads are enough for 100,000 items instead of up to 100,000. It only works if the sequence is already sorted."
+  - "Binary search finds an item in a sorted sequence by halving the range each step, so at most about 17 reads are enough for 100,000 items instead of up to 100,000. It only works if the sequence is already sorted."
   - "Breadth-first search uses a queue to explore a graph level by level and finds the path with the fewest edges when every edge counts the same."
 coreComplexity:
   - "Dict and set operations are O(1) on average but O(n) in the worst case (if many keys collide). The average case assumes a hash function that spreads keys out, and keys must be hashable: a list cannot be a set member or a dict key."
   - "`list.append` and `list.pop()` are O(1) amortized: an occasional resize costs O(n) but is spread over many calls. `list.pop(0)` and `list.insert(0, x)` are O(n) because every other item must move, so a list is a poor queue and `collections.deque` is the right tool."
   - "Python's sort is stable (items that compare equal keep their original order, even with `reverse=True`), which lets you sort by several keys in passes. `list.sort()` changes the list and returns None; `sorted()` returns a new list."
-  - "Recursion costs stack space: Python limits the depth (1000 by default), and exceeding it raises `RecursionError`. Memoizing a recursive function with `functools.cache` turns exponential repeated work into linear, but its arguments must be hashable."
+  - "Recursion costs stack space: Python limits how deep it can go (CPython's default is 1000; `sys.getrecursionlimit()` shows it), and exceeding it raises `RecursionError`. Memoizing a recursive function with `functools.cache` removes repeated work (exponential becomes linear), but it does not reduce the depth, and its arguments must be hashable."
   - "Big-O hides constants and says nothing about small inputs; for real code, measure before you optimise. Counting operations (comparisons, reads) is a reliable way to see growth without depending on a noisy clock."
 explainItBack:
   prompt: "In 3 to 5 sentences, explain why `if x in my_list` inside a loop can make a program slow when the data grows, and how you would fix it."
@@ -85,16 +85,27 @@ class Counted(int):
     __hash__ = int.__hash__
 
 items = [Counted(i) for i in range(1000)]
-Counted(999) in items        # compares item by item: about 1000 __eq__ calls
-Counted(999) in set(items)   # about 1 call: the hash jumps near the item
+lookup = set(items)          # built once, outside the timing
+
+Counted.calls = 0
+Counted(999) in items        # compares item by item
+print(Counted.calls)         # 1000
+
+Counted.calls = 0
+Counted(999) in lookup       # the hash jumps straight to the item
+print(Counted.calls)         # 1
 ```
+
+(`__hash__ = int.__hash__` is needed: a class that defines `__eq__` and nothing
+else loses its hash.)
 
 Searching a list with `in` looks at items one by one. A set or dict computes a
 hash of the value and goes straight to where it would be.
 
 ### What the built-in types cost
 
-From Python's time-complexity table for CPython (the standard implementation):
+From Python's time-complexity table for CPython (the standard implementation),
+plus the `collections` documentation for `deque`:
 
 | operation | cost |
 |---|---|
@@ -195,8 +206,10 @@ def fib(n):
 fib(80)       # 23416728348467685, instantly
 ```
 
-Python stops runaway recursion with a `RecursionError` (the default limit is 1000
-frames), so a very deep problem should use a loop and an explicit stack or queue.
+Python stops runaway recursion with a `RecursionError` (CPython's default limit is
+1000 frames; `sys.getrecursionlimit()` shows it), so a very deep problem should
+use a loop and an explicit stack or queue. Caching removes repeated work but not
+depth: the first call still recurses all the way down.
 
 <Step prompt="why is `while queue: item = queue.pop(0)` slow on a long list, and what replaces it?">
 `pop(0)` removes the first item and shifts every other item one place left, so
@@ -217,8 +230,9 @@ Two challenges. Run them in the browser editor (Pyodide), or locally with
    and a binary search passes. You will see why "first" needs care with repeats.
 2. **`shortest-path`**: write a breadth-first search over a directed graph (a dict
    from a node to the nodes it leads to) that returns the fewest steps between two
-   nodes or -1. The tests check that you never look a node up twice and that loops
-   and very long paths do not break you.
+   nodes or -1. The tests check that the total number of node lookups stays within
+   the number of nodes, that you do not copy, scan or change the graph, and that
+   loops and very long paths do not break you.
 
 **Why count reads, not time.** A timing test would pass or fail depending on the
 computer. Counting how many items a function looks at is exact and shows the
@@ -240,10 +254,11 @@ growth directly.
   realistic data. Constant factors, caches and the size of your data decide close
   calls.
 - **Mind memory.** A set or dict takes more memory than a list of the same items,
-  and a list of a million objects is heavy. Streaming (generators, last quest)
-  keeps memory flat.
-- **Keep recursion shallow.** A deep recursion hits the recursion limit; switch to
-  a loop with your own stack or queue, as breadth-first search does.
+  and a list of a million objects is heavy. Streaming (generators, an earlier
+  quest) keeps memory flat when you consume the items one at a time.
+- **Keep recursion shallow.** A deep recursion hits the recursion limit, and
+  memoizing does not change the depth; switch to a loop with your own stack or
+  queue, as breadth-first search does.
 - **Use the right tool for numbers.** Large numeric arrays belong in NumPy (Realm 3),
   not Python lists.
 - **Failure at 3 a.m.:** a job that was fine on a thousand records takes hours on
