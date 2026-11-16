@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { asciiRule, rainFrame, rng, scrambleFrame, skylineFrame, typedPrefix } from "./ascii-fx";
+import { asciiRule, asciiSparkline, renderRealmMap, rainFrame, rng, scrambleFrame, skylineFrame, typedPrefix } from "./ascii-fx";
 
 describe("scrambleFrame", () => {
   it("is the target at the end, noise-free", () => {
@@ -78,5 +78,47 @@ describe("asciiRule", () => {
     }
     expect(asciiRule(30, "forge")).toContain("[ forge ]");
     expect(asciiRule(0)).toHaveLength(4);
+  });
+});
+
+describe("asciiSparkline", () => {
+  it("is one character per value, scaled to the largest, with gaps for unknown days", () => {
+    const line = asciiSparkline([0, 5, 10, null, 10]);
+    expect(line).toHaveLength(5);
+    expect(line[0]).toBe("._-=+*#@"[0]);
+    expect(line[2]).toBe("@");
+    expect(line[3]).toBe(" ");
+  });
+  it("keeps all-zero and empty input on the floor and survives bad numbers", () => {
+    expect(asciiSparkline([0, 0, 0])).toBe("...");
+    expect(asciiSparkline([])).toBe("");
+    expect(asciiSparkline([Number.NaN, 3])).toHaveLength(2);
+  });
+  it("is never lower for a higher value", () => {
+    const ramp = "._-=+*#@";
+    let last = -1;
+    for (let v = 0; v <= 100; v += 3) {
+      const i = ramp.indexOf(asciiSparkline([v, 100])[0]!);
+      expect(i).toBeGreaterThanOrEqual(last);
+      last = i;
+    }
+  });
+});
+
+describe("renderRealmMap", () => {
+  const realms = [
+    { n: 1, name: "Programming", open: false },
+    { n: 2, name: "Maths", open: true },
+    { n: 3, name: "A very long realm name that goes on and on and on forever and ever", open: false },
+  ];
+  it("draws one tag per realm with the open one starred, joined by a path", () => {
+    const rows = renderRealmMap(realms);
+    expect(rows.join("|")).toContain("[ 01] Programming");
+    expect(rows.join("|")).toContain("[*02] Maths");
+    expect(rows).toHaveLength(5);
+    expect(rows[1]).toContain("|");
+  });
+  it("never goes wider than the width", () => {
+    for (const row of renderRealmMap(realms, 40)) expect(row.length).toBeLessThanOrEqual(40);
   });
 });

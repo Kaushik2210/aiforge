@@ -1,6 +1,7 @@
 "use client";
 
 import { localDateKey, xpSeries } from "@aiforge/engine";
+import { asciiSparkline } from "@/lib/ascii-fx";
 import { areaPath, linePath, linearScale, niceMax, ticks, type Pt } from "@/lib/chart-geometry";
 import { localZone } from "@/lib/mastery";
 import { useProgress } from "@/lib/progress-store";
@@ -43,6 +44,9 @@ export function XpChart() {
         {`${snapshot.xpTotal} XP in total, ${gained} earned in this window.`}
       </p>
 
+      <p aria-hidden="true" className="mt-3 select-none overflow-hidden whitespace-pre font-mono text-xs text-accent">
+        {`30d [${asciiSparkline(series.points.map((p) => p.cumulative))}]`}
+      </p>
       <div className="mt-3 overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full max-w-[640px]" role="img" aria-label={`Line chart of total XP over the last ${DAYS} days, now ${snapshot.xpTotal}. A table follows.`}>
           {ticks(max, 4).map((t) => (

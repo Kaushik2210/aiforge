@@ -102,3 +102,46 @@ export function asciiRule(width: number, label = ""): string {
   const side = (n: number) => "-=".repeat(Math.ceil(n / 2)).slice(0, n);
   return `+${side(left)}${mid}${side(room - left)}+`;
 }
+
+/** Eight heights, lowest to highest, for a one-line chart. */
+export const SPARK_RAMP = "._-=+*#@";
+
+/**
+ * A one-line chart: one character per value, scaled to the largest value. Values that are
+ * unknown (null or not finite) become a space, never a guess. All zeros stay on the floor.
+ */
+export function asciiSparkline(values: readonly (number | null)[]): string {
+  const known = values.filter((v): v is number => v !== null && Number.isFinite(v));
+  const max = Math.max(0, ...known);
+  return values
+    .map((v) => {
+      if (v === null || !Number.isFinite(v)) return " ";
+      if (max <= 0) return SPARK_RAMP[0]!;
+      const t = Math.max(0, Math.min(1, v / max));
+      return SPARK_RAMP[Math.min(SPARK_RAMP.length - 1, Math.floor(t * SPARK_RAMP.length))]!;
+    })
+    .join("");
+}
+
+export interface RealmLike {
+  n: number;
+  name: string;
+  open: boolean;
+}
+
+/**
+ * The quest map as a winding text path, one line per realm: an open realm is drawn
+ * "[*03]" and a coming-soon one "[ 04]". The path zig-zags left and right.
+ */
+export function renderRealmMap(realms: readonly RealmLike[], width = 56): string[] {
+  const offsets = [0, 4, 8, 4, 0, -0, 4, 8];
+  const rows: string[] = [];
+  realms.forEach((r, i) => {
+    const pad = " ".repeat(offsets[i % offsets.length]!);
+    const tag = `[${r.open ? "*" : " "}${String(r.n).padStart(2, "0")}]`;
+    const line = `${pad}${tag} ${r.name}`;
+    rows.push(line.length > width ? `${line.slice(0, width - 1)}~` : line);
+    if (i < realms.length - 1) rows.push(`${pad}  |`);
+  });
+  return rows;
+}

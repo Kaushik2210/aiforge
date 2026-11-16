@@ -401,3 +401,6 @@ a, button {
 @media (prefers-reduced-motion: reduce) {
   .bento-tile, .realm-card-open { transition: none; }
 }
+
+/* ASCII realm map: 56 columns scaled so it fits the card from phone to desktop */
+.ascii-map { font-size: min(14px, calc((100vw - 4.5rem) / 34)); line-height: 1.25; }

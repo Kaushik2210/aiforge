@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AsciiRealmMap } from "@/components/ascii/AsciiRealmMap";
 import { BootLine } from "@/components/ascii/BootLine";
 import { WorldMapView } from "@/components/map/WorldMapView";
 
@@ -15,6 +16,7 @@ export default function MapPage() {
       </p>
       <div className="mt-6">
         <WorldMapView />
+        <AsciiRealmMap />
       </div>
     </div>
   );
