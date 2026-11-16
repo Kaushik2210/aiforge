@@ -607,3 +607,20 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 25: the first ASCII learning game, Loss Mountains (a glyph terrain where each step is a gradient descent step), pure game logic with tests and an accessible text description; or Realm 1's remaining quests (Git, Linux, HTTP) if the owner prefers.
+
+## Day 25: ASCII redesign, slice 1 (and the Hiker ASCII renderer)
+
+What shipped
+- Hiker ASCII renderer (`packages/games/src/hiker/ascii.ts`, 11 tests): Loss Mountains as text, with a side view for 1-D levels and a contour map for 2-D ones. The ball is `@`, the goal `~` or `V`, steps are numbered. The page that uses it is not built yet.
+- Redesign decision (ADR 0014): React Bits' licence (MIT + Commons Clause) forbids redistributing its components, so the redesign uses original effects only.
+- `lib/ascii-fx.ts` (9 tests): scramble text, code rain, drifting skyline. `useMotionAllowed`, `AsciiHero` (animated skyline with a visible Pause button), `ScrambleText` (the headline resolves from noise; real words stay in the page).
+- The home hero's SVG scene is replaced by the ASCII skyline; the header brand is a terminal prompt with a blinking caret that is still when motion is off.
+- Tests: 5 new Playwright tests (moves and pauses, reduced motion still frame, Focus mode, effects Off, aria-hidden and no sideways scroll at three widths). `pnpm verify` green.
+
+TODO-VERIFY / not done
+- Quest cards, realm path, footer and other pages still use the old look; the rain is sparse and the skyline could be richer.
+- The full e2e suite was not re-run after the hero change; one a11y/load test timed out once in a subset run, so CI is the check.
+- Not deployed; the public site is still at Day 24.
+
+Tomorrow
+- Slice 2: restyle quest cards, realm path and footer; typed boot line; then Loss Mountains page.
