@@ -145,3 +145,34 @@ export function renderRealmMap(realms: readonly RealmLike[], width = 56): string
   });
   return rows;
 }
+
+export interface SkillLike {
+  id: string;
+  title: string;
+  prerequisites: readonly string[];
+  available: boolean;
+}
+
+/**
+ * The skill tree as layered text. Each layer is a heading ("== layer 2 ==") and each topic a
+ * line "[*] Title" (a star means built) with its prerequisites on the next line, "<= A, B".
+ * `layers` maps a topic id to its layer. Lines never go past `width`.
+ */
+export function renderSkillText(topics: readonly SkillLike[], layers: ReadonlyMap<string, number>, width = 60): string[] {
+  const byId = new Map(topics.map((t) => [t.id, t]));
+  const clip = (s: string) => (s.length > width ? `${s.slice(0, width - 1)}~` : s);
+  const maxLayer = Math.max(-1, ...topics.map((t) => layers.get(t.id) ?? 0));
+  const rows: string[] = [];
+  for (let layer = 0; layer <= maxLayer; layer++) {
+    const here = topics.filter((t) => (layers.get(t.id) ?? 0) === layer);
+    if (here.length === 0) continue;
+    rows.push(clip(`== layer ${layer} ${"=".repeat(Math.max(0, width - 12))}`));
+    for (const t of here) {
+      rows.push(clip(`[${t.available ? "*" : " "}] ${t.title}`));
+      if (t.prerequisites.length > 0) {
+        rows.push(clip(`      <= ${t.prerequisites.map((p) => byId.get(p)?.title ?? p).join(", ")}`));
+      }
+    }
+  }
+  return rows;
+}

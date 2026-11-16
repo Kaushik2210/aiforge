@@ -407,3 +407,6 @@ a, button {
 
 /* Loss Mountains board: up to 44 columns, scaled to fit the card from phone to desktop */
 .ascii-board { font-size: min(17px, calc((100vw - 5rem) / 27)); line-height: 1.15; }
+
+/* ASCII skill tree: 60 columns scaled to fit the card */
+.ascii-skills { font-size: min(14px, calc((100vw - 4.5rem) / 37)); line-height: 1.3; }

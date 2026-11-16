@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { asciiRule, asciiSparkline, renderRealmMap, rainFrame, rng, scrambleFrame, skylineFrame, typedPrefix } from "./ascii-fx";
+import { renderSkillText, asciiRule, asciiSparkline, renderRealmMap, rainFrame, rng, scrambleFrame, skylineFrame, typedPrefix } from "./ascii-fx";
 
 describe("scrambleFrame", () => {
   it("is the target at the end, noise-free", () => {
@@ -120,5 +120,26 @@ describe("renderRealmMap", () => {
   });
   it("never goes wider than the width", () => {
     for (const row of renderRealmMap(realms, 40)) expect(row.length).toBeLessThanOrEqual(40);
+  });
+});
+
+describe("renderSkillText", () => {
+  const topics = [
+    { id: "a", title: "Python basics", prerequisites: [], available: true },
+    { id: "b", title: "Functions", prerequisites: ["a"], available: true },
+    { id: "c", title: "A planned topic with a very long title that will not fit on one line at all", prerequisites: ["a", "b"], available: false },
+  ];
+  const layers = new Map([["a", 0], ["b", 1], ["c", 2]]);
+  it("groups topics by layer, stars the built ones and names the prerequisites", () => {
+    const text = renderSkillText(topics, layers).join("|");
+    expect(text.indexOf("layer 0")).toBeLessThan(text.indexOf("layer 1"));
+    expect(text).toContain("[*] Python basics");
+    expect(text).toContain("[*] Functions|      <= Python basics");
+    expect(text).toContain("[ ] A planned topic");
+    expect(text).toContain("<= Python basics, Functions");
+  });
+  it("never goes past the width and handles an empty tree", () => {
+    for (const row of renderSkillText(topics, layers, 40)) expect(row.length).toBeLessThanOrEqual(40);
+    expect(renderSkillText([], new Map())).toEqual([]);
   });
 });

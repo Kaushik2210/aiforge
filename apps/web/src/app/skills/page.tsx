@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AsciiSkillTree } from "@/components/ascii/AsciiSkillTree";
 import { BootLine } from "@/components/ascii/BootLine";
 import path from "node:path";
 import { layoutSkillTree } from "@aiforge/engine";
@@ -25,6 +26,7 @@ export default function SkillsPage() {
       </p>
       <div className="mt-6">
         <SkillTreeView layout={layout} topics={topics} />
+        <AsciiSkillTree topics={topics} />
       </div>
     </div>
   );
