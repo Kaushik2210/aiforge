@@ -345,3 +345,74 @@ verifiedOn: 2026-11-14. docs.python.org pages and Pyodide (stable 314.0.8) pages
   (4 x 3M): serial ~0.5 to 0.9 s vs 4 threads ~0.5 to 0.8 s (no real gain, noisy); ProcessPoolExecutor(4) ~0.25 s.
   `as_completed` yielded `[0.1, 0.2, 0.3]` for submits of 0.3, 0.1, 0.2.
 - Caveat: on Windows, process-pool workers re-import the main module; guard with `if __name__ == "__main__":`.
+
+## Data structures and complexity (Day 23)
+
+verifiedOn 2026-11-16. All pages fetched 2026-11-16. Python 3.13.7 used for local runs.
+
+### Sources
+- Time complexity of built-in types: https://docs.python.org/3/builtins/time-complexity.html (the old
+  wiki.python.org/moin/TimeComplexity now only redirects here; cite the docs page, not the wiki).
+- https://docs.python.org/3/library/collections.html, /heapq.html, /bisect.html, /functools.html, /sys.html,
+  https://docs.python.org/3/howto/sorting.html
+- Big-O pointer: https://algs4.cs.princeton.edu/14analysis/ ; https://en.wikipedia.org/wiki/Big_O_notation (pointer only)
+- BFS: https://algs4.cs.princeton.edu/41graph/
+
+### Time complexity page (CPython only; "exact built-in types", other implementations may differ)
+- list: append avg O(1), worst O(1) amortized (resize occasionally O(n)); pop() end O(1) amortized; pop(0) and
+  insert(0, x) O(n); l[k] O(1); `x in l` O(n); sort O(n log n), O(n) for already sorted/reversed input (adaptive).
+  `index` is NOT in the table (TODO-VERIFY wording; linear scan is an inference).
+- dict and set: in/get/delete average O(1), worst O(n); set/add average O(1) amortized, worst O(n). Average assumes a
+  hash function robust enough that collisions are uncommon; worst case = all keys share one hash.
+- deque is NOT on that page; use the collections docs.
+- Amortized = an occasional O(n) resize spread over many operations.
+
+### collections / heapq / bisect / sorting / functools / sys (docs)
+- deque: thread-safe appends and pops from either side, about O(1) either direction; list pays O(n) memory movement
+  for pop(0) and insert(0, v). deque indexing is O(1) at ends, O(n) in the middle.
+- Counter: dict subclass for hashables; missing key gives 0; most_common orders equal counts by first encountered
+  (docs). defaultdict: factory called by `__getitem__` only; `.get` does not use it.
+- heapq: min-heap in a list, heap[0] smallest, heappush/heappop (IndexError when empty), heapify linear. nlargest and
+  nsmallest equal sorted(...)[:n]; docs say best for small n, sorted() better for large n, min()/max() when n is 1.
+  Priority-queue notes: ties are not stable; use [priority, count, task] with itertools.count; lazy removal.
+  Max-heap functions (`*_max`) were added in 3.14 (do not rely on them for 3.13/Pyodide).
+- bisect: list must already be sorted; bisect_left inserts before equal items, bisect_right after; `key` added in 3.10
+  (applied to list elements, not to x); insort search is O(log n) but insert is O(n) overall; not thread-safe;
+  docs recommend dicts for exact lookups. Recipe: `i = bisect_left(a, x)` then check `a[i] == x`.
+- Sorting HOWTO: sorted returns a new list from any iterable; list.sort in place, returns None; key called once per
+  element; sorts are guaranteed stable (also with reverse=True); Timsort exploits existing order. The HOWTO gives no
+  formal Big-O for sort (use the time-complexity page: O(n log n)).
+- functools: `cache` added 3.9, same as lru_cache(maxsize=None), unbounded; lru_cache default maxsize 128; arguments
+  must be hashable; thread-safe but function may run more than once for the same args; cache_info() has hits/misses.
+- sys: docs say the limit guards against C-stack overflow; raising it too high can crash; the page does NOT state the
+  default value in the part read (TODO-VERIFY remainder of page). Local default: 1000.
+
+### Big-O and BFS
+- algs4 analysis page (does not formally define big-Oh): tilde notation keeps the leading term; order of growth sets
+  the constant aside; cost model counts operations (e.g. array accesses); ignores system effects (caching, GC, JIT).
+- Wikipedia lead: big O gives an upper bound on growth rate as the variable gets large, up to a constant factor;
+  the explicit "large enough" limit is in its formal definition. Neither says it predicts speed at small n: that is
+  our inference (TODO-VERIFY phrasing; teach it as a caveat, not a citation).
+- algs4 graph page: BFS finds a path with the fewest edges to any vertex reachable from the source, in time
+  proportional to V + E worst case; uses a FIFO queue of marked vertices (proposition unnumbered). "Unweighted" is
+  our reading of "fewest edges".
+
+### Confirmed local outputs (Python 3.13.7, run 2026-11-16)
+- Counting wrapper with `__eq__` counter, n=1000: `x in list` last item 1000 `__eq__` calls, absent 1000;
+  `x in set` last item 1 call, absent 0 (hash-dependent, collisions could add calls).
+- timeit, approximate: 1000 x (append + pop(0)) on 100k list about 0.19 s; deque append+popleft about 0.0005 s or less
+  (orders of magnitude only; machine dependent).
+- Stability: key=r[1] on [("b",2),("a",1),("c",2),("d",1)] gives [a1, d1, b2, c2]; reverse=True gives
+  [b2, c2, a1, d1] (equal items keep original order).
+- bisect on [1,2,2,2,3] for 2: bisect_left 1, bisect_right 4.
+- heapq.nlargest(3, [5,1,9,3,7,9,2]) = [9, 9, 7]; nsmallest(2, [5,1,9,3]) = [1, 3].
+- Counter("abracadabra").most_common() = a5, b2, r2, c1, d1; "xyzzyx" gives x,y,z (all 2, first seen order);
+  "zzyyxx" gives z,y,x. Ties follow first-encounter order, matching docs.
+- dict order: set z, a, m, delete a, set a again gives keys [z, m, a] (re-inserted key goes last).
+- Recursion: getrecursionlimit() 1000; 500-deep OK; 5000-deep raises `RecursionError: maximum recursion depth
+  exceeded`; measured reachable depth about 998 in this script (implementation-specific, do not teach exact number).
+- Naive fib(25) makes 242785 calls; @cache fib(80) = 23416728348467685 with cache_info hits=78 misses=81.
+- `{[1]}` and `{1:2}[[1]]` both raise `TypeError: unhashable type: 'list'`.
+- list subclass counting `__getitem__`, n=100000: binary search 17 accesses for targets 99999, 0 and 54321
+  (log2 n = 16.61); linear scan to the last item 100000 accesses.
+- Caveat: counts are the lesson; never assert timings in tests.
