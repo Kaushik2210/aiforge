@@ -1,7 +1,9 @@
 "use client";
 
 import { levelProgress, rankForLevel, streakStatus } from "@aiforge/engine";
+import { AsciiProgress } from "@/components/ascii/AsciiProgress";
 import { useProgress } from "@/lib/progress-store";
+import { useAsciiMode } from "@/lib/use-ascii-mode";
 
 const zone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 
@@ -17,6 +19,7 @@ const STREAK_TEXT = {
 export function Hud() {
   const status = useProgress((s) => s.status);
   const snapshot = useProgress((s) => s.snapshot);
+  const ascii = useAsciiMode();
 
   if (status === "loading") {
     return <div aria-hidden="true" className="h-11 w-48 rounded-[var(--radius)] bg-surface-2" />;
@@ -34,16 +37,26 @@ export function Hud() {
         <p className="font-semibold leading-tight">
           Level {p.level} <span className="font-normal text-text-muted">&middot; {rank.name}</span>
         </p>
-        <div
-          role="progressbar"
-          aria-label="XP to next level"
-          aria-valuemin={0}
-          aria-valuemax={p.maxed ? 1 : p.xpForNext}
-          aria-valuenow={p.maxed ? 1 : p.xpIntoLevel}
-          className="mt-1 h-2 w-36 overflow-hidden rounded-full bg-surface-2"
-        >
-          <div className="h-full rounded-full bg-xp" style={{ width: `${Math.round(p.fraction * 100)}%` }} />
-        </div>
+        {ascii ? (
+          <AsciiProgress
+            className="mt-1 text-xs"
+            label="XP to next level"
+            value={p.maxed ? 1 : p.xpIntoLevel}
+            max={p.maxed ? 1 : p.xpForNext}
+            width={12}
+          />
+        ) : (
+          <div
+            role="progressbar"
+            aria-label="XP to next level"
+            aria-valuemin={0}
+            aria-valuemax={p.maxed ? 1 : p.xpForNext}
+            aria-valuenow={p.maxed ? 1 : p.xpIntoLevel}
+            className="mt-1 h-2 w-36 overflow-hidden rounded-full bg-surface-2"
+          >
+            <div className="h-full rounded-full bg-xp" style={{ width: `${Math.round(p.fraction * 100)}%` }} />
+          </div>
+        )}
       </div>
       <p className="hidden max-w-[12rem] leading-tight sm:block">
         <span aria-hidden="true" className="mr-1 inline-block h-3 w-3 rounded-full bg-primary align-middle" />
