@@ -66,7 +66,8 @@ test("decorative rules and realm brackets are hidden or generated, and the realm
   const rules = page.locator(".ascii-rule");
   expect(await rules.count()).toBeGreaterThanOrEqual(2); // quest map and footer
   for (const rule of await rules.all()) await expect(rule).toHaveAttribute("aria-hidden", "true");
-  await expect(page.getByRole("link", { name: /Realm 2:/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Realm 1: .*6 quests/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Realm 2: .*1 quest/ })).toBeVisible();
   const bracket = await page.locator(".realm-node").first().evaluate((el) => getComputedStyle(el, "::before").content);
   expect(bracket).toContain("[");
 });
@@ -85,7 +86,8 @@ test("the map page also shows the quest map as a text path, hidden from assistiv
   const map = page.locator("pre.ascii-map");
   await expect(map).toHaveAttribute("aria-hidden", "true");
   await expect(map).toContainText("[*02]");
-  await expect(map).toContainText("[ 01]");
+  await expect(map).toContainText("[*01]"); // Programming has six built quests
+  await expect(map).toContainText("[ 03]");
   for (const width of [375, 768]) {
     await page.setViewportSize({ width, height: 900 });
     await page.reload();
