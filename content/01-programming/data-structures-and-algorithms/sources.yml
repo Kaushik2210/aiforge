@@ -1,0 +1,55 @@
+- title: "Python docs: Time complexity of built-in types"
+  url: "https://docs.python.org/3/builtins/time-complexity.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "The cost of list, dict and set operations in CPython, including what amortized and average case mean."
+
+- title: "The Python Standard Library: collections (deque, Counter, defaultdict)"
+  url: "https://docs.python.org/3/library/collections.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "Why deque suits queues, how Counter orders equal counts, and how defaultdict works."
+
+- title: "The Python Standard Library: heapq"
+  url: "https://docs.python.org/3/library/heapq.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "The min-heap, nlargest and nsmallest and when to prefer sorted, and the priority-queue notes."
+
+- title: "The Python Standard Library: bisect"
+  url: "https://docs.python.org/3/library/bisect.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "bisect_left and bisect_right, the sorted-input requirement and the searching recipe."
+
+- title: "Python HOWTO: Sorting"
+  url: "https://docs.python.org/3/howto/sorting.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "sorted versus list.sort, key functions and the guarantee that sorts are stable."
+
+- title: "The Python Standard Library: functools (cache and lru_cache)"
+  url: "https://docs.python.org/3/library/functools.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "How cache memoizes results, that arguments must be hashable, and cache_info."
+
+- title: "Sedgewick and Wayne, Algorithms: Analysis of Algorithms"
+  url: "https://algs4.cs.princeton.edu/14analysis/"
+  type: course
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "Order of growth and a cost model that counts operations instead of seconds."
+
+- title: "Sedgewick and Wayne, Algorithms: Undirected Graphs (breadth-first search)"
+  url: "https://algs4.cs.princeton.edu/41graph/"
+  type: course
+  primary: true
+  verifiedOn: 2026-11-16
+  readFor: "Breadth-first search with a queue finding paths with the fewest edges."

@@ -1,0 +1,17 @@
+id: data-structures-and-algorithms-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - list-versus-set-lookup
+  - predict-sort-stable
+  - predict-bisect
+  - fifo-queue-structure
+  - big-o-meaning
+  - bfs-shortest
+  - spot-bug-quadratic-membership
+  - spot-bug-pop-front
+challenges:
+  - first-index
+  - shortest-path
+interleaveFrom:
+  - python-functions-and-modules

@@ -22,3 +22,6 @@ items:
   - quest: async-and-concurrency
     claim: "asyncio, GIL and Pyodide behaviours and docs pages cited (TaskGroup and timeout 3.11, to_thread 3.9, Pyodide limits)"
     verifiedOn: 2026-11-14
+  - quest: data-structures-and-algorithms
+    claim: "Python time-complexity table, deque, heapq, bisect, sorting, functools.cache and recursion-limit behaviour cited"
+    verifiedOn: 2026-11-16
