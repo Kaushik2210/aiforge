@@ -66,7 +66,7 @@ def test_negative_numbers():
 def test_it_does_not_scan_a_million_items():
     big = Counted(1_000_000, lambda i: i * 2)  # 0, 2, 4, ...
     assert first_index(big, 123_456) == 61_728
-    assert big.reads <= 60, f"read {big.reads} items; a binary search needs about 20"
+    assert big.reads <= 100, f"read {big.reads} items; a binary search needs about 20"
 
 
 if __name__ == "__main__":

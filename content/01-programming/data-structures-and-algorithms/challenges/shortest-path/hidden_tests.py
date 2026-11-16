@@ -91,6 +91,21 @@ def test_a_very_long_path_with_loops_back():
     assert shortest_path_length(graph, 0, n) == n
 
 
+class ReadOnlyGraph(dict):
+    """A graph that may only be read by looking up one node at a time."""
+
+    def _no(self, *args, **kwargs):
+        raise AssertionError("do not copy, scan or change the whole graph: look nodes up one at a time")
+
+    items = keys = values = copy = pop = popitem = clear = update = setdefault = __iter__ = __setitem__ = __delitem__ = _no
+
+
+def test_the_graph_is_only_read_one_node_at_a_time():
+    graph = ReadOnlyGraph({"a": ["b", "c"], "b": ["d"], "c": ["d"], "d": []})
+    assert shortest_path_length(graph, "a", "d") == 2
+    assert shortest_path_length(graph, "d", "a") == -1
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

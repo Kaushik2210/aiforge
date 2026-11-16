@@ -10,7 +10,8 @@ def first_index(items, target):
     first_index([], 1)              -> -1
 
     The tests count how many items you read. Reading about log2(n) items is
-    expected; reading them all will fail.
+    expected (a limit of 100 reads is allowed for a million items); scanning,
+    or walking along a run of equal items, will fail.
     """
     # TODO: keep a range [lo, hi) that must contain the answer, and halve it each step
     raise NotImplementedError("implement first_index")

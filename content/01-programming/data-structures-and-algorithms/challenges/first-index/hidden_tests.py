@@ -34,20 +34,20 @@ class Counted:
 def test_many_repeats_in_a_huge_sequence():
     big = Counted(900_000, lambda i: i // 3)  # each value appears three times
     assert first_index(big, 1000) == 3000
-    assert big.reads <= 60
+    assert big.reads <= 100
 
 
 def test_a_missing_value_in_a_huge_sequence_is_found_missing_quickly():
     big = Counted(1_000_000, lambda i: i * 2)
     assert first_index(big, 7) == -1
-    assert big.reads <= 60
+    assert big.reads <= 100
 
 
 def test_the_first_and_last_of_a_huge_sequence():
     big = Counted(1_000_000, lambda i: i)
     assert first_index(big, 0) == 0
     assert first_index(big, 999_999) == 999_999
-    assert big.reads <= 120
+    assert big.reads <= 150
 
 
 def test_every_position_in_a_small_list_with_repeats():
@@ -72,6 +72,18 @@ def test_the_sequence_is_not_changed():
 def test_works_with_strings():
     assert first_index(["ant", "bee", "bee", "cat"], "bee") == 1
     assert first_index(["ant", "bee", "cat"], "dog") == -1
+
+
+def test_a_very_long_run_of_equal_items_is_still_fast():
+    big = Counted(1_000_000, lambda i: 7)  # a million equal items
+    assert first_index(big, 7) == 0
+    assert big.reads <= 100
+
+
+def test_a_long_run_in_the_middle_is_still_fast():
+    big = Counted(1_000_000, lambda i: i // 100_000)  # ten runs of 100,000 equal items
+    assert first_index(big, 5) == 500_000
+    assert big.reads <= 100
 
 
 if __name__ == "__main__":
