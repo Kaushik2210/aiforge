@@ -578,3 +578,32 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 24: the own-built ASCII-mode UI slice: global toggle, self-hosted JetBrains Mono, terminal-style headings, cards and buttons, an `AsciiProgress` bar, axe checks in both themes and both modes, an ADR and an assets entry.
+
+## Day 24: ASCII mode, built in-house
+
+Done
+- ASCII mode (ADR 0013): a header toggle (`ASCII mode: off / on`) that restyles the whole site as a terminal. Saved in localStorage and applied before first paint through `<html data-ascii="on">`; off by default. CSS only plus one component: monospace display and body fonts (the already self-hosted JetBrains Mono), `> ` before headings, `[ ... ]` around buttons, dashed borders, square corners, no shadows or decorative gradients. Generated text uses the alt-text form with a plain fallback. Colour tokens, focus rings and 44 px targets are untouched.
+- `AsciiProgress` draws a text bar `[####------] 45%` as a real `role="progressbar"` (name, min, max, now) with the characters hidden from assistive technology; the header XP bar uses it in ASCII mode. `asciiBar` has 8 unit tests (clamping, bad numbers, at least one cell above zero, full only at max, monotonic).
+- `useAsciiMode` reads the attribute in an effect, not during render (the hydration lesson from Day 20).
+- `docs/assets.md` lists fonts and licences (JetBrains Mono verified; the other two marked TODO-VERIFY); README mentions the mode.
+- Real phone-layout bugs found and fixed on the way, present with or without ASCII mode: the header navigation did not wrap on a 375 px phone, the home page's realm path pushed cards past the screen edge on phones and again from 640 to 850 px (the shift now applies only from 900 px), and the bracketed header buttons could split their brackets onto separate lines (now `nowrap`, and the toggle group wraps whole buttons).
+- Tests: 21 new Playwright tests (toggle and persistence, font and prefixes with the words unchanged, text bar with real XP and matching ARIA values, hydration and console errors with a saved mode, no sideways scroll at six widths from 375 to 1280 in both modes on four pages, one-line header buttons, 44 px height, and axe on seven pages in light and dark). `pnpm verify` green (104 web unit tests), build OK, 83 Playwright tests pass.
+
+Sources used
+- No new sources beyond `research/10-ui-react-bits-and-ascii.md` (WCAG 2.2.2 and 2.3.1 notes, font licences) and the ui-ux-pro-max design guidance (contrast, touch targets, reduced motion, no emoji icons, tokens, spacing).
+
+Review
+- A separate reviewer measured the built site at 375, 768 and 1280 px in both themes. Found and fixed: the realm-path overflow between 640 and 850 px (my first fix covered phones only); header button brackets wrapping onto separate lines at 375 px; e2e gaps shown by mutating copies (an always-one-cell bar and a constant `aria-valuenow` of 0 were not caught because the tests ran at 0 XP; the aria-hidden assertion only checked an attribute existed). The tests now use real XP and check every child is hidden. Checked and fine: the two-declaration alt-text cascade, radios and range inputs unaffected by the dashed-border rule, no doubled brackets, Chrome's accessibility tree omits the generated `> ` and `[`, focus outlines visible, no worse layout shift, and the init script handles on, off, garbage and a throwing storage.
+
+Decisions
+- ADR 0013: in-house ASCII mode, no copied React Bits code (Commons Clause).
+
+TODO-VERIFY / not done
+- With ASCII mode saved, the toggle briefly reads "off" and the XP bar swaps after hydration (visible only as a short flash; no hydration warning).
+- Dashed borders on cards are faint (border on surface-2 is below 3:1 in the light theme), but cards are not controls. Controls sit on surface and pass.
+- Generated-content alt-text support beyond Chrome is unverified; Monaco was not inspected in ASCII mode. Not tried on a real phone or with a screen reader.
+- Not built: typed boot line, decrypt-in headings, glyph canvas hero, ASCII mini-games (Loss Mountains, spell terminal, BPE sorter), a Settings entry for the mode.
+- The public site predates Days 22 to 24; a redeploy is pending the owner's go-ahead.
+
+Tomorrow
+- Day 25: the first ASCII learning game, Loss Mountains (a glyph terrain where each step is a gradient descent step), pure game logic with tests and an accessible text description; or Realm 1's remaining quests (Git, Linux, HTTP) if the owner prefers.
