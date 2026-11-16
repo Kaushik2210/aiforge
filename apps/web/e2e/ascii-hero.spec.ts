@@ -102,3 +102,19 @@ test("the dashboard XP chart gets a one-line text sparkline that is hidden from 
   await expect(line).toHaveAttribute("aria-hidden", "true");
   await expect(line).toContainText("...");
 });
+
+test("the skills page also shows the tree as layered text, hidden from assistive technology, with built topics starred", async ({ page }) => {
+  await page.goto("/skills/");
+  const tree = page.locator("pre.ascii-skills");
+  await expect(tree).toHaveAttribute("aria-hidden", "true");
+  await expect(tree).toContainText("== layer 0");
+  await expect(tree).toContainText("[*] Python basics");
+  await expect(tree).toContainText("[ ] Git and GitHub");
+  await expect(tree).toContainText("<= Python basics");
+  for (const width of [375, 768]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.reload();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, `scrolls sideways at ${width}px`).toBeLessThanOrEqual(0);
+  }
+});
