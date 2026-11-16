@@ -1,0 +1,2 @@
+title: Find the shortest route in a graph
+summary: Write shortest_path_length, a breadth-first search that returns the fewest steps between two nodes of a directed graph, or -1 when there is no route, without ever revisiting a node.

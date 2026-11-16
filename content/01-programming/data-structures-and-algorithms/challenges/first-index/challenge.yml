@@ -1,0 +1,2 @@
+title: Find the first match without scanning
+summary: Write first_index, a binary search over a sorted sequence that returns the index of the first equal item (or -1), reading only a handful of items even when the sequence has a million.

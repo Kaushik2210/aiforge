@@ -1,0 +1,3 @@
+1. Breadth-first search explores everything one step away, then everything two steps away, and so on, so the first time you reach the goal you have used the fewest steps. A queue does that: take from the front, add new neighbours at the back.
+2. Use `collections.deque` for the queue (`popleft` is fast; `list.pop(0)` moves every item). Keep a set of nodes you have already seen and never queue one twice. That is what stops loops from trapping you.
+3. Keep each node's step count with it in the queue, for example `(node, steps)`. Use `graph.get(node, ())` so a node with no entry just has no neighbours. Handle `start == goal` first: it takes 0 steps.
