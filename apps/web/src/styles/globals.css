@@ -404,3 +404,6 @@ a, button {
 
 /* ASCII realm map: 56 columns scaled so it fits the card from phone to desktop */
 .ascii-map { font-size: min(14px, calc((100vw - 4.5rem) / 34)); line-height: 1.25; }
+
+/* Loss Mountains board: up to 44 columns, scaled to fit the card from phone to desktop */
+.ascii-board { font-size: min(17px, calc((100vw - 5rem) / 27)); line-height: 1.15; }

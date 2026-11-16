@@ -24,6 +24,10 @@ export default function HikerPage() {
         <Link href="/quests/gradient-descent/" className="font-semibold text-accent underline">
           Gradient Descent quest
         </Link>
+        . Or play the text version,{" "}
+        <Link href="/games/loss-mountains/" className="font-semibold text-accent underline">
+          Loss Mountains
+        </Link>
         .
       </p>
     </div>
