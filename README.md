@@ -26,7 +26,7 @@ and the research frontier.
   backgrounds are original to this project. Effects (hit-stop, shake, speed
   lines, afterimages, smear, cut-in banners) can be previewed in the effects lab,
   set to Off, Low, Normal or High, and switch off with reduced motion or Focus mode.
-  Nothing flashes white.
+  Nothing flashes white. An optional ASCII mode (header toggle) restyles the whole site as a terminal.
 
 ## Repository layout
 
