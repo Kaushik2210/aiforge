@@ -664,3 +664,8 @@ TODO-VERIFY / not done
 - 5 new Playwright tests (one ball and numbered trail, words match the board, a win is saved and marked cleared, Walk never starts alone, all five levels equal-length and no sideways scroll at 375 and 768 px). Axe covers the new route in both themes. `pnpm verify` green.
 - Linked from the Gradient Hiker page. Not in the header nav yet.
 - Not done: the skill tree as a text graph, a redeploy (site is at the Realm 1 fix plus this page once deployed).
+
+## Day 25 (continued): skill tree as text
+
+- `renderSkillText` (2 unit tests; 124 web tests pass): the skill tree as layered text, built topics starred, prerequisites on a second line, lines clipped to 60 columns. /skills/ shows it under the graph (aria-hidden; the graph and list stay the accessible versions). 1 new Playwright test; axe and hero suites pass (44). `pnpm verify` green.
+- The ASCII redesign now covers the home hero, header, quest map, XP sparkline, skill tree and the Loss Mountains game. Not deployed since Loss Mountains.
