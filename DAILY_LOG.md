@@ -656,3 +656,11 @@ TODO-VERIFY / not done
 
 - Realm 1 (Programming) is now open with a quest count (6 quests; Realm 2 shows 1) on the home path, the map list and the ASCII map. A new unit test compares `lib/realms.ts` with the quests in `content/` so it cannot go stale again. 122 web tests, axe, hero and flow e2e pass; `pnpm verify` green.
 - Not done: Loss Mountains page, skill tree as a text graph, redeploy (the public site is at Day 24).
+
+## Day 25 (continued): Loss Mountains page
+
+- /games/loss-mountains/: Gradient Hiker drawn with characters, using the same HikerSession and rules as the picture version (no canvas). Level buttons, learning-rate and momentum sliders, Step, Walk (steps by itself only after you press it, with Stop walking), Run to the end, Reset, New landscape. Wins are saved as `loss-mountains:level-N`.
+- The board is aria-hidden decoration; the legend, a live status line with the full description, and a table of every step carry the same facts in words.
+- 5 new Playwright tests (one ball and numbered trail, words match the board, a win is saved and marked cleared, Walk never starts alone, all five levels equal-length and no sideways scroll at 375 and 768 px). Axe covers the new route in both themes. `pnpm verify` green.
+- Linked from the Gradient Hiker page. Not in the header nav yet.
+- Not done: the skill tree as a text graph, a redeploy (site is at the Realm 1 fix plus this page once deployed).
