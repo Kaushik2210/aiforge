@@ -1,0 +1,39 @@
+- question: "What is Big-O notation, and what are its limits?"
+  modelAnswer: "Big-O describes how the cost of an algorithm, in time or memory, grows as the input size grows, up to a constant factor. O(1) is constant, O(log n) grows very slowly, O(n) grows in proportion, O(n log n) is typical for sorting and O(n squared) is typical for a nested loop. It hides constants and says little about small inputs, so it tells you where trouble will come from, but real speed should be measured."
+  followUps: ["Can an O(n) method beat an O(log n) method?", "What is amortized cost?"]
+
+- question: "Why is x in some_list slow inside a loop, and how do you fix it?"
+  modelAnswer: "Searching a list checks items one by one, so each test is O(n) and a loop of n tests is about n squared. Converting the list to a set once makes each membership test O(1) on average because a set finds the item by its hash. The items must be hashable, so lists cannot be members but tuples can."
+  followUps: ["What is the worst case for a set lookup?", "What if I also need to keep the order?"]
+
+- question: "When would you use a list, a dict, a set, a deque and a heap?"
+  modelAnswer: "A list for ordered items you index or append to. A dict to look up a value by key, and a set to test membership or remove duplicates. A deque as a queue with fast adds and removes at both ends. A heap (heapq) when you repeatedly need the smallest item or the top few. Counter and defaultdict are dict variants for counting and grouping."
+  followUps: ["Which would you use to keep the 10 highest scores seen so far?", "What does a dict cost in memory compared with a list?"]
+
+- question: "Explain binary search and its requirements."
+  modelAnswer: "Binary search finds an item in a sorted sequence by looking at the middle, discarding the half that cannot contain the target, and repeating, so it needs about log2 n steps. The sequence must already be sorted and support fast indexing. To find the first of several equal items, you keep halving toward the left when the middle equals the target, and check the final position. Python's bisect module provides bisect_left and bisect_right."
+  followUps: ["How many steps for a million items?", "What goes wrong on unsorted data?"]
+
+- question: "Why is list.pop(0) slow, and what do you use instead?"
+  modelAnswer: "A list stores items in one block of memory, so removing the first item shifts every other item one place, which costs O(n). Looping over a queue with pop(0) is therefore quadratic. collections.deque supports popleft and append at either end in about constant time, so it is the right structure for a queue."
+  followUps: ["What is deque bad at?", "How does breadth-first search use it?"]
+
+- question: "What does it mean that Python's sort is stable, and why does it matter?"
+  modelAnswer: "A stable sort keeps items that compare equal in their original order, including with reverse=True. It lets you sort by several keys in passes: sort by the secondary key first, then by the primary key, and ties on the primary key stay ordered by the secondary one. sorted returns a new list from any iterable, list.sort works in place and returns None, and both accept a key function that is computed once per item."
+  followUps: ["How would you sort by two keys in one call?", "What is the cost of sorting?"]
+
+- question: "How does breadth-first search find a shortest path, and when does it not?"
+  modelAnswer: "Breadth-first search uses a FIFO queue and a seen set: it visits all nodes one step from the start, then all nodes two steps away, and so on, so the first time it reaches the goal it has used the fewest steps. That holds when every step costs the same. With different edge weights you need an algorithm such as Dijkstra's. Time is proportional to the number of nodes plus edges."
+  followUps: ["Why is a seen set needed?", "How is it different from depth-first search?"]
+
+- question: "What is memoization and when does it help?"
+  modelAnswer: "Memoization stores the result of a function for given arguments, so a repeated call returns the stored value instead of recomputing. It helps when a recursive function solves the same subproblems many times, such as naive Fibonacci, turning exponential work into linear. functools.cache does it with a dict keyed by the arguments, so the arguments must be hashable, and it uses memory for every distinct call."
+  followUps: ["What is the difference between cache and lru_cache?", "When is memoization a bad idea?"]
+
+- question: "Your job is fast on 1,000 records and takes hours on 1,000,000. How do you investigate?"
+  modelAnswer: "A jump far bigger than the increase in data suggests quadratic work. I would profile or time on a sample at a few sizes to see how the time grows, then look for membership tests against lists inside loops, list.pop(0) or list.insert(0, x), repeated sorting, repeated string concatenation and nested loops over the data. I would fix the worst one with a set, dict or deque, and measure again."
+  followUps: ["How do you tell n log n from n squared in measurements?", "What tools profile Python code?"]
+
+- question: "What happens with very deep recursion and what are your options?"
+  modelAnswer: "Each recursive call adds a frame to the stack, and Python stops runaway recursion at a limit, by default 1000 frames, by raising RecursionError. For a problem that goes deep, convert it to a loop with an explicit stack or queue, as breadth-first search does, or reduce the depth by memoizing, rather than just raising the limit, which risks crashing the interpreter."
+  followUps: ["Why does breadth-first search not need recursion?", "When is raising the limit acceptable?"]

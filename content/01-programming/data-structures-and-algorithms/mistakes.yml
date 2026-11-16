@@ -1,0 +1,31 @@
+- mistake: "Testing membership against a list inside a loop."
+  why: "Each x in my_list scans the list, so a loop over n items does about n times n checks."
+  detect: "Runtime grows with the square of the data. Build a set or dict once outside the loop and test against it."
+
+- mistake: "Using a list as a queue with pop(0) or insert(0, x)."
+  why: "Each call moves every other item, so a loop over the queue is quadratic."
+  detect: "The loop slows down as the queue grows. Use collections.deque with popleft() and appendleft()."
+
+- mistake: "Binary searching a list that is not sorted."
+  why: "The halving logic assumes order. On unsorted data it discards the wrong half and gives wrong answers with no error."
+  detect: "Results are missing or wrong. Sort first (once), or check sorted order in a test."
+
+- mistake: "Stopping a binary search at the first match when you want the first of several equal items."
+  why: "The middle match may be one of several; the first one is further left."
+  detect: "Duplicates return a later index. Keep halving toward the left (hi = mid) until the range is empty, then check."
+
+- mistake: "Graph search without a seen set."
+  why: "A loop in the graph sends the search round and round, forever or until memory runs out."
+  detect: "The search never finishes on graphs with cycles. Mark nodes when they are first queued."
+
+- mistake: "Using depth-first search when the fewest steps are wanted."
+  why: "Depth-first search finds a route, not necessarily the shortest one."
+  detect: "A longer path is returned on graphs with shortcuts. Use breadth-first search with a queue."
+
+- mistake: "Recursing to a depth of thousands."
+  why: "Python limits recursion depth (1000 by default) and raises RecursionError."
+  detect: "RecursionError on large inputs. Use a loop with an explicit stack or queue, or memoize to cut the depth."
+
+- mistake: "Trusting Big-O instead of measuring."
+  why: "Constant factors and small inputs can reverse the order, and real data decides close calls."
+  detect: "An 'optimisation' makes things slower. Time both versions on realistic data with timeit or a profiler."
