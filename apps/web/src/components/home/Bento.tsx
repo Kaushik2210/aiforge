@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 
 function Tile({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
   return (
-    <article className={`rounded-[var(--radius)] border border-border bg-surface p-5 ${className}`}>
-      <h3 className="text-xl">{title}</h3>
+    <article className={`bento-tile rounded-[var(--radius)] border border-border bg-surface p-5 ${className}`}>
+      <h3 className="bento-title text-xl">{title}</h3>
       <div className="mt-2 text-text-muted">{children}</div>
     </article>
   );

@@ -3,6 +3,7 @@ import { Dela_Gothic_One, JetBrains_Mono, Nunito_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 import "katex/dist/katex.min.css";
 import "../styles/globals.css";
+import { AsciiRule } from "@/components/ascii/AsciiRule";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ProgressInit } from "@/components/progress/ProgressInit";
 
@@ -32,7 +33,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ProgressInit />
         <main id="main" tabIndex={-1}>{children}</main>
         <footer className="mx-auto max-w-6xl px-4 py-8 text-sm text-text-muted">
-          Code MIT. Lessons CC BY-SA 4.0. All characters and art are original to AIForge.
+          <AsciiRule label="AIForge" className="mb-4" />
+          <p>Code MIT. Lessons CC BY-SA 4.0. All characters and art are original to AIForge.</p>
+          <p className="mt-1">ASCII effects are written for this project; React Bits inspired the idea but none of its code is used.</p>
         </footer>
       </body>
     </html>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AsciiHero } from "@/components/ascii/AsciiHero";
 import { ScrambleText } from "@/components/ascii/ScrambleText";
+import { BootLine } from "@/components/ascii/BootLine";
 import { Mira } from "@/components/Mira";
 
 /** Home hero: an animated ASCII skyline with falling code, under the headline and mascot. */
@@ -9,6 +10,7 @@ export function HeroScene() {
     <section className="hero relative overflow-hidden border-b border-border bg-bg" aria-labelledby="hero-title">
       <div className="speed-lines relative mx-auto grid max-w-6xl items-center gap-6 px-4 py-14 md:grid-cols-[1.4fr_1fr] md:py-20">
         <div className="reveal">
+          <BootLine command="forge start gradient-descent" className="mb-2" />
           <p className="inline-block rounded-full bg-surface px-3 py-1 text-sm font-bold uppercase tracking-wide text-accent">
             Free &middot; open source &middot; no account
           </p>

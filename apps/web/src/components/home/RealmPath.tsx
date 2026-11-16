@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AsciiRule } from "@/components/ascii/AsciiRule";
 import { REALMS } from "@/lib/realms";
 
 /**
@@ -14,6 +15,7 @@ export function RealmPath() {
         are being forged one day at a time.
       </p>
 
+      <AsciiRule label="23 realms" className="mt-6" />
       <ol className="realm-path mt-10">
         {REALMS.map((r) => {
           const open = Boolean(r.quest);
