@@ -637,3 +637,9 @@ What shipped
 TODO-VERIFY / not done
 - Dashboard, map, skills, review and quest pages have the terminal header and tokens only; no ASCII components yet.
 - The Loss Mountains page is still unbuilt. Not deployed.
+
+## Day 25 (continued): ASCII redesign, slice 3 (inner pages)
+
+- Every inner page (dashboard, map, skills, review, settings, effects lab, Gradient Hiker, quests) now opens with the typed terminal line (`$ open dashboard`), reusing `BootLine`; real headings and text unchanged.
+- axe (light and dark, all routes) and hero tests: 39 pass.
+- Not done: richer ASCII components inside those pages (map as ASCII, skill tree as a text graph), the Loss Mountains page, redeploy.
