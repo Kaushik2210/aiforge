@@ -13,6 +13,7 @@ test("the skip link is the first tab stop and moves focus to the main content", 
 });
 
 test("keyboard focus is always visible and never trapped on any page", async ({ page }) => {
+  test.setTimeout(240_000); // 8 pages, 25 Tab presses each
   for (const route of ROUTES) {
     await page.goto(route);
     await page.waitForLoadState("networkidle");

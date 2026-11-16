@@ -85,3 +85,20 @@ export function skylineFrame(cols: number, rows: number, t: number): string[] {
   ridge(r * 0.8, r * 0.07, 0.21, 1.6, "#");
   return grid.map((row) => row.join(""));
 }
+
+/** The first part of `text` typed so far at `progress` (0 to 1); at 1 it is all of it. */
+export function typedPrefix(text: string, progress: number): string {
+  const chars = [...text];
+  return chars.slice(0, Math.floor(clamp01(progress) * chars.length)).join("");
+}
+
+/** A decorative rule of exactly `width` characters, for example "+--=--[ forge ]--=--+". */
+export function asciiRule(width: number, label = ""): string {
+  const w = Math.max(4, Math.floor(width));
+  const mid = label ? `[ ${label} ]` : "";
+  const room = w - 2 - mid.length;
+  if (room < 2) return `+${"-".repeat(w - 2)}+`;
+  const left = Math.floor(room / 2);
+  const side = (n: number) => "-=".repeat(Math.ceil(n / 2)).slice(0, n);
+  return `+${side(left)}${mid}${side(room - left)}+`;
+}

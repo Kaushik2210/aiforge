@@ -52,3 +52,30 @@ test("effects set to Off stop the hero animation", async ({ page }) => {
   await expect(hero(page)).toContainText("O");
   await expect(page.getByRole("button", { name: /animation/ })).toHaveCount(0);
 });
+
+test("the boot line types itself with the whole command always readable, and is still with motion off", async ({ browser }) => {
+  const context = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await context.newPage();
+  await page.goto("/");
+  await expect(page.getByText("forge start gradient-descent")).toHaveText("forge start gradient-descent");
+  await context.close();
+});
+
+test("decorative rules and realm brackets are hidden or generated, and the realm names stay readable", async ({ page }) => {
+  await page.goto("/");
+  const rules = page.locator(".ascii-rule");
+  expect(await rules.count()).toBeGreaterThanOrEqual(2); // quest map and footer
+  for (const rule of await rules.all()) await expect(rule).toHaveAttribute("aria-hidden", "true");
+  await expect(page.getByRole("link", { name: /Realm 2:/ })).toBeVisible();
+  const bracket = await page.locator(".realm-node").first().evaluate((el) => getComputedStyle(el, "::before").content);
+  expect(bracket).toContain("[");
+});
+
+test("the quest map still fits at phone width with the new nodes and rules", async ({ page }) => {
+  for (const width of [375, 640, 900]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, `scrolls sideways at ${width}px`).toBeLessThanOrEqual(0);
+  }
+});

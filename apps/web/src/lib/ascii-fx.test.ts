@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rainFrame, rng, scrambleFrame, skylineFrame } from "./ascii-fx";
+import { asciiRule, rainFrame, rng, scrambleFrame, skylineFrame, typedPrefix } from "./ascii-fx";
 
 describe("scrambleFrame", () => {
   it("is the target at the end, noise-free", () => {
@@ -57,5 +57,26 @@ describe("rng", () => {
       expect(v).toBeLessThan(1);
       expect(v).toBe(b());
     }
+  });
+});
+
+describe("typedPrefix", () => {
+  it("types from nothing to everything", () => {
+    expect(typedPrefix("forge", 0)).toBe("");
+    expect(typedPrefix("forge", 0.5)).toBe("fo");
+    expect(typedPrefix("forge", 1)).toBe("forge");
+    expect(typedPrefix("forge", 9)).toBe("forge");
+    expect(typedPrefix("forge", Number.NaN)).toBe("");
+  });
+});
+
+describe("asciiRule", () => {
+  it("is exactly the width, with the label centred, and survives tiny widths", () => {
+    for (const w of [10, 24, 61]) {
+      expect(asciiRule(w)).toHaveLength(w);
+      expect(asciiRule(w, "forge")).toHaveLength(w >= 15 ? w : asciiRule(w).length);
+    }
+    expect(asciiRule(30, "forge")).toContain("[ forge ]");
+    expect(asciiRule(0)).toHaveLength(4);
   });
 });

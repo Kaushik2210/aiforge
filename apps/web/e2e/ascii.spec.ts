@@ -69,6 +69,7 @@ test("a saved ASCII mode loads with no console or hydration errors and keeps the
 });
 
 test("no page scrolls sideways at phone, tablet and laptop widths, in ASCII mode or not", async ({ page }) => {
+  test.setTimeout(240_000); // 48 page loads
   for (const ascii of [true, false]) {
     if (ascii) await page.addInitScript(() => localStorage.setItem("aiforge-ascii", "on"));
     for (const width of [375, 640, 768, 820, 1024, 1280]) {
