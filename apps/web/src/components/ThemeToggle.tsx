@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { setAsciiMode } from "@/lib/ascii";
+import { useAsciiMode } from "@/lib/use-ascii-mode";
 
 type Theme = "light" | "dark";
 
@@ -11,6 +13,7 @@ function systemTheme(): Theme {
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
   const [focusMode, setFocusMode] = useState(false);
+  const ascii = useAsciiMode();
 
   useEffect(() => {
     const attr = document.documentElement.dataset.theme;
@@ -40,6 +43,9 @@ export function ThemeToggle() {
     <div className="flex items-center gap-2">
       <button type="button" className={btn} onClick={toggleFocus} aria-pressed={focusMode}>
         Focus mode: {focusMode ? "on" : "off"}
+      </button>
+      <button type="button" className={btn} onClick={() => setAsciiMode(!ascii)} aria-pressed={ascii}>
+        ASCII mode: {ascii ? "on" : "off"}
       </button>
       <button type="button" className={btn} onClick={toggleTheme} aria-label="Switch between light and dark theme">
         {theme === "dark" ? "Dark" : theme === "light" ? "Light" : "Theme"}
