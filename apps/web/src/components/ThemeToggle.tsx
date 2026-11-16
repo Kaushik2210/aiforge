@@ -40,7 +40,7 @@ export function ThemeToggle() {
     "tap rounded-[var(--radius)] border border-border bg-surface px-3 text-sm font-semibold text-text hover:bg-surface-2";
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button type="button" className={btn} onClick={toggleFocus} aria-pressed={focusMode}>
         Focus mode: {focusMode ? "on" : "off"}
       </button>
