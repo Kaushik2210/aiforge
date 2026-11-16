@@ -1,0 +1,318 @@
+- id: list-versus-set-lookup
+  question: "Roughly how does the time of `x in my_list` compare with `x in my_set` as the collection grows?"
+  options:
+    - "Both grow in proportion to the size"
+    - "The list is constant; the set grows in proportion to its size"
+    - "The list grows in proportion to its size (O(n)); the set is about constant on average (O(1))"
+    - "Both are constant"
+  answer: 2
+  explanation: "A list check looks at items one by one. A set hashes the value and jumps to where it would be, so on average the cost does not grow with the size."
+  whyWrong:
+    "0": "Only the list scans item by item; a set uses the hash."
+    "1": "That has the two reversed."
+    "3": "A list has no index by value, so it must scan."
+
+- id: predict-sort-stable
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    data = [("b", 2), ("a", 1), ("c", 2), ("d", 1)]
+    print(sorted(data, key=lambda r: r[1]))
+  options:
+    - "[('a', 1), ('d', 1), ('b', 2), ('c', 2)]"
+    - "[('d', 1), ('a', 1), ('c', 2), ('b', 2)]"
+    - "[('a', 1), ('b', 2), ('c', 2), ('d', 1)]"
+    - "[('b', 2), ('c', 2), ('a', 1), ('d', 1)]"
+  answer: 0
+  explanation: "The sort is stable: items with equal keys keep their original order. The 1s are a then d (as they were), and the 2s are b then c."
+  whyWrong:
+    "1": "That reverses the order of equal items, which a stable sort never does."
+    "2": "That sorts by the letter, not by the number key."
+    "3": "That puts the larger key first, which would need reverse=True."
+
+- id: predict-bisect
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    from bisect import bisect_left, bisect_right
+
+    a = [1, 2, 2, 2, 3]
+    print(bisect_left(a, 2), bisect_right(a, 2))
+  options:
+    - "0 5"
+    - "2 3"
+    - "1 3"
+    - "1 4"
+  answer: 3
+  explanation: "bisect_left gives the position before the equal items (index 1) and bisect_right the position after them (index 4)."
+  whyWrong:
+    "0": "Those are the positions for values smaller than everything and larger than everything."
+    "1": "Neither function points into the middle of the run of 2s."
+    "2": "bisect_right returns 4, after all three 2s, not 3."
+
+- id: predict-nlargest
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    import heapq
+
+    print(heapq.nlargest(3, [5, 1, 9, 3, 7, 9, 2]))
+  options:
+    - "[9, 7, 5]"
+    - "[9, 9, 7]"
+    - "[1, 2, 3]"
+    - "[7, 9, 9]"
+  answer: 1
+  explanation: "nlargest returns the three largest items, largest first, and repeats are kept, so the two 9s both appear."
+  whyWrong:
+    "0": "The duplicate 9 counts as a separate item, so it takes one of the three places."
+    "2": "That would be nsmallest."
+    "3": "The result is in descending order, largest first."
+
+- id: predict-counter-ties
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    from collections import Counter
+
+    print(Counter("xyzzyx").most_common())
+  options:
+    - "[('z', 2), ('y', 2), ('x', 2)]"
+    - "[('x', 1), ('y', 1), ('z', 1)]"
+    - "[('x', 6)]"
+    - "[('x', 2), ('y', 2), ('z', 2)]"
+  answer: 3
+  explanation: "Each letter appears twice. most_common orders equal counts by the order they were first seen, which is x, y, z."
+  whyWrong:
+    "0": "That would be the order if z had been seen first."
+    "1": "Every letter appears twice, not once."
+    "2": "Counter counts each distinct letter separately."
+
+- id: unhashable-set-member
+  question: "What does {[1, 2]} do?"
+  options:
+    - "Raises TypeError because a list is unhashable"
+    - "Makes a set containing one list"
+    - "Makes a set containing 1 and 2"
+    - "Makes an empty set"
+  answer: 0
+  explanation: "Set members and dict keys must be hashable, and a list can change, so it is not. A tuple like (1, 2) would work."
+  whyWrong:
+    "1": "A set cannot hold a list because it cannot hash it."
+    "2": "The braces do not unpack the list; they try to put the whole list in."
+    "3": "The code raises an error rather than building any set."
+
+- id: fifo-queue-structure
+  question: "You need a first-in, first-out queue that can hold millions of items. Which is the best choice?"
+  options:
+    - "A list, removing from the front with pop(0)"
+    - "collections.deque, removing from the front with popleft()"
+    - "A set"
+    - "A dict"
+  answer: 1
+  explanation: "deque adds and removes at both ends in about constant time. list.pop(0) shifts every other item, so it costs O(n) each time."
+  whyWrong:
+    "0": "Each pop(0) moves all the remaining items, so a loop over millions of items is quadratic."
+    "2": "A set has no order."
+    "3": "A dict is for lookup by key, not for a queue."
+
+- id: predict-dict-reinsert
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    d = {}
+    d["z"] = 1
+    d["a"] = 2
+    d["m"] = 3
+    del d["a"]
+    d["a"] = 4
+    print(list(d))
+  options:
+    - "['z', 'a', 'm']"
+    - "['a', 'm', 'z']"
+    - "['z', 'm', 'a']"
+    - "['a', 'z', 'm']"
+  answer: 2
+  explanation: "A dict keeps insertion order. Deleting 'a' and adding it again puts it last."
+  whyWrong:
+    "0": "The key is re-inserted after deletion, so it goes to the end, not back to its old place."
+    "1": "That is sorted order, which dicts do not use."
+    "3": "The key returned to the end, not the front."
+
+- id: big-o-meaning
+  question: "What does it mean that an operation is O(n)?"
+  options:
+    - "Its cost grows in proportion to n as n gets large, ignoring constant factors"
+    - "It takes exactly n steps"
+    - "It is always slower than O(1) operations, even for tiny inputs"
+    - "It uses n bytes of memory"
+  answer: 0
+  explanation: "Big-O describes the growth rate of the cost as the input grows, up to a constant factor. It is not an exact count and does not compare small inputs."
+  whyWrong:
+    "1": "O(n) hides constants, so it may be 3n or n/2 steps."
+    "2": "On a tiny input an O(n) method with a small constant can beat an O(1) method with a large one."
+    "3": "Big-O can describe time or memory; the notation itself does not mean bytes."
+
+- id: binary-search-precondition
+  question: "What must be true of a list before you binary-search it?"
+  options:
+    - "It must contain no duplicates"
+    - "It must hold only numbers"
+    - "It must have an even length"
+    - "It must already be sorted"
+  answer: 3
+  explanation: "Binary search decides which half to discard by comparing with the middle, which only works if the items are in order."
+  whyWrong:
+    "0": "Duplicates are allowed; bisect_left finds the first of them."
+    "1": "Any items that can be compared in order work, such as strings."
+    "2": "The length does not matter."
+
+- id: bfs-shortest
+  question: "In a graph where every step counts the same, which method finds the route with the fewest steps?"
+  options:
+    - "Depth-first search with a stack"
+    - "Breadth-first search with a queue"
+    - "Picking neighbours at random"
+    - "Sorting the nodes alphabetically"
+  answer: 1
+  explanation: "Breadth-first search explores in order of distance, so the first time it reaches a node it has used the fewest steps."
+  whyWrong:
+    "0": "Depth-first search may find a route first that is longer than the best."
+    "2": "Random choice gives no guarantee."
+    "3": "Alphabetical order has nothing to do with distance."
+
+- id: cache-hashable
+  question: "A function decorated with functools.cache is called with a list argument. What happens?"
+  options:
+    - "It works and caches by the list's contents"
+    - "It works but never caches"
+    - "It raises TypeError because the list is unhashable"
+    - "It converts the list to a tuple"
+  answer: 2
+  explanation: "The cache stores results in a dict keyed by the arguments, so the arguments must be hashable. A tuple would work."
+  whyWrong:
+    "0": "A list cannot be a cache key."
+    "1": "The call fails before anything is cached."
+    "3": "Python does not convert arguments for you."
+
+- id: spot-bug-quadratic-membership
+  kind: spot-bug
+  question: "This function is correct but becomes very slow when a and b each have a million items. What is the problem?"
+  code: |
+    def common(a, b):
+        return [x for x in a if x in b]
+  options:
+    - "x in b scans the list b every time, so the work is about len(a) times len(b); make b a set"
+    - "A list comprehension cannot contain if"
+    - "x is a poor variable name"
+    - "The function returns a list instead of a set"
+  answer: 0
+  explanation: "For each x in a, the test x in b walks through b. Converting b to a set once, set(b), makes each test about constant time and the whole function about len(a) + len(b)."
+  whyWrong:
+    "1": "A comprehension may have an if clause."
+    "2": "Names do not affect speed."
+    "3": "Returning a list is fine; the slowness comes from the repeated scans."
+
+- id: spot-bug-pop-front
+  kind: spot-bug
+  question: "This loop processes a very long queue but gets slower and slower. What is the problem?"
+  code: |
+    queue = list(range(1_000_000))
+    while queue:
+        item = queue.pop(0)
+        process(item)
+  options:
+    - "A while loop cannot test a list"
+    - "process must be a method"
+    - "range cannot produce a million items"
+    - "pop(0) shifts every remaining item, so each pop costs O(n); use collections.deque and popleft()"
+  answer: 3
+  explanation: "Removing from the front of a list moves all the other items one place, so the loop is quadratic. A deque removes from the front in about constant time."
+  whyWrong:
+    "0": "An empty list is false, so while queue: is a normal idiom."
+    "1": "Whether process is a method or function has no effect on the slowdown."
+    "2": "range handles a million items easily."
+
+- id: predict-recursion-limit
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    def f(n):
+        return f(n + 1)
+
+    try:
+        f(0)
+    except RecursionError:
+        print("too deep")
+  options:
+    - "An unhandled traceback"
+    - "Nothing: it loops forever"
+    - "too deep"
+    - "0"
+  answer: 2
+  explanation: "Each call adds a frame to the stack and Python stops the recursion at its limit (1000 by default), raising RecursionError, which the except catches."
+  whyWrong:
+    "0": "The error is raised, but the except clause handles it."
+    "1": "Python guards recursion with a depth limit, so it does stop."
+    "3": "f never returns a value, so nothing numeric is printed."
+
+- id: predict-heap
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    import heapq
+
+    h = []
+    for x in (5, 1, 3):
+        heapq.heappush(h, x)
+    print(h[0], heapq.heappop(h))
+  options:
+    - "5 5"
+    - "1 1"
+    - "1 5"
+    - "3 1"
+  answer: 1
+  explanation: "heapq keeps the smallest item at index 0, so h[0] is 1, and heappop removes and returns that smallest item."
+  whyWrong:
+    "0": "5 is the largest item, not the first one pushed that stays in front."
+    "2": "heappop returns the smallest, not the item pushed first."
+    "3": "h[0] is always the smallest item, which is 1."
+
+- id: amortized-meaning
+  question: "list.append is described as O(1) amortized. What does amortized mean here?"
+  options:
+    - "An occasional append (a resize) costs more, but spread over many appends the average cost is constant"
+    - "Every single append takes exactly the same time"
+    - "The cost is constant only for the first few appends"
+    - "The cost is constant only for sorted lists"
+  answer: 0
+  explanation: "Now and then the list has to grow and copy its items. Because that is rare and the list grows by a proportion each time, the average cost per append stays constant."
+  whyWrong:
+    "1": "Some appends are noticeably more expensive; it is the average that is constant."
+    "2": "The average stays constant however many items are added."
+    "3": "Order does not affect append."
+
+- id: predict-fib-calls
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    calls = 0
+
+    def fib(n):
+        global calls
+        calls += 1
+        return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+    fib(10)
+    print(calls)
+  options:
+    - "10"
+    - "1023"
+    - "55"
+    - "177"
+  answer: 3
+  explanation: "The naive recursion recomputes the same values again and again: fib(10) makes 177 calls, and the number grows fast (fib(25) makes 242,785). Caching removes the repeats."
+  whyWrong:
+    "0": "That would be a loop of ten steps, not a double recursion."
+    "1": "That would be 2 to the power 10 minus 1; the real count is smaller but still grows exponentially."
+    "2": "55 is the value of fib(10), not the number of calls."

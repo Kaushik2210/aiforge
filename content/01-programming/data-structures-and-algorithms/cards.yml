@@ -1,0 +1,24 @@
+- { id: c-bigo, front: "What does Big-O describe?", back: "How the cost of an operation grows as the input grows, up to a constant factor." }
+- { id: c-bigo-limit, front: "What does Big-O not tell you?", back: "Which method is faster on a small input, or the exact time. Measure real code." }
+- { id: c-o1, front: "What is O(1)?", back: "Constant: the cost does not grow with the size of the data." }
+- { id: c-on, front: "What is O(n)?", back: "Linear: the cost grows in proportion to the size, like scanning a list." }
+- { id: c-ologn, front: "What is O(log n)?", back: "Logarithmic: doubling the data adds one step, like binary search." }
+- { id: c-list-in, front: "Cost of x in a list?", back: "O(n): it checks items one by one." }
+- { id: c-set-in, front: "Cost of x in a set or dict?", back: "O(1) on average (O(n) worst case): it jumps by hash." }
+- { id: c-hashable, front: "What can be a set member or dict key?", back: "A hashable (in practice immutable) value: str, number, tuple of immutables. Not a list." }
+- { id: c-amortized, front: "What does amortized O(1) mean for list.append?", back: "A rare resize costs more, but averaged over many appends the cost is constant." }
+- { id: c-pop0, front: "Cost of list.pop(0) and insert(0, x)?", back: "O(n): every other item has to move." }
+- { id: c-deque, front: "When use collections.deque?", back: "For a queue: append and popleft at either end in about constant time." }
+- { id: c-sort-cost, front: "Cost of sorting a list?", back: "O(n log n) in general." }
+- { id: c-stable, front: "What does a stable sort guarantee?", back: "Items that compare equal keep their original order, even with reverse=True. Python's sort is stable." }
+- { id: c-sorted-vs-sort, front: "sorted(x) versus x.sort()?", back: "sorted returns a new list from any iterable; sort changes the list in place and returns None." }
+- { id: c-key, front: "What does key= do in sorted?", back: "Gives a value to compare for each item; it is computed once per item." }
+- { id: c-bisect-left, front: "What does bisect_left(a, x) return?", back: "The position before any items equal to x in the sorted list a." }
+- { id: c-binary-pre, front: "What does binary search require?", back: "A sequence that is already sorted." }
+- { id: c-binary-first, front: "How do you find the first of several equal items by binary search?", back: "Do not stop at a match: keep halving toward the left until the range is empty, then check that item." }
+- { id: c-heap, front: "What does a heapq heap give you?", back: "The smallest item at index 0 and fast push and pop of the smallest." }
+- { id: c-nlargest, front: "When use heapq.nlargest?", back: "For a small number of top items; sort when you want many, and max() when you want one." }
+- { id: c-bfs, front: "What does breadth-first search use and give?", back: "A FIFO queue; it finds the route with the fewest steps when every step counts the same." }
+- { id: c-seen, front: "Why keep a seen set in graph search?", back: "So loops do not trap the search and each node is expanded once." }
+- { id: c-recursion, front: "What happens when recursion goes too deep?", back: "Python raises RecursionError (the default limit is 1000 frames)." }
+- { id: c-cache, front: "What does functools.cache do?", back: "Remembers results by argument, so repeated calls are instant. Arguments must be hashable." }
