@@ -241,6 +241,35 @@ a, button {
 }
 @media (max-width: 480px) { .cutin-title { font-size: var(--text-2xl); } }
 
+/* ---- ASCII mode: a terminal look from fonts, borders and a few labels only ----
+   It sets <html data-ascii="on"> (header toggle, saved in localStorage). No layout,
+   colour token or behaviour changes, so contrast and focus styles stay as designed.
+   Generated text uses the alt-text form (content: "x" / "") where supported so screen
+   readers do not read the decoration. */
+:root[data-ascii="on"] {
+  --font-display: var(--font-mono);
+  --font-body: var(--font-mono);
+  --radius: 0;
+}
+:root[data-ascii="on"] body { letter-spacing: 0; }
+:root[data-ascii="on"] h1,
+:root[data-ascii="on"] h2,
+:root[data-ascii="on"] h3 { letter-spacing: 0; font-weight: 800; }
+:root[data-ascii="on"] h1::before,
+:root[data-ascii="on"] h2::before {
+  content: "> ";
+  content: "> " / "";
+  color: var(--c-primary);
+}
+:root[data-ascii="on"] *,
+:root[data-ascii="on"] *::before,
+:root[data-ascii="on"] *::after { border-style: dashed; box-shadow: none; }
+:root[data-ascii="on"] button.tap::before { content: "[ "; content: "[ " / ""; }
+:root[data-ascii="on"] button.tap::after { content: " ]"; content: " ]" / ""; }
+:root[data-ascii="on"] .speed-lines { background-image: none; }
+:root[data-ascii="on"] .petals { display: none; }
+:root[data-ascii="on"] .float { animation: none; }
+
 /* Lesson typography: readable measure, clear hierarchy. */
 .lesson { max-width: 72ch; }
 .lesson h1 { display: none; } /* the page supplies the title */
