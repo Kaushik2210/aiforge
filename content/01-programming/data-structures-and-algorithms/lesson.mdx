@@ -1,0 +1,273 @@
+---
+id: data-structures-and-algorithms
+title: Data Structures and Algorithms
+realm: 1
+zone: Python foundations
+prerequisites: [python-functions-and-modules]
+estimatedMinutes: 180
+verifiedOn: 2026-11-16
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "Choosing the right data structure often matters more than clever code. A list is good for ordered items you index or append to, a dict or set for fast lookup by value, a deque for a queue, and a heap for always taking the smallest item next."
+  - "Big-O describes how the cost of an operation grows as the data grows, with constant factors set aside. Searching a list with `in` grows in proportion to its length (O(n)); looking a key up in a dict or set is about constant time on average (O(1))."
+  - "Binary search finds an item in a sorted sequence by halving the range each step, so about 17 reads are enough for 100,000 items instead of up to 100,000. It only works if the sequence is already sorted."
+  - "Breadth-first search uses a queue to explore a graph level by level and finds the path with the fewest edges when every edge counts the same."
+coreComplexity:
+  - "Dict and set operations are O(1) on average but O(n) in the worst case (if many keys collide). The average case assumes a hash function that spreads keys out, and keys must be hashable: a list cannot be a set member or a dict key."
+  - "`list.append` and `list.pop()` are O(1) amortized: an occasional resize costs O(n) but is spread over many calls. `list.pop(0)` and `list.insert(0, x)` are O(n) because every other item must move, so a list is a poor queue and `collections.deque` is the right tool."
+  - "Python's sort is stable (items that compare equal keep their original order, even with `reverse=True`), which lets you sort by several keys in passes. `list.sort()` changes the list and returns None; `sorted()` returns a new list."
+  - "Recursion costs stack space: Python limits the depth (1000 by default), and exceeding it raises `RecursionError`. Memoizing a recursive function with `functools.cache` turns exponential repeated work into linear, but its arguments must be hashable."
+  - "Big-O hides constants and says nothing about small inputs; for real code, measure before you optimise. Counting operations (comparisons, reads) is a reliable way to see growth without depending on a noisy clock."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain why `if x in my_list` inside a loop can make a program slow when the data grows, and how you would fix it."
+  rubric:
+    - "Says `x in my_list` checks items one by one, so each test costs time proportional to the list length, and doing it for every item in a loop makes the total grow with the square of the size."
+    - "Names a fix: put the items in a set or dict so each lookup is about constant time on average."
+    - "Mentions that set members and dict keys must be hashable, or that you build the set once outside the loop."
+miniGame: none-yet
+bossId: data-structures-and-algorithms-boss
+---
+
+# Data Structures and Algorithms
+
+> **Realm 1, Programming Fundamentals.** Guide: *Mira*, the lantern-bearer
+> (an original AIForge character). Her library has a million scrolls. She can
+> walk the shelves one by one, or she can learn how the library is arranged.
+
+Training data, vocabularies, embeddings and logs get big. The same task can take
+a second or a day depending on how the data is stored and searched. This quest
+gives you the small set of structures and ideas you will reach for every week,
+and a way to see their cost without guessing.
+
+---
+
+## L1. Intuition
+
+**Finding a book.** You can walk the shelves and check every book until you
+find it: the time grows with the number of books. Or you can use the card
+catalogue, which jumps straight to the right shelf: the time barely grows. Or,
+if the books are in alphabetical order, you can open the middle, see whether
+your title comes before or after, and throw away half the library at a time.
+
+Those three ways of finding a book are a **list scan**, a **dictionary
+lookup**, and a **binary search**.
+
+**Counting steps, not seconds.** A clock changes with the machine and the
+moment. Counting how many items you had to look at does not. If doubling the
+data doubles the steps, the cost is *linear*, written O(n). If doubling the data
+adds one extra step, it is *logarithmic*, O(log n). If the steps do not change,
+it is *constant*, O(1).
+
+**Queues and stacks.** A queue is first in, first out, like people at a bakery.
+A stack is last in, first out, like a pile of plates. Python gives you both from
+a list or a `deque`.
+
+<Callout type="warn" title="Where Big-O misleads">
+Big-O says how cost grows when the data grows, with constant factors ignored. It
+does not say which of two methods is faster on a small input, and a method with a
+better growth rate can lose when n is small. Use Big-O to see trouble coming and a
+measurement to decide.
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### Counting operations
+
+```python
+class Counted(int):
+    calls = 0
+    def __eq__(self, other):
+        Counted.calls += 1
+        return int(self) == int(other)
+    __hash__ = int.__hash__
+
+items = [Counted(i) for i in range(1000)]
+Counted(999) in items        # compares item by item: about 1000 __eq__ calls
+Counted(999) in set(items)   # about 1 call: the hash jumps near the item
+```
+
+Searching a list with `in` looks at items one by one. A set or dict computes a
+hash of the value and goes straight to where it would be.
+
+### What the built-in types cost
+
+From Python's time-complexity table for CPython (the standard implementation):
+
+| operation | cost |
+|---|---|
+| `lst[k]`, `lst.append(x)`, `lst.pop()` | O(1) (the last two amortized) |
+| `lst.pop(0)`, `lst.insert(0, x)` | O(n) |
+| `x in lst` | O(n) |
+| `lst.sort()` | O(n log n) |
+| `x in d`, `d[k]`, `x in s` | O(1) on average, O(n) worst case |
+| `deque.append`, `popleft` (either end) | about O(1) |
+
+**Amortized** means an occasional expensive step (a resize) is spread over many
+cheap ones. **On average** for dicts and sets assumes the hash function spreads
+keys out.
+
+Dict and set members must be hashable: a tuple can be, a list cannot.
+
+```python
+{[1, 2]}          # TypeError: unhashable type: 'list'
+{(1, 2)}          # fine
+```
+
+### Sorting
+
+```python
+data = [("b", 2), ("a", 1), ("c", 2), ("d", 1)]
+sorted(data, key=lambda r: r[1])
+# [('a', 1), ('d', 1), ('b', 2), ('c', 2)]
+```
+
+Items with the same key (`a` and `d`) keep their original order: the sort is
+*stable*, also with `reverse=True`. `sorted(x)` returns a new list from any
+iterable; `x.sort()` changes the list and returns `None`.
+
+### Binary search
+
+```python
+from bisect import bisect_left, bisect_right
+
+a = [1, 2, 2, 2, 3]
+bisect_left(a, 2)      # 1  (before the equal items)
+bisect_right(a, 2)     # 4  (after them)
+
+i = bisect_left(a, 2)
+found = i < len(a) and a[i] == 2
+```
+
+The list must already be sorted. Counting reads on a list of 100,000 items, a
+binary search needed 17 reads; a scan to the end needed 100,000.
+
+### Heaps and top items
+
+```python
+import heapq
+
+h = []
+for x in (5, 1, 3):
+    heapq.heappush(h, x)
+h[0]                    # 1   the smallest is always first
+heapq.heappop(h)        # 1   and pops in order
+heapq.nlargest(3, [5, 1, 9, 3, 7, 9, 2])   # [9, 9, 7]
+```
+
+`heapq.nlargest` suits a small number of top items; sort when you want many.
+
+### Queues, stacks and breadth-first search
+
+```python
+from collections import deque
+
+queue = deque([start])
+while queue:
+    node = queue.popleft()     # O(1); list.pop(0) is O(n)
+    ...
+```
+
+Breadth-first search explores everything one step from the start, then two
+steps, and so on, so the first time it reaches the goal it has used the fewest
+steps (when each step counts the same). Keep a set of nodes already seen so
+loops do not trap you.
+
+### Recursion and memoization
+
+```python
+def fib(n):
+    return n if n < 2 else fib(n - 1) + fib(n - 2)
+```
+
+`fib(25)` makes 242,785 calls because it recomputes the same values again and
+again. Caching fixes that:
+
+```python
+from functools import cache
+
+@cache
+def fib(n):
+    return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+fib(80)       # 23416728348467685, instantly
+```
+
+Python stops runaway recursion with a `RecursionError` (the default limit is 1000
+frames), so a very deep problem should use a loop and an explicit stack or queue.
+
+<Step prompt="why is `while queue: item = queue.pop(0)` slow on a long list, and what replaces it?">
+`pop(0)` removes the first item and shifts every other item one place left, so
+each pop costs O(n) and the whole loop O(n²). A `collections.deque` removes from
+the front with `popleft()` in about constant time.
+</Step>
+
+---
+
+## L3. Build it
+
+Two challenges. Run them in the browser editor (Pyodide), or locally with
+`python tests.py <file>`.
+
+1. **`first-index`**: write a binary search that returns the index of the *first*
+   equal item (or -1) in a sorted sequence. The tests count how many items you
+   read, on a sequence of a million that is computed on demand, so a scan fails
+   and a binary search passes. You will see why "first" needs care with repeats.
+2. **`shortest-path`**: write a breadth-first search over a directed graph (a dict
+   from a node to the nodes it leads to) that returns the fewest steps between two
+   nodes or -1. The tests check that you never look a node up twice and that loops
+   and very long paths do not break you.
+
+**Why count reads, not time.** A timing test would pass or fail depending on the
+computer. Counting how many items a function looks at is exact and shows the
+growth directly.
+
+---
+
+## L4. Production reality
+
+- **Pick the structure for the question you ask most.** Membership tests: a set or
+  dict. Order and indexing: a list. First-in-first-out: a `deque`. Always the
+  smallest next: a heap. Counting: `collections.Counter`.
+- **Watch for hidden loops.** `x in some_list` inside a `for` loop, `list.index`,
+  `list.remove` and `list.pop(0)` each scan or shift the list, so the program is
+  quadratic. Build a set or dict once, outside the loop.
+- **Sort once, and sort by a key.** Sorting inside a loop repeats work. Use
+  `key=` rather than comparing by hand; the key is computed once per item.
+- **Do not trust Big-O alone.** Measure real code with `timeit` or a profiler on
+  realistic data. Constant factors, caches and the size of your data decide close
+  calls.
+- **Mind memory.** A set or dict takes more memory than a list of the same items,
+  and a list of a million objects is heavy. Streaming (generators, last quest)
+  keeps memory flat.
+- **Keep recursion shallow.** A deep recursion hits the recursion limit; switch to
+  a loop with your own stack or queue, as breadth-first search does.
+- **Use the right tool for numbers.** Large numeric arrays belong in NumPy (Realm 3),
+  not Python lists.
+- **Failure at 3 a.m.:** a job that was fine on a thousand records takes hours on
+  a million. Look for membership tests against a list, repeated `pop(0)`,
+  repeated sorts or a nested loop over the data.
+
+---
+
+## L5. Frontier
+
+Read, in this order, and look for the stated thing:
+
+1. *Time complexity of built-in types* in the Python docs: read for the cost of
+   every operation above and for what "amortized" and "average case" mean there.
+2. The Library Reference on `collections` (deque, Counter, defaultdict), `heapq`
+   and `bisect`: read for the recipes, such as the priority-queue notes and the
+   sorted-list search recipe.
+3. The Sorting HOWTO: read for stability, key functions and why sorting by several
+   keys can be done in passes.
+4. Sedgewick and Wayne's *Algorithms* course pages on analysis of algorithms and on
+   graphs: read for the cost model that counts operations and for breadth-first
+   search.
+
+Open questions to carry forward: how approximate structures (Bloom filters and the
+nearest-neighbour indexes used for embeddings) trade exactness for speed, how
+hash collisions affect worst cases, and how to analyse costs that are only
+amortized.
