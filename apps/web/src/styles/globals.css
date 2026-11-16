@@ -264,6 +264,8 @@ a, button {
 :root[data-ascii="on"] *,
 :root[data-ascii="on"] *::before,
 :root[data-ascii="on"] *::after { border-style: dashed; box-shadow: none; }
+/* Header buttons keep their label and brackets on one line and wrap as whole buttons instead. */
+:root[data-ascii="on"] header button.tap { white-space: nowrap; }
 :root[data-ascii="on"] button.tap::before { content: "[ "; content: "[ " / ""; }
 :root[data-ascii="on"] button.tap::after { content: " ]"; content: " ]" / ""; }
 :root[data-ascii="on"] .speed-lines { background-image: none; }
@@ -310,9 +312,10 @@ a, button {
 
 /* ---- Home: quest path map ---- */
 .realm-path { display: flex; flex-direction: column; gap: 1.5rem; }
-/* The zig-zag path only shifts steps sideways when there is room; on a phone they stay in line. */
+/* The zig-zag path only shifts steps sideways when there is room: the card of the furthest step
+   would otherwise end past the edge of the screen (checked from 375 to 1280 px). */
 .realm-step { position: relative; }
-@media (min-width: 640px) { .realm-step { transform: translateX(calc(var(--shift) * 2.5rem)); } }
+@media (min-width: 900px) { .realm-step { transform: translateX(calc(var(--shift) * 2.5rem)); } }
 .realm-step:not(:last-child)::after {
   content: "";
   position: absolute;
