@@ -32,10 +32,13 @@ test("ASCII mode switches to the monospace font and adds terminal prefixes witho
   expect(bracket).toContain("[");
 });
 
-test("the XP bar becomes a text bar but stays a real progress bar with the same name and values", async ({ page }) => {
+test("the XP bar becomes a text bar with real progress and stays a real progress bar with the same name and values", async ({ page }) => {
   await page.goto("/quests/gradient-descent/");
+  const ladder = page.getByRole("navigation", { name: "Depth ladder" });
+  await ladder.getByRole("button", { name: "Mark tier done" }).first().click();
+  await expect(ladder.getByText("Done").first()).toBeVisible();
   const bar = page.getByRole("progressbar", { name: "XP to next level" }).first();
-  await expect(bar).toBeVisible();
+  await expect.poll(async () => Number(await bar.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
   const normal = {
     now: await bar.getAttribute("aria-valuenow"),
     max: await bar.getAttribute("aria-valuemax"),
@@ -43,10 +46,11 @@ test("the XP bar becomes a text bar but stays a real progress bar with the same 
   await toggle(page).click();
   const ascii = page.getByRole("progressbar", { name: "XP to next level" }).first();
   await expect(ascii).toBeVisible();
-  await expect(ascii).toContainText(/\[[#-]+\]/);
+  await expect(ascii).toContainText(/\[#+-*\]/); // at least one filled cell now that there is XP
   expect({ now: await ascii.getAttribute("aria-valuenow"), max: await ascii.getAttribute("aria-valuemax") }).toEqual(normal);
-  // the characters are decoration: assistive tech reads the progress bar's name and values only
-  await expect(ascii.locator("[aria-hidden=true]").first()).toBeAttached();
+  // the characters are decoration: every child is hidden from assistive technology
+  const allHidden = await ascii.evaluate((el) => [...el.children].length > 0 && [...el.children].every((c) => c.getAttribute("aria-hidden") === "true"));
+  expect(allHidden).toBe(true);
 });
 
 test("a saved ASCII mode loads with no console or hydration errors and keeps the attribute", async ({ page }) => {
@@ -64,14 +68,34 @@ test("a saved ASCII mode loads with no console or hydration errors and keeps the
   expect(errors).toEqual([]);
 });
 
-test("ASCII mode does not make any page scroll sideways on a phone", async ({ page }) => {
+test("no page scrolls sideways at phone, tablet and laptop widths, in ASCII mode or not", async ({ page }) => {
+  for (const ascii of [true, false]) {
+    if (ascii) await page.addInitScript(() => localStorage.setItem("aiforge-ascii", "on"));
+    for (const width of [375, 640, 768, 820, 1024, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const route of ["/", "/dashboard/", "/settings/", "/quests/gradient-descent/"]) {
+        await page.goto(route);
+        await page.waitForLoadState("networkidle");
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        expect(overflow, `${route} at ${width}px (ASCII ${ascii}) scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
+      }
+    }
+  }
+});
+
+test("header buttons keep their brackets and label on one line in ASCII mode", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.addInitScript(() => localStorage.setItem("aiforge-ascii", "on"));
-  for (const route of ["/", "/dashboard/", "/settings/", "/quests/gradient-descent/"]) {
-    await page.goto(route);
-    await page.waitForLoadState("networkidle");
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    expect(overflow, `${route} scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
+  await page.goto("/settings/");
+  for (const button of await page.locator("header button").all()) {
+    const info = await button.evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const tops = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
+      return { lines: tops.size, whiteSpace: getComputedStyle(el).whiteSpace };
+    });
+    expect(info.whiteSpace).toBe("nowrap"); // the brackets are generated text, so the rule is what keeps them with the label
+    expect(info.lines).toBe(1);
   }
 });
 
