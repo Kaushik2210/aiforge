@@ -643,3 +643,11 @@ TODO-VERIFY / not done
 - Every inner page (dashboard, map, skills, review, settings, effects lab, Gradient Hiker, quests) now opens with the typed terminal line (`$ open dashboard`), reusing `BootLine`; real headings and text unchanged.
 - axe (light and dark, all routes) and hero tests: 39 pass.
 - Not done: richer ASCII components inside those pages (map as ASCII, skill tree as a text graph), the Loss Mountains page, redeploy.
+
+## Day 25 (continued): ASCII redesign, slice 4 (deeper pages)
+
+- `asciiSparkline` and `renderRealmMap` in `lib/ascii-fx.ts` (8 more unit tests; 120 web tests pass).
+- /map shows the quest map as a text path under the graphical map (`[*02]` marks an open realm); the dashboard XP chart gets a one-line text sparkline. Both are aria-hidden; the list, table and chart stay the accessible versions. Unknown days stay blank, never guessed.
+- 2 new Playwright tests; axe and hero suites pass (41). `pnpm verify` green.
+- Found, not fixed: `lib/realms.ts` lists Realm 1 (Programming) with no quest, so the home path, map and this ASCII map show it as coming soon although six Python and DSA quests exist. It needs a `quest` id or an "n quests built" count.
+- Not done: Loss Mountains page, skill tree as a text graph, redeploy.
