@@ -3,12 +3,13 @@ export interface Realm {
   n: number;
   name: string;
   blurb: string;
-  quest?: string; // quest id when playable
+  quest?: string; // the first quest to open, when any is playable
+  questCount?: number; // how many quests are built in this realm
 }
 
 export const REALMS: Realm[] = [
-  { n: 1, name: "Programming Fundamentals", blurb: "Python, Git, HTTP, the CLI" },
-  { n: 2, name: "Maths and ML Foundations", blurb: "Gradients, probability, first models", quest: "gradient-descent" },
+  { n: 1, name: "Programming Fundamentals", blurb: "Python, Git, HTTP, the CLI", quest: "python-basics", questCount: 6 },
+  { n: 2, name: "Maths and ML Foundations", blurb: "Gradients, probability, first models", quest: "gradient-descent", questCount: 1 },
   { n: 3, name: "Data Engineering", blurb: "NumPy, pandas, SQL, clean datasets" },
   { n: 4, name: "Deep Learning", blurb: "Backprop, optimisers, attention" },
   { n: 5, name: "DL Frameworks", blurb: "PyTorch, Hugging Face, CUDA basics" },

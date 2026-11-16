@@ -11,7 +11,7 @@ export function RealmPath() {
     <section aria-labelledby="path-heading" className="mx-auto max-w-3xl px-4 py-12">
       <h2 id="path-heading" className="text-center text-3xl md:text-4xl">The quest map</h2>
       <p className="mx-auto mt-2 max-w-prose text-center text-text-muted">
-        23 realms from your first line of Python to shipping a production AI system. One realm is open today; the rest
+        23 realms from your first line of Python to shipping a production AI system. Two realms are open today; the rest
         are being forged one day at a time.
       </p>
 
@@ -36,7 +36,7 @@ export function RealmPath() {
                     open ? "bg-primary text-on-primary" : "border border-border text-text-muted"
                   }`}
                 >
-                  {open ? "Open now" : "Coming soon"}
+                  {open ? `Open now${r.questCount ? ` · ${r.questCount} ${r.questCount === 1 ? "quest" : "quests"}` : ""}` : "Coming soon"}
                 </span>
               </span>
             </>
