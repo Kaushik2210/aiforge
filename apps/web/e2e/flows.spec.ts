@@ -1,5 +1,23 @@
 import { expect, test } from "@playwright/test";
 
+/**
+ * Open the Review Tavern once the cards from a finished tier have been saved. The save is asynchronous
+ * (IndexedDB), and on a slow machine navigating straight away can race it, so reload until the deck shows.
+ */
+async function openReviewWithCards(page: import("@playwright/test").Page) {
+  const start = page.getByRole("button", { name: /^Review \d+ card/ });
+  await expect
+    .poll(
+      async () => {
+        await page.goto("/review/");
+        return start.count();
+      },
+      { timeout: 20_000, intervals: [250, 500, 1000, 2000] },
+    )
+    .toBeGreaterThan(0);
+  await start.click();
+}
+
 const xp = (page: import("@playwright/test").Page) => page.getByRole("progressbar", { name: "XP to next level" }).first();
 
 test("finishing a tier awards XP, enrols the flashcards and survives a reload", async ({ page }) => {
@@ -24,8 +42,7 @@ test("a Review Tavern sitting works from the keyboard and records the result", a
   await ladder.getByRole("button", { name: "Mark tier done" }).first().click();
   await expect(ladder.getByText("Done").first()).toBeVisible();
 
-  await page.goto("/review/");
-  await page.getByRole("button", { name: /^Review \d+ card/ }).click();
+  await openReviewWithCards(page);
   const total = Number(/of (\d+)/.exec((await page.getByText(/^Card \d+ of \d+/).textContent()) ?? "")![1]);
   expect(total).toBeGreaterThanOrEqual(5);
 
@@ -83,8 +100,7 @@ test("the Daily Quest bonus is claimed once after all three goals", async ({ pag
   await expect(ladder.getByText("Done").first()).toBeVisible();
 
   // 2. a review set
-  await page.goto("/review/");
-  await page.getByRole("button", { name: /^Review \d+ card/ }).click();
+  await openReviewWithCards(page);
   const total = Number(/of (\d+)/.exec((await page.getByText(/^Card \d+ of \d+/).textContent()) ?? "")![1]);
   for (let i = 0; i < total; i++) {
     await page.getByRole("button", { name: "Show answer" }).focus();
