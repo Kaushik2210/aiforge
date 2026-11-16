@@ -526,3 +526,28 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Day 22: Realm 1 continues with Async and concurrency (`async-and-concurrency`). The owner may prefer to redeploy the site first, or add more effects.
+
+## Day 22: Async and concurrency quest (Realm 1)
+
+Done
+- Fifth Realm 1 quest, `content/01-programming/async-and-concurrency`: five-tier lesson (concurrency versus parallelism, `async def` and `await`, the event loop and why it is cooperative, `gather` versus awaiting in a loop, tasks, blocking calls, timeouts, `TaskGroup`, semaphores, threads and processes), 17 quiz items (all five predict-output answers re-run as code), 22 flashcards, 8 common mistakes, 10 interview questions, 9 primary sources, a boss gauntlet interleaving Generators and iterators, and two challenges (`mini-loop`, `limiter`) with hidden tests and 14 wrong-answer mutants, all caught.
+- The challenges run WITHOUT asyncio on purpose: `asyncio.run` raised `RuntimeError: WebAssembly stack switching not supported in this JavaScript runtime` when tried in the bundled Pyodide under Node. They use a tiny `Pause` awaitable and hand-driven coroutines (`coro.send(None)`), which teaches how an event loop works and runs identically in CPython 3.12 to 3.14 and in the in-browser runner.
+- Checks: `pnpm verify` green (120 runner tests, including every challenge in real Pyodide), web build OK, 60 Playwright tests pass (the new page is in the axe list, light and dark).
+
+Sources used
+- docs.python.org: asyncio (Coroutines and Tasks, Runner, Developing with asyncio, Synchronization Primitives), the glossary and the free-threading HOWTO, concurrent.futures; Pyodide docs (wasm constraints, WebLoop). Fetched 2026-11-14; asyncio behaviours and rough timings re-run on CPython 3.13.7. See `research/01-programming.md`.
+
+Review
+- A separate reviewer ran every snippet (all correct) and found: "create_task starts at the next await" is imprecise (it starts when the current task next yields to the loop at an await that actually suspends; fixed in lesson, quiz and card); "await pauses" overstated (awaiting something that finishes at once never switches); the Pyodide citation was the docs root instead of the two relevant pages; the free-threading HOWTO was not cited; the timers sentence in an interview answer; the cook callout was muddled; and the limiter tests rejected a valid solution that wakes waiting tasks in a different order, so the spec now says that order is unspecified and the test no longer depends on it. Noted, not changed: a limiter that busy-waits without `Pause` hangs a local run (CI has a 30 s timeout and the runner 10 s).
+
+Decisions
+- No new ADR. `miniGame` is `none-yet`.
+
+TODO-VERIFY / not done
+- Which browsers and Node versions support the stack switching behind that error is not confirmed; the lesson reports what AIForge's own test observed and cites the Pyodide docs only for what they say.
+- Whether Python 3.14 calls free-threaded builds supported (PEP 779) was not read; the lesson says only that they exist from 3.13.
+- `async for`, async generators and `Event`, `Lock` and `Queue` are mentioned, not taught. Real `asyncio` examples in the lesson cannot be run in the browser editor.
+- No manual screen-reader pass of the new page.
+
+Tomorrow
+- Day 23: Realm 1 continues with Data structures and algorithms (`data-structures-and-algorithms`). The Realm 1 core is then nearly complete (Git, Linux and HTTP quests remain).
