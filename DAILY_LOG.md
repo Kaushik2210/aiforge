@@ -651,3 +651,8 @@ TODO-VERIFY / not done
 - 2 new Playwright tests; axe and hero suites pass (41). `pnpm verify` green.
 - Found, not fixed: `lib/realms.ts` lists Realm 1 (Programming) with no quest, so the home path, map and this ASCII map show it as coming soon although six Python and DSA quests exist. It needs a `quest` id or an "n quests built" count.
 - Not done: Loss Mountains page, skill tree as a text graph, redeploy.
+
+## Day 25 (continued): Realm 1 status
+
+- Realm 1 (Programming) is now open with a quest count (6 quests; Realm 2 shows 1) on the home path, the map list and the ASCII map. A new unit test compares `lib/realms.ts` with the quests in `content/` so it cannot go stale again. 122 web tests, axe, hero and flow e2e pass; `pnpm verify` green.
+- Not done: Loss Mountains page, skill tree as a text graph, redeploy (the public site is at Day 24).
