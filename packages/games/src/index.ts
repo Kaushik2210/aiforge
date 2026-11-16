@@ -11,3 +11,4 @@ export * from "./hiker/session";
 export * from "./hiker/view";
 export * from "./hiker/hiker-game";
 export * from "./fx";
+export * from "./hiker/ascii";
