@@ -10,13 +10,13 @@ export default function Home() {
   return (
     <>
       <HeroScene />
-      <div className="mx-auto max-w-5xl px-4 pt-10">
+      <div data-reveal className="mx-auto max-w-5xl px-4 pt-10">
         <TodayPanel catalog={getCatalog().catalog} />
       </div>
       <Bento />
       <RealmPath />
       <RankLadder />
-      <section className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <section data-reveal className="mx-auto max-w-3xl px-4 py-16 text-center">
         <h2 className="text-3xl md:text-4xl">Ready for Quest 1?</h2>
         <p className="mt-3 text-text-muted">Gradient Descent takes about two hours, and you can stop any time.</p>
         <Link

@@ -12,7 +12,7 @@ function Tile({ title, children, className = "" }: { title: string; children: Re
 /** Bento grid explaining how the learning loop works. */
 export function Bento() {
   return (
-    <section aria-labelledby="bento-heading" className="mx-auto max-w-6xl px-4 py-12">
+    <section data-reveal aria-labelledby="bento-heading" className="mx-auto max-w-6xl px-4 py-12">
       <h2 id="bento-heading" className="text-center text-3xl md:text-4xl">How a quest plays</h2>
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         <Tile title="Five tiers deep" className="md:col-span-2">
