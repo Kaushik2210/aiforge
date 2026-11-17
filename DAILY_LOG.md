@@ -689,3 +689,18 @@ TODO-VERIFY
 
 Tomorrow
 - Realm 1 quest 8: Git and GitHub (a tiny commit graph in pure Python) or Linux and the command line.
+
+## Day 27: a new theme, a 3D loss landscape (ADR 0015)
+
+What shipped
+- Owner feedback: no mascot, no scrambling or typed text, no heavy font; use GSAP and three.js. New direction: the home hero is a real loss landscape in three.js with a ball running gradient descent, scrolled by GSAP ScrollTrigger. `lib/landscape.ts` holds the maths (10 tests: finite everywhere, gradient points uphill, descent only goes downhill and ends flat, bad settings rejected).
+- `LossScene` draws on demand with a contour-line shader, a glowing ball and a trail; one WebGL context, released on unmount; falls back to a still poster without WebGL. `HeroScene` runs the GSAP intro (movement only), the scroll-scrubbed descent and reveal-on-scroll for the home sections; in reduced motion, Focus mode or effects Off it is one still picture and GSAP is not loaded.
+- New tokens (contrast-tested light and dark) and fonts (Space Grotesk, Inter). Removed the mascot, ScrambleText, BootLine, AsciiHero, the caret, speed lines and petals. The text-art views (quest map, skill tree, sparkline, realm brackets) now show only in ASCII mode.
+- Tests: 7 new Playwright tests (one canvas, scroll drives the step counter, reduced motion, Focus and Off, WebGL missing, the old pieces gone, widths); ASCII specs now run in ASCII mode. Full e2e suite passes; two tests had thresholds and timeouts adjusted (smear frame count, h1 loop).
+
+Licences: three.js MIT; GSAP Standard No Charge licence (verified), installed from npm only.
+
+TODO-VERIFY / not done
+- Not tried on a real phone GPU or with a screen reader. The hero scrim and 3D are checked by screenshot at 1440 and 390 px only.
+- Inner pages have the new colours and fonts but no GSAP or 3D yet; the quest cards, dashboard and map could be next. Fonts are downloaded at build time (licences: Space Grotesk and Inter are OFL, TODO-VERIFY in docs/assets.md).
+- Not deployed.
