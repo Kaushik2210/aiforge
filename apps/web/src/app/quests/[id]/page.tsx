@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { QuestBanner } from "@/components/scene/Banners";
 import { notFound } from "next/navigation";
 import { readCards, readChallenges, readLesson, readQuiz } from "@aiforge/content-schema";
 import { Challenge } from "@/components/challenge/Challenge";
@@ -28,6 +29,7 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <QuestBanner questId={quest.id} tierIds={quest.tiers} />
       <p className="text-sm text-text-muted">Realm {quest.realm} &middot; {quest.zone}</p>
       <h1 className="mt-1 text-3xl md:text-4xl">{quest.title}</h1>
       <p className="mt-2 text-text-muted">About {quest.estimatedMinutes} minutes. Verified {quest.verifiedOn}.</p>

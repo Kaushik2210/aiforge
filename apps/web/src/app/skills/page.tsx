@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageBanner } from "@/components/scene/PageBanner";
 import { AsciiSkillTree } from "@/components/ascii/AsciiSkillTree";
 import path from "node:path";
 import { layoutSkillTree } from "@aiforge/engine";
@@ -13,9 +14,11 @@ export default function SkillsPage() {
   const available = new Set(listQuests().map((q) => q.id));
   const topics: SkillTopicView[] = tree.topics.map((t) => ({ ...t, available: available.has(t.id) }));
   const layout = layoutSkillTree(topics);
+  const builtCount = topics.filter((t) => t.available).length;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <PageBanner progress={builtCount / Math.max(1, topics.length)} label={`${builtCount} of ${topics.length} topics built`} />
       <h1 className="text-3xl md:text-4xl">Skill tree</h1>
       <p className="mt-2 max-w-prose text-text-muted">
         How the topics build on each other. An arrow runs from a topic to the ones it helps with. This is a
