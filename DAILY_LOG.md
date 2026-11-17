@@ -669,3 +669,23 @@ TODO-VERIFY / not done
 
 - `renderSkillText` (2 unit tests; 124 web tests pass): the skill tree as layered text, built topics starred, prerequisites on a second line, lines clipped to 60 columns. /skills/ shows it under the graph (aria-hidden; the graph and list stay the accessible versions). 1 new Playwright test; axe and hero suites pass (44). `pnpm verify` green.
 - The ASCII redesign now covers the home hero, header, quest map, XP sparkline, skill tree and the Loss Mountains game. Not deployed since Loss Mountains.
+
+## Day 26: HTTP and REST quest
+
+What shipped
+- Quest `http-and-rest` (Realm 1, 7th quest): L1 to L5 lesson with Mira, 15 quiz items (6 predict-output, 3 spot-bug), 25 cards, 9 interview questions, 8 common mistakes, 12 sources, boss. The lesson says plainly that Pyodide has no network, so messages are parsed and built as text; the one real `urllib` sample is marked not runnable here.
+- Challenges: `parse-response` (raw HTTP/1.1 text to status, reason, headers, body; 17 mutants caught) and `retry-delay` (when and how long to wait before retrying; 22 mutants caught).
+- Realm 1 now counts 7 quests; the quest is in the axe route list.
+
+Sources used: RFC 9110, 9112, 9111, 9457, 6585, 5789, 9113, 9114, the IETF Idempotency-Key draft (labelled a draft), Python docs for http.client, urllib.request and json, Fielding chapter 5, WHATWG server-sent events.
+
+Review
+- A separate reviewer fetched the RFCs and found no factual defects. It found challenge gaps: a hidden test demanded an unstated error message, six behaviours were tested but not stated in the docstring, and nine invented mutants slipped past; all fixed with new hidden tests and a clearer contract.
+- My own check found a build failure the content validator and `pnpm verify` miss: the lesson used `<Callout type="info">`, which does not exist (note, warn, tip only), so the page crashed on prerender. Fixed. Lesson: always run the site build and axe on a new quest, not just verify.
+
+TODO-VERIFY
+- PATCH semantics were checked by the reviewer, not the writer; RFC 9110 sections 8.8.3 and 15.5.4 and 15.5.11 were only partly read; HTTP/2 and HTTP/3 summaries come from the first part of each RFC; the claim that LLM APIs often stream with server-sent events is hedged.
+- The challenges count characters, not bytes, and join Set-Cookie like any header (both stated). parse-response rejects "5, 5" Content-Length, stricter than RFC 9110 allows; the contract says so.
+
+Tomorrow
+- Realm 1 quest 8: Git and GitHub (a tiny commit graph in pure Python) or Linux and the command line.
