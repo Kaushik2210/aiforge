@@ -1,0 +1,2 @@
+title: Decide whether and when to retry
+summary: "Write retry_delay(method, status, attempt, headers=None, base=0.5, cap=8.0, max_retries=5), which returns None (do not retry) or the number of seconds to wait before the next try. Only requests that are safe to repeat are retried, 429 and 503 honour a whole-second Retry-After, and the other server errors use exponential backoff."

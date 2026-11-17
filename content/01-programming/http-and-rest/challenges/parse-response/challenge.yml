@@ -1,0 +1,2 @@
+title: Read an HTTP response by hand
+summary: "Write parse_response(raw), which turns the text of an HTTP/1.1 response into (status_code, reason, headers, body). Header names are case-insensitive, repeated headers are joined with a comma and a space, the body obeys Content-Length, and a broken status line raises ValueError."
