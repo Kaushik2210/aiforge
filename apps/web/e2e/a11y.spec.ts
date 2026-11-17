@@ -18,6 +18,7 @@ for (const theme of THEMES) {
 }
 
 test("every page has one h1, a main landmark and a skip link", async ({ page }) => {
+  test.setTimeout(240_000); // one page load per route
   for (const route of ROUTES) {
     await page.goto(route);
     await expect(page.locator("h1"), route).toHaveCount(1);
