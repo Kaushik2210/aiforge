@@ -15,10 +15,14 @@ interface Props {
   parallax?: boolean;
   /** Called once if the browser cannot draw WebGL, so the page can show its poster instead. */
   onUnavailable?: () => void;
+  /** Called once the scene is built and can be driven through its handle. */
+  onReady?: () => void;
+  /** "hero" swings the camera round as the ball descends; "banner" holds a fixed wide view for a short strip. */
+  framing?: "hero" | "banner";
 }
 
 const SURFACE = 8; // the surface spans -4..4 on x and z
-const SEGMENTS = 150;
+const SEGMENTS = 110;
 const HEIGHT_SCALE = 1.15;
 
 /** Read a colour token from the page so the scene follows light and dark themes. */
@@ -34,13 +38,15 @@ function token(name: string, fallback: string): string {
  * The picture is decoration: the page text says what it shows.
  */
 export const LossScene = forwardRef<LossSceneHandle, Props>(function LossScene(
-  { initialProgress = 1, parallax = false, onUnavailable },
+  { initialProgress = 1, parallax = false, onUnavailable, onReady, framing = "hero" },
   ref,
 ) {
   const hostRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<LossSceneHandle>({ setProgress: () => {} });
   const unavailableRef = useRef(onUnavailable);
   unavailableRef.current = onUnavailable;
+  const readyRef = useRef(onReady);
+  readyRef.current = onReady;
 
   useImperativeHandle(ref, () => ({ setProgress: (t) => apiRef.current.setProgress(t) }), []);
 
@@ -176,12 +182,18 @@ export const LossScene = forwardRef<LossSceneHandle, Props>(function LossScene(
         (trailGeo.attributes.position as InstanceType<typeof THREE.BufferAttribute>).needsUpdate = true;
         trailGeo.setDrawRange(0, Math.min(path.length, shown + 2));
 
-        // the camera swings round the surface and closes in as the ball descends
-        const angle = THREE.MathUtils.lerp(-0.7, 0.55, t) + pointerX * 0.12;
-        const dist = THREE.MathUtils.lerp(11.5, 8.2, t);
-        const lift = THREE.MathUtils.lerp(7.2, 4.6, t) + pointerY * 0.5;
-        camera.position.set(Math.sin(angle) * dist, lift, Math.cos(angle) * dist);
-        camera.lookAt(bx * 0.45, by * 0.4 - 0.3, bz * 0.45);
+        if (framing === "banner") {
+          // a fixed, wide view of the whole surface for a short strip
+          camera.position.set(0.6, 3.9, 5.6);
+          camera.lookAt(0, -0.9, 0.3);
+        } else {
+          // the camera swings round the surface and closes in as the ball descends
+          const angle = THREE.MathUtils.lerp(-0.7, 0.55, t) + pointerX * 0.12;
+          const dist = THREE.MathUtils.lerp(11.5, 8.2, t);
+          const lift = THREE.MathUtils.lerp(7.2, 4.6, t) + pointerY * 0.5;
+          camera.position.set(Math.sin(angle) * dist, lift, Math.cos(angle) * dist);
+          camera.lookAt(bx * 0.45, by * 0.4 - 0.3, bz * 0.45);
+        }
 
         renderer.render(scene, camera);
       };
@@ -195,11 +207,11 @@ export const LossScene = forwardRef<LossSceneHandle, Props>(function LossScene(
         if (w === 0 || h === 0 || (w === width && h === height)) return;
         width = w;
         height = h;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, framing === "banner" ? 1.5 : 2));
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
         // a narrow screen needs a wider view so the whole surface stays in frame
-        camera.fov = w / h < 0.9 ? 58 : 38;
+        camera.fov = framing === "banner" ? (w / h < 3 ? 52 : 34) : w / h < 0.9 ? 58 : 38;
         camera.updateProjectionMatrix();
         request();
       };
@@ -222,6 +234,7 @@ export const LossScene = forwardRef<LossSceneHandle, Props>(function LossScene(
         },
       };
       request();
+      readyRef.current?.();
 
       cleanup = () => {
         observer.disconnect();
@@ -248,7 +261,7 @@ export const LossScene = forwardRef<LossSceneHandle, Props>(function LossScene(
     };
     // the scene is built once; theme changes remount it through the key the parent sets
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parallax]);
+  }, [parallax, framing]);
 
   return <div ref={hostRef} aria-hidden="true" className="loss-scene" />;
 });

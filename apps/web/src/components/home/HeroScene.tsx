@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LossScene, type LossSceneHandle } from "@/components/scene/LossScene";
+import { readMotionMode, type MotionMode } from "@/lib/motion-mode";
 import { STEPS, descentPath, pointAt, stepAt } from "@/lib/landscape";
 
 const BEATS = [
@@ -11,14 +12,7 @@ const BEATS = [
   { from: 0.78, text: "Settle in a valley. That is training." },
 ] as const;
 
-type Mode = "pending" | "animated" | "still";
-
-/** Whether motion is allowed right now: not reduced motion, not Focus mode, effects not Off. */
-function readMode(): Mode {
-  const d = document.documentElement.dataset;
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  return reduced || d.focus === "on" || d.fx === "0" ? "still" : "animated";
-}
+type Mode = "pending" | MotionMode;
 
 /**
  * The home hero: a real 3D loss landscape. As you scroll, a ball runs gradient descent down it
@@ -36,7 +30,7 @@ export function HeroScene() {
 
   // Decide once the page is up, and again if the learner changes a setting.
   useEffect(() => {
-    const sync = () => setMode(readMode());
+    const sync = () => setMode(readMotionMode());
     sync();
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     mq.addEventListener("change", sync);
