@@ -1,14 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Dela_Gothic_One, JetBrains_Mono, Nunito_Sans } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 import "katex/dist/katex.min.css";
 import "../styles/globals.css";
-import { AsciiRule } from "@/components/ascii/AsciiRule";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ProgressInit } from "@/components/progress/ProgressInit";
 
-const display = Dela_Gothic_One({ weight: "400", subsets: ["latin"], variable: "--font-display", display: "swap" });
-const body = Nunito_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+const body = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
@@ -33,9 +32,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ProgressInit />
         <main id="main" tabIndex={-1}>{children}</main>
         <footer className="mx-auto max-w-6xl px-4 py-8 text-sm text-text-muted">
-          <AsciiRule label="AIForge" className="mb-4" />
           <p>Code MIT. Lessons CC BY-SA 4.0. All characters and art are original to AIForge.</p>
-          <p className="mt-1">ASCII effects are written for this project; React Bits inspired the idea but none of its code is used.</p>
+          <p className="mt-1">Motion by GSAP (free under its standard licence) and 3D by three.js (MIT). The ASCII effects are written for this project.</p>
         </footer>
       </body>
     </html>
