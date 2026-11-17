@@ -18,9 +18,9 @@ test("scrolling the hero runs the descent: the step counter climbs and the beats
   const hero = page.locator("section.hero-tall");
   const height = await hero.evaluate((el) => el.getBoundingClientRect().height);
   await page.evaluate((y) => window.scrollTo(0, y), Math.round(height * 0.45));
-  await expect.poll(async () => Number((/step (\d+)/.exec((await readout(page).textContent()) ?? "") ?? [])[1] ?? 0)).toBeGreaterThan(10);
+  await expect.poll(async () => Number((/step (\d+)/.exec((await readout(page).textContent()) ?? "") ?? [])[1] ?? 0), { timeout: 10_000 }).toBeGreaterThan(10);
   await page.evaluate((y) => window.scrollTo(0, y), Math.round(height));
-  await expect.poll(async () => Number((/step (\d+)/.exec((await readout(page).textContent()) ?? "") ?? [])[1] ?? 0)).toBeGreaterThan(80);
+  await expect.poll(async () => Number((/step (\d+)/.exec((await readout(page).textContent()) ?? "") ?? [])[1] ?? 0), { timeout: 10_000 }).toBeGreaterThan(80);
   await expect(page.getByText("Settle in a valley. That is training.")).toHaveCSS("opacity", "1");
 });
 

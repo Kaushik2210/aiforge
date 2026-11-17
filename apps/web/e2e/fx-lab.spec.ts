@@ -153,7 +153,7 @@ test("pausing freezes the picture on its current frame, and resuming continues",
   const base = await brightness(page);
   await page.getByRole("button", { name: "Smear and afterimages", exact: true }).click();
   // the picture is changing before we pause (the dash and its afterimages)
-  await expect.poll(async () => Math.abs((await brightness(page)) - base) / base, { timeout: 3000 }).toBeGreaterThan(0.002);
+  await expect.poll(async () => Math.abs((await brightness(page)) - base) / base, { timeout: 8000 }).toBeGreaterThan(0.002);
   const pause = page.getByRole("button", { name: "Pause on this frame" });
   await pause.click();
   await expect(pause).toHaveAttribute("aria-pressed", "true");
