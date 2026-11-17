@@ -704,3 +704,11 @@ TODO-VERIFY / not done
 - Not tried on a real phone GPU or with a screen reader. The hero scrim and 3D are checked by screenshot at 1440 and 390 px only.
 - Inner pages have the new colours and fonts but no GSAP or 3D yet; the quest cards, dashboard and map could be next. Fonts are downloaded at build time (licences: Space Grotesk and Inter are OFL, TODO-VERIFY in docs/assets.md).
 - Not deployed.
+
+## Day 27 (continued): 3D strips on the inner pages
+
+- `PageBanner`: a short 3D strip (the home page landscape from a fixed wide view) with the ball placed by real progress: the dashboard by how far through your level you are, a quest by tiers finished, the skills page by topics built. With motion allowed GSAP rolls the ball to its place once; in reduced motion, Focus mode or effects Off it is just placed. It is aria-hidden and its label repeats numbers the page already states in text. Without WebGL it shows the poster.
+- Not added to the map, Gradient Hiker, Loss Mountains or the effects lab, which already run a Phaser canvas (one WebGL context per page at most).
+- `readMotionMode` is shared by the hero and the strips; the scene got an `onReady` callback and a `banner` framing; mesh resolution 150 to 110 and a lower pixel-ratio cap for strips to ease software rendering.
+- 5 new Playwright tests (one canvas per page, real progress in the label and following it, reduced motion and Focus, no WebGL, no sideways scroll). Full suite: 109 of 110 passed in one run under heavy load and the last failure (a timing poll in the effects lab) passes alone; it now waits longer. Several flows tests time out only when many workers render software WebGL at once; CI retries once.
+- Not tried on a real GPU or phone; the strips are checked by screenshot at 1280 and 390 px.
