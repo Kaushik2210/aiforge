@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { BootLine } from "@/components/ascii/BootLine";
 import { ReviewTavern } from "@/components/review/ReviewTavern";
 import { getCatalog } from "@/lib/catalog";
 
@@ -9,7 +8,6 @@ export default function ReviewPage() {
   const { decks } = getCatalog();
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <BootLine command="open review-tavern" className="mb-2" />
       <h1 className="text-3xl md:text-4xl">Review Tavern</h1>
       <p className="mt-2 max-w-prose text-text-muted">
         Take a seat and review your flashcards. Cards you know come back later and later; cards you miss come back

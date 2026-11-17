@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { BootLine } from "@/components/ascii/BootLine";
 import { readSkillTree } from "@aiforge/content-schema";
 import { Heatmap } from "@/components/dashboard/Heatmap";
 import { MasteryRadar } from "@/components/dashboard/MasteryRadar";
@@ -17,7 +16,6 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       <div>
-        <BootLine command="open dashboard" className="mb-2" />
         <h1 className="text-3xl md:text-4xl">Dashboard</h1>
         <p className="mt-2 max-w-prose text-text-muted">
           Your day, your streak and how your learning is going. It all lives in this browser; nothing is sent anywhere.

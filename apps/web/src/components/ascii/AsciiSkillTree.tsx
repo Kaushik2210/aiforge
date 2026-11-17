@@ -8,7 +8,7 @@ import { renderSkillText, type SkillLike } from "@/lib/ascii-fx";
 export function AsciiSkillTree({ topics }: { topics: readonly (SkillLike & TreeTopic)[] }) {
   const rows = renderSkillText(topics, assignLayers(topics));
   return (
-    <figure className="mt-8 overflow-hidden rounded-[var(--radius)] border border-border bg-surface p-4">
+    <figure className="ascii-only mt-8 overflow-hidden rounded-[var(--radius)] border border-border bg-surface p-4">
       <figcaption className="font-mono text-sm text-text-muted">$ forge skills --ascii &nbsp;(* = built, &lt;= comes after)</figcaption>
       <pre aria-hidden="true" className="ascii-skills mt-3 select-none overflow-hidden whitespace-pre font-mono text-accent">
         {rows.join("\n")}

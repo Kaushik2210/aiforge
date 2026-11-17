@@ -4,10 +4,10 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export function SiteHeader() {
   return (
-    <header className="site-header border-b-2 border-border bg-surface">
+    <header className="site-header border-b border-border bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="tap order-1 flex items-center font-display text-xl text-text no-underline">
-          <span aria-hidden="true" className="mr-2 font-mono text-accent">&gt;</span>AI<span className="text-primary">Forge</span><span aria-hidden="true" className="caret" />
+          AI<span className="text-primary">Forge</span>
         </Link>
         <nav aria-label="Primary" className="order-3 flex w-full flex-wrap items-center gap-1 sm:order-2 sm:w-auto">
           <Link href="/" className="tap flex items-center rounded px-3 text-text hover:bg-surface-2">Home</Link>

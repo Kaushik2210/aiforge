@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { AsciiSkillTree } from "@/components/ascii/AsciiSkillTree";
-import { BootLine } from "@/components/ascii/BootLine";
 import path from "node:path";
 import { layoutSkillTree } from "@aiforge/engine";
 import { readSkillTree } from "@aiforge/content-schema";
@@ -17,7 +16,6 @@ export default function SkillsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <BootLine command="open skill-tree" className="mb-2" />
       <h1 className="text-3xl md:text-4xl">Skill tree</h1>
       <p className="mt-2 max-w-prose text-text-muted">
         How the topics build on each other. An arrow runs from a topic to the ones it helps with. This is a

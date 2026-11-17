@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { BootLine } from "@/components/ascii/BootLine";
 import Link from "next/link";
 import { HikerGame } from "@/components/hiker/HikerGame";
 
@@ -8,7 +7,6 @@ export const metadata: Metadata = { title: "Gradient Hiker" };
 export default function HikerPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <BootLine command="play gradient-hiker" className="mb-2" />
       <p className="text-sm text-text-muted">Realm 2 &middot; Loss Mountains &middot; companion game for Gradient Descent</p>
       <h1 className="mt-1 text-3xl md:text-4xl">Gradient Hiker</h1>
       <p className="mt-2 max-w-prose text-text-muted">

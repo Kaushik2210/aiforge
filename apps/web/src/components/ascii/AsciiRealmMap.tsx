@@ -7,7 +7,7 @@ import { MAP_REALMS } from "@/lib/map-data";
  */
 export function AsciiRealmMap() {
   return (
-    <figure className="mt-8 overflow-hidden rounded-[var(--radius)] border border-border bg-surface p-4">
+    <figure className="ascii-only mt-8 overflow-hidden rounded-[var(--radius)] border border-border bg-surface p-4">
       <figcaption className="font-mono text-sm text-text-muted">$ forge map --ascii &nbsp;(* = open now)</figcaption>
       <pre aria-hidden="true" className="ascii-map mt-3 select-none overflow-hidden whitespace-pre font-mono text-accent">
         {renderRealmMap(MAP_REALMS).join("\n")}

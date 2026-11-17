@@ -44,7 +44,7 @@ export function XpChart() {
         {`${snapshot.xpTotal} XP in total, ${gained} earned in this window.`}
       </p>
 
-      <p aria-hidden="true" className="mt-3 select-none overflow-hidden whitespace-pre font-mono text-xs text-accent">
+      <p aria-hidden="true" className="ascii-only mt-3 select-none overflow-hidden whitespace-pre font-mono text-xs text-accent">
         {`30d [${asciiSparkline(series.points.map((p) => p.cumulative))}]`}
       </p>
       <div className="mt-3 overflow-x-auto">

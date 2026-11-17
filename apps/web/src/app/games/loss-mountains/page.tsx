@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BootLine } from "@/components/ascii/BootLine";
 import { LossMountains } from "@/components/hiker/LossMountains";
 
 export const metadata: Metadata = { title: "Loss Mountains" };
@@ -8,7 +7,6 @@ export const metadata: Metadata = { title: "Loss Mountains" };
 export default function LossMountainsPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <BootLine command="play loss-mountains" className="mb-2" />
       <p className="text-sm text-text-muted">Realm 2 &middot; companion game for Gradient Descent &middot; the text version</p>
       <h1 className="mt-1 text-3xl md:text-4xl">Loss Mountains</h1>
       <p className="mt-2 max-w-prose text-text-muted">

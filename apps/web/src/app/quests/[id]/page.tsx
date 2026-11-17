@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { BootLine } from "@/components/ascii/BootLine";
 import { notFound } from "next/navigation";
 import { readCards, readChallenges, readLesson, readQuiz } from "@aiforge/content-schema";
-import { Mira } from "@/components/Mira";
 import { Challenge } from "@/components/challenge/Challenge";
 import { Quiz } from "@/components/mdx/Quiz";
 import { MasteryPanel } from "@/components/progress/MasteryPanel";
@@ -30,7 +28,6 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <BootLine command={`open quests/${quest.id}`} className="mb-2" />
       <p className="text-sm text-text-muted">Realm {quest.realm} &middot; {quest.zone}</p>
       <h1 className="mt-1 text-3xl md:text-4xl">{quest.title}</h1>
       <p className="mt-2 text-text-muted">About {quest.estimatedMinutes} minutes. Verified {quest.verifiedOn}.</p>
@@ -63,7 +60,6 @@ export default async function QuestPage({ params }: { params: Promise<{ id: stri
           </section>
 
           <section aria-labelledby="eib" className="flex flex-wrap items-center gap-4 rounded-[var(--radius)] border border-border bg-surface p-5">
-            <Mira mood="thinking" size={96} />
             <div className="min-w-0 flex-1">
               <h2 id="eib" className="text-xl">Explain it back</h2>
               <p className="mt-2">{quest.explainItBack.prompt}</p>
