@@ -1,0 +1,17 @@
+id: http-and-rest-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - safe-versus-idempotent
+  - status-401-403
+  - redirect-method
+  - predict-parse-status-line
+  - predict-join-headers
+  - predict-backoff
+  - retry-which-methods
+  - spot-bug-no-timeout
+challenges:
+  - parse-response
+  - retry-delay
+interleaveFrom:
+  - python-basics

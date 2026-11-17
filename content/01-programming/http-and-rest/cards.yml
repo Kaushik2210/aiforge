@@ -1,0 +1,26 @@
+- { id: c-request-response, front: "What are the parts of an HTTP request and response?", back: "Request: method, path, headers, optional body. Response: three-digit status code, headers, optional body." }
+- { id: c-safe, front: "Which methods are safe?", back: "GET, HEAD, OPTIONS and TRACE: they are meant only to read, not to change anything." }
+- { id: c-idempotent, front: "What does idempotent mean?", back: "Sending the same request many times has the same intended effect on the server as sending it once. The responses may differ." }
+- { id: c-idem-methods, front: "Which methods are idempotent?", back: "All safe methods, plus PUT and DELETE. POST and PATCH are not by default." }
+- { id: c-put-post, front: "PUT versus POST?", back: "PUT replaces the resource at a known URL (idempotent). POST sends data for the server to process, often creating a new resource (not idempotent)." }
+- { id: c-200-201-204, front: "200 versus 201 versus 204?", back: "200: worked, with a body. 201: a new resource was created (see Location). 204: worked, no body." }
+- { id: c-301-308, front: "What is the difference between 301/302 and 307/308?", back: "301 and 302 let a client change POST to GET when following. 307 and 308 keep the method and body. 301 and 308 are permanent; 302 and 307 are temporary." }
+- { id: c-401-403, front: "401 versus 403?", back: "401: no valid credentials (who are you?). 403: known, but not allowed to do this." }
+- { id: c-404-410, front: "404 versus 410?", back: "404: not found (no promise about why or for how long). 410: gone on purpose, likely for good." }
+- { id: c-400-422, front: "400 versus 422?", back: "400: the request is malformed. 422: well formed, but the server cannot process its content (for example, a field value that breaks a rule)." }
+- { id: c-429, front: "What is 429 and what header may come with it?", back: "Too Many Requests (rate limiting). It may include Retry-After telling you how long to wait." }
+- { id: c-retry-after, front: "What can Retry-After hold?", back: "Either a date or a non-negative whole number of seconds." }
+- { id: c-5xx, front: "What do 500, 502, 503 and 504 mean?", back: "500 server error; 502 bad gateway (bad answer from upstream); 503 unavailable (often temporary); 504 gateway timeout." }
+- { id: c-content-length, front: "How does the receiver find where an HTTP/1.1 body ends?", back: "Content-Length (a byte count), or chunked coding where a zero-size chunk ends the body. If both are present, Transfer-Encoding wins." }
+- { id: c-chunked, front: "What is chunked transfer coding?", back: "The body is sent in pieces, each with its size in hexadecimal, ending with a zero-size piece." }
+- { id: c-header-case, front: "Are header names case-sensitive?", back: "No. Content-Type and content-type are the same header. A header sent twice can usually be read as one header with values joined by a comma (Set-Cookie is the exception)." }
+- { id: c-no-cache, front: "What do no-cache and no-store mean?", back: "no-cache: may store, but must check with the server before reuse. no-store: must not keep the response at all." }
+- { id: c-etag, front: "How do ETag and If-None-Match save work?", back: "The client sends the saved ETag as If-None-Match. If unchanged, the server answers 304 Not Modified with no body." }
+- { id: c-rest, front: "What is REST?", back: "An architectural style (Fielding): client-server, stateless, cacheable, a uniform interface, layered system, and optional code on demand." }
+- { id: c-stateless, front: "What does stateless mean for an API?", back: "Each request carries everything needed to understand it; the server keeps no session between requests." }
+- { id: c-timeout, front: "Why always set a timeout on a network call?", back: "Without one, a dead server can make the call wait with no limit and freeze your program." }
+- { id: c-backoff, front: "What are exponential backoff and jitter?", back: "Wait longer after each failure (for example 0.5, 1, 2, 4 seconds), and add a random amount so many clients do not retry at the same moment." }
+- { id: c-idem-key, front: "What is an Idempotency-Key?", back: "A unique value the client sends with a POST so the server can spot a retry and return the first result. It is an IETF draft, not yet an RFC." }
+- { id: c-problem, front: "What is problem details (RFC 9457)?", back: "A standard JSON error shape served as application/problem+json, with type, title, status, detail and instance." }
+- { id: c-secret, front: "Where should an API token go, and where never?", back: "In the Authorization header, redacted from logs. Never in the URL, the logs or the repository." }
+- { id: c-pagination, front: "Why paginate list responses?", back: "A list may be too big for one response. Follow the next link or cursor until it ends." }

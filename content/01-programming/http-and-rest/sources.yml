@@ -1,0 +1,83 @@
+- title: "RFC 9110: HTTP Semantics"
+  url: "https://www.rfc-editor.org/rfc/rfc9110.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "Safe and idempotent methods (section 9), the meaning of each status code (section 15), Retry-After, ETag and conditional requests."
+
+- title: "RFC 9112: HTTP/1.1"
+  url: "https://www.rfc-editor.org/rfc/rfc9112.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "The message format (start line, headers, empty line, body), the status line, and the rules for Content-Length and chunked coding."
+
+- title: "RFC 9111: HTTP Caching"
+  url: "https://www.rfc-editor.org/rfc/rfc9111.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "What max-age, no-cache and no-store mean, and how a stale response is revalidated with ETag and a 304."
+
+- title: "RFC 9457: Problem Details for HTTP APIs"
+  url: "https://www.rfc-editor.org/rfc/rfc9457.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "The application/problem+json shape and its members: type, title, status, detail and instance."
+
+- title: "RFC 6585: Additional HTTP Status Codes (429 Too Many Requests)"
+  url: "https://www.rfc-editor.org/rfc/rfc6585.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "What 429 means, that it may carry Retry-After, and that a cache must not store it."
+
+- title: "Fielding, Architectural Styles and the Design of Network-based Software Architectures, chapter 5 (REST)"
+  url: "https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm"
+  type: paper
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "The constraints that define REST: client-server, stateless, cache, uniform interface, layered system and optional code on demand."
+
+- title: "IETF draft: The Idempotency-Key HTTP Header Field (draft-ietf-httpapi-idempotency-key-header; an Internet-Draft, not an RFC)"
+  url: "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "How a client-generated key lets a server recognise a retried POST, and the suggested 400, 409 and 422 responses. It is a draft and may change."
+
+- title: "Python docs: http.client"
+  url: "https://docs.python.org/3/library/http.client.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "HTTPConnection, request, getresponse and the timeout argument, and what the status and reason of a response are."
+
+- title: "Python docs: urllib.request"
+  url: "https://docs.python.org/3/library/urllib.request.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "urlopen, its timeout argument, and how error statuses arrive as HTTPError."
+
+- title: "Python docs: json"
+  url: "https://docs.python.org/3/library/json.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "loads and dumps, how JSON types map to Python types, and JSONDecodeError being a ValueError."
+
+- title: "WHATWG HTML Standard: Server-sent events"
+  url: "https://html.spec.whatwg.org/multipage/server-sent-events.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "The text/event-stream format and the EventSource interface, as a bridge to streaming LLM APIs."
+
+- title: "RFC 9114: HTTP/3 (RFC 9113 covers HTTP/2)"
+  url: "https://www.rfc-editor.org/rfc/rfc9114.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "What changes in how HTTP travels (binary frames, multiplexing, QUIC) while the meaning of requests and responses stays the same."

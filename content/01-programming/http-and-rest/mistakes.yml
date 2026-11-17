@@ -1,0 +1,31 @@
+- mistake: "Making a network call with no timeout."
+  why: "A server that stops answering can make the call wait with no limit, freezing the worker."
+  detect: "A worker hangs for hours with no error. Pass a timeout to every call and handle the timeout error."
+
+- mistake: "Retrying a POST without an idempotency key."
+  why: "A timeout or 5xx does not prove the server did nothing. The retry can create a second order or charge."
+  detect: "Duplicate records after an outage. Retry only idempotent methods, or send the same Idempotency-Key on every try."
+
+- mistake: "Retrying immediately and forever."
+  why: "Many clients retrying at once keep a struggling server down, and a loop with no limit never ends."
+  detect: "Traffic spikes after a failure. Use exponential backoff with jitter, a delay cap and a maximum number of attempts."
+
+- mistake: "Treating every non-200 as the same error, or only checking for 200."
+  why: "201 and 204 are successes too, 304 means use your cached copy, and a 4xx and a 5xx need different handling (fix the request or retry)."
+  detect: "Successful creates are reported as failures. Check the class of the status (2xx, 3xx, 4xx, 5xx) and the specific code."
+
+- mistake: "Mixing up 401 and 403."
+  why: "401 means credentials are missing or invalid; 403 means the user is known but not allowed. Clients react differently: re-authenticate or give up."
+  detect: "A client keeps asking users to log in again for a permission problem. Return 403 for permission failures."
+
+- mistake: "Calling json.loads on a body without checking the status or content type."
+  why: "Error pages are often HTML or plain text, so parsing raises JSONDecodeError, and a success body may be empty (204)."
+  detect: "JSONDecodeError in logs during outages. Check the status and Content-Type first, then parse and catch ValueError."
+
+- mistake: "Putting tokens in a URL or writing them to logs."
+  why: "URLs are stored in logs, proxies and browser history, so the secret leaks."
+  detect: "Search logs for key= or Bearer. Send credentials in the Authorization header and redact them before logging."
+
+- mistake: "Assuming a list endpoint returns everything."
+  why: "APIs return one page at a time. Reading only the first page silently drops data."
+  detect: "Counts are always a round number such as 100. Follow the next link or cursor until there are no more pages."

@@ -25,3 +25,6 @@ items:
   - quest: data-structures-and-algorithms
     claim: "Python time-complexity table, deque, heapq, bisect, sorting, functools.cache and recursion-limit behaviour cited"
     verifiedOn: 2026-11-16
+  - quest: http-and-rest
+    claim: "RFC 9110/9112/9111/9457/6585/9113/9114 behaviours cited, Python http.client, urllib.request and json docs, WHATWG server-sent events, and the Idempotency-Key Internet-Draft (draft-ietf-httpapi-idempotency-key-header-08 on 2026-10-22, still a draft)"
+    verifiedOn: 2026-11-17

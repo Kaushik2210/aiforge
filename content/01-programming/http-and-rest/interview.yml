@@ -1,0 +1,35 @@
+- question: "What is the difference between safe and idempotent HTTP methods?"
+  modelAnswer: "A safe method (GET, HEAD, OPTIONS, TRACE) is meant only to read; the client does not ask for a change. An idempotent method has the same intended effect on the server whether it is sent once or many times. All safe methods are idempotent, and PUT and DELETE are idempotent but not safe. POST and PATCH are neither by default. The responses can still differ: a second DELETE may return 404."
+  followUps: ["Why does idempotency matter for retries?", "Is PUT always idempotent in a real service?"]
+
+- question: "When would you use PUT, POST and PATCH?"
+  modelAnswer: "PUT replaces a resource at a URL the client knows, so repeating it gives the same result. POST sends data for the server to process, often creating a new resource, so a repeat may create another. PATCH changes part of a resource and is not guaranteed to be idempotent. For a POST that must be retried, use an idempotency key."
+  followUps: ["What status does a successful create return?", "How would you make a PATCH safe to retry?"]
+
+- question: "Explain 401 versus 403 and 400 versus 422."
+  modelAnswer: "401 means there are no valid credentials, so the client should authenticate. 403 means the server knows who you are and still refuses. 400 means the request itself is malformed, for example broken JSON. 422 means the request is well formed but its content cannot be processed, for example a field that breaks a rule."
+  followUps: ["Why might a server answer 404 instead of 403?", "Which code for a missing required field?"]
+
+- question: "How do you design a safe retry policy for an API client?"
+  modelAnswer: "Retry only requests that are safe to repeat: idempotent methods, or POST with an idempotency key reused across tries. Retry on 429 and on 502, 503 and 504 (and often 500), not on 4xx errors that will fail the same way. Honour Retry-After when present, otherwise use exponential backoff with jitter, a cap on the delay, and a maximum number of attempts. Always set timeouts."
+  followUps: ["Why add jitter?", "What happens if the retry limit is unbounded?"]
+
+- question: "What is an idempotency key and how does a server use it?"
+  modelAnswer: "The client generates a unique value for one action and sends it in an Idempotency-Key header, reusing it on every retry of that action. The server stores the result under that key, so a repeat returns the first result instead of doing the work again. A key reused with a different payload should be rejected. The header is an IETF draft, so APIs define their own rules."
+  followUps: ["How long should keys be kept?", "What if the first request is still running when the retry arrives?"]
+
+- question: "What does it mean that REST is stateless, and what are the other REST constraints?"
+  modelAnswer: "Stateless means each request carries all it needs and the server keeps no session between requests, which makes scaling and caching easier. The other constraints in Fielding's description are client-server, cacheable responses, a uniform interface (identified resources, manipulation through representations, self-descriptive messages, hypermedia), a layered system, and optional code on demand. Many APIs called REST follow only some of these."
+  followUps: ["Where does the session state live then?", "Is JSON over HTTP automatically REST?"]
+
+- question: "How does HTTP caching with ETag work?"
+  modelAnswer: "The server sends an ETag labelling a version of the resource and a Cache-Control header such as max-age. After the copy goes stale, the client sends the ETag back in If-None-Match. If the resource is unchanged, the server returns 304 Not Modified with no body and the client reuses its copy. no-cache means revalidate before reuse; no-store means do not keep it."
+  followUps: ["What is the difference between no-cache and no-store?", "What is Last-Modified for?"]
+
+- question: "How does an HTTP/1.1 receiver know where a message body ends?"
+  modelAnswer: "From Content-Length, a byte count, or from chunked transfer coding, where each chunk states its size in hexadecimal and a chunk of size zero ends the body. If both headers are present, Transfer-Encoding takes precedence, and a sender should not send both. Responses to HEAD requests, and 204 and 304 responses, have no body."
+  followUps: ["Why must a server reject a bad Content-Length?", "How do HTTP/2 and HTTP/3 frame messages?"]
+
+- question: "How should an API client handle secrets and errors in production?"
+  modelAnswer: "Put tokens in the Authorization header from an environment variable or secret store, never in URLs or logs, and redact them before logging. Set timeouts, check the status code before parsing the body, catch JSON decoding errors, and surface the server's error details (for example an RFC 9457 problem details body) without printing credentials."
+  followUps: ["What can go wrong with a token in a query string?", "How would you test the client without a network?"]

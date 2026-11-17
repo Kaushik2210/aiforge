@@ -1,0 +1,329 @@
+---
+id: http-and-rest
+title: HTTP and REST APIs
+realm: 1
+zone: Python foundations
+prerequisites: [python-basics]
+estimatedMinutes: 150
+verifiedOn: 2026-11-17
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "HTTP is a request and response protocol. A client sends a request (a method such as GET or POST, a path, headers and sometimes a body). The server sends back a response (a three-digit status code, headers and sometimes a body). Each exchange stands alone."
+  - "Methods say what the client wants. GET, HEAD, OPTIONS and TRACE are safe: they are meant only to read. PUT and DELETE are idempotent: doing them twice has the same intended effect as doing them once. POST is neither by default."
+  - "Status codes are grouped by their first digit: 2xx worked, 3xx look elsewhere, 4xx the client got something wrong, 5xx the server failed. Use the specific code: 201 for created, 204 for success with no body, 401 for missing or bad credentials, 403 for known but not allowed, 404 for not found."
+  - "A REST API names things (resources) with URLs and uses the standard HTTP methods and status codes to act on them, usually sending JSON. REST is a style of design from Roy Fielding's dissertation, not a file format or a library."
+coreComplexity:
+  - "Safe means read-only in intent; idempotent means repeating has the same intended effect on the server. Every safe method is idempotent, but PUT and DELETE are idempotent without being safe. The responses may differ: the first DELETE may return 204 and the second 404, yet the server ends in the same state."
+  - "A client may retry an idempotent request automatically after a dropped connection, even if the first one may have worked. A POST must not be retried blindly, or you can charge a card twice. An Idempotency-Key header (an IETF draft, not yet an RFC) lets the server spot the duplicate."
+  - "The body length of an HTTP/1.1 message comes from Content-Length (a count of bytes) or from chunked transfer coding (the body is sent in pieces, each with its size, ending with a zero-size piece). If both are present, Transfer-Encoding wins, and a sender should never send both."
+  - "Reading from the network is slow and can hang. A call with no timeout can wait forever, so every network call needs a timeout. Retrying makes things worse if every client retries at the same moment, so spread retries out with exponential backoff and jitter."
+  - "Never put secrets in URLs or logs. A token in a query string ends up in server logs, browser history and proxies. Send it in the Authorization header, and redact it before you log a request."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain why a client may safely retry a failed PUT after a timeout but should be careful retrying a POST, and what a server and client can do to make the POST safe."
+  rubric:
+    - "Says PUT is idempotent (doing it again has the same intended effect as doing it once), so a repeat cannot create a second result, while POST is not idempotent by default and a repeat could do the action twice (for example two orders or two charges)."
+    - "Names the fix: the client sends an Idempotency-Key (a unique value per action) and the server remembers it, so a repeated request returns the first result instead of acting again."
+    - "Mentions that after a timeout the client does not know whether the first request worked, which is why the retry is risky, or mentions backoff or a retry limit."
+miniGame: none-yet
+bossId: http-and-rest-boss
+---
+
+# HTTP and REST APIs
+
+> **Realm 1, Programming Fundamentals.** Guide: *Mira*, the lantern-bearer
+> (an original AIForge character). To reach a faraway tower she sends a
+> messenger with a note. The tower's keeper reads the note and sends one back.
+> That note-and-reply is almost everything HTTP is.
+
+Almost every AI product you will build talks over HTTP: you call a model API,
+a vector database, a webhook. You need to read a request and a response the way
+you read a function call.
+
+<Callout type="note" title="Honest about the browser">
+The code editor on this site runs Python in your browser (Pyodide), and it has no
+network access. So this quest teaches the protocol with **text**: you will parse
+and build HTTP messages in plain Python. Code that really calls a server is shown
+as read-only samples marked *not runnable here*. Try those on your own computer.
+</Callout>
+
+---
+
+## L1. Intuition
+
+**A note and a reply.** The client writes a note: "please GET the page
+`/books/7`". The server reads it and writes back a note: a number that says how
+it went, a few labelled lines (headers), and then the thing you asked for (the
+body). That is a *request* and a *response*.
+
+**Methods are verbs.** `GET` reads. `POST` sends something new to be handled.
+`PUT` replaces a thing. `DELETE` removes it.
+
+**Status codes are the first thing you check.** The first digit tells you the
+story:
+
+| first digit | meaning |
+|---|---|
+| 2xx | it worked |
+| 3xx | go somewhere else, or nothing changed |
+| 4xx | you (the client) made a mistake |
+| 5xx | the server had a problem |
+
+**A REST API is a tidy way to lay this out.** The things you care about
+(*resources*, like a book or an order) get names that are URLs, such as
+`/books/7`. You use the usual methods on them: `GET /books/7` reads book 7,
+`DELETE /books/7` removes it. The server forgets you between requests
+(*stateless*), so each request carries everything needed to understand it.
+
+<Callout type="warn" title="Where this picture misleads">
+Many "REST APIs" in the wild are really just "JSON over HTTP". Roy Fielding's
+original idea has more constraints (for example, hypermedia links that tell the
+client what it can do next). Calling an API REST is common and fine, but know
+that the word is looser in daily use than in the dissertation.
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### What a message looks like
+
+This is the whole response, as text. Lines end with CRLF (a carriage return and
+a line feed). An empty line ends the headers.
+
+```text
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 17
+
+{"title": "Dune"}
+```
+
+(Shown with plain line breaks for reading; on the wire each line ends in `\r\n`.)
+
+In RFC 9112, the status line is the version, a space, a three-digit code, a space
+and an optional reason phrase. The space stays even when the phrase is empty.
+Clients should rely on the code and ignore the reason text. No space is allowed
+between a header name and its colon. Header names are not case-sensitive.
+
+A request looks the same, with a request line first:
+
+```text
+GET /books/7 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+```
+
+### Where the body ends
+
+The receiver has to know where the body stops, or the next message would run into
+it. HTTP/1.1 has two ways:
+
+- **`Content-Length: 17`**: the body is exactly 17 bytes.
+- **`Transfer-Encoding: chunked`**: the body comes in pieces. Each piece starts
+  with its size in hexadecimal, then the data. A piece of size 0 ends the body.
+
+If both appear, `Transfer-Encoding` wins, and a sender should not send both.
+(Our challenge counts characters rather than bytes, and does not do chunked, to
+keep the code short. Real HTTP counts bytes.)
+
+### Safe and idempotent methods
+
+| method | safe | idempotent |
+|---|---|---|
+| GET, HEAD, OPTIONS, TRACE | yes | yes |
+| PUT, DELETE | no | yes |
+| POST | no | no (by default) |
+| PATCH | no | no (by default) |
+
+*Safe* means the client does not ask for, and does not expect, a change on the
+server. *Idempotent* means that sending the same request many times has the same
+intended effect as sending it once. The *response* may be different: the first
+`DELETE /books/7` returns 204, the second returns 404, but the server ends up
+in the same state both times. (PATCH is defined in a separate RFC, 5789; it is
+not promised to be idempotent.)
+
+This matters for one reason: **if a connection drops, you do not know whether the
+server did the work**. An idempotent request can be repeated safely. A POST cannot.
+
+### Status codes you must know
+
+| code | meaning, in plain words |
+|---|---|
+| 200 OK | worked; the body has the result |
+| 201 Created | a new resource was made; `Location` points to it |
+| 204 No Content | worked; there is nothing to send back |
+| 301 / 308 | moved permanently (308 keeps the method) |
+| 302 / 307 | moved temporarily (307 keeps the method) |
+| 304 Not Modified | your cached copy is still good |
+| 400 Bad Request | the request is malformed |
+| 401 Unauthorized | no valid credentials (despite the name, it is about who you are) |
+| 403 Forbidden | we know who you are, and you may not do this |
+| 404 Not Found | nothing here, or the server will not say |
+| 410 Gone | it was here and was removed on purpose |
+| 422 Unprocessable Content | the body is well formed but its content cannot be processed |
+| 429 Too Many Requests | you are sending too many; may include `Retry-After` |
+| 500 / 502 / 503 / 504 | server error, bad gateway, unavailable, gateway timeout |
+
+Redirects: 301 and 302 allow a client to change POST to GET when it follows them,
+for historical reasons. 307 and 308 were added so that the method and body stay
+the same.
+
+### Headers worth knowing
+
+- `Content-Type`: what the body is (`application/json`).
+- `Accept`: what the client would like back.
+- `Authorization`: the credentials, for example `Bearer <token>`.
+- `Cache-Control`: how long a response may be reused (`max-age=60`), or `no-store`.
+- `ETag`: a label for the current version of a resource. The client can send it
+  back as `If-None-Match`, and if nothing changed, the server answers
+  `304 Not Modified` with no body.
+- `Retry-After`: how long to wait, as a number of seconds or a date.
+- `Location`: where a new or moved resource is.
+
+Note that `no-cache` does *not* mean "do not store". It means "check with the server
+before you reuse it". `no-store` means do not keep it.
+
+A header that appears twice can be read as one header whose values are joined
+with a comma (`Set-Cookie` is the known exception, so do not join it).
+
+### JSON in Python
+
+```python
+import json
+
+text = '{"title": "Dune", "pages": 412, "tags": ["sf"], "read": true, "note": null}'
+book = json.loads(text)          # str -> dict
+book["pages"]                    # 412
+book["read"]                     # True (JSON true becomes Python True)
+book["note"]                     # None (JSON null)
+json.dumps({"a": 1, "b": None})  # '{"a": 1, "b": null}'
+```
+
+Bad JSON raises `json.JSONDecodeError`, which is a kind of `ValueError`. A tuple
+becomes a JSON array and comes back as a list, and dict keys always become
+strings.
+
+### Making a real call (not runnable here)
+
+```python
+# NOT RUNNABLE HERE: the browser sandbox has no network.
+import json
+import urllib.request
+import urllib.error
+
+request = urllib.request.Request(
+    "https://api.example.com/books/7",
+    headers={"Accept": "application/json"},
+)
+try:
+    with urllib.request.urlopen(request, timeout=5) as response:   # always a timeout
+        print(response.status)
+        book = json.loads(response.read())
+except urllib.error.HTTPError as e:      # 4xx and 5xx arrive as exceptions here
+    print("server said", e.code)
+except urllib.error.URLError as e:       # no connection, DNS failure, ...
+    print("could not connect:", e.reason)
+```
+
+`urllib.request` raises `HTTPError` for error statuses, so you must catch them.
+The Python docs point to the third-party `requests` package as a friendlier
+client for everyday work, and the lower-level `http.client` is what `urllib`
+uses underneath. (`example.com` hosts are placeholders here.)
+
+<Step prompt="a server returns 404 for the first DELETE /books/7 after a retry. Was the retry wrong?">
+No. DELETE is idempotent: the first call probably worked and the retry found the
+book already gone. The state is the same either way. If your code treats "already
+gone" as success for a DELETE, the retry is harmless.
+</Step>
+
+---
+
+## L3. Build it
+
+Two challenges. Run them in the browser editor (Pyodide) or locally with
+`python tests.py <file>`. Neither needs a network.
+
+1. **`parse-response`**: turn the text of an HTTP/1.1 response into
+   `(status_code, reason, headers, body)`. Header lookup ignores case, repeated
+   headers are joined with `", "`, the body obeys `Content-Length` and ignores
+   extra text, bare line feeds work, and a broken status line raises
+   `ValueError` with a clear message. This is the work `http.client` does for you
+   every time, done by hand.
+2. **`retry-delay`**: decide whether and when to retry a failed request. Only
+   GET, HEAD, PUT, DELETE and OPTIONS retry (TRACE is left out on purpose), unless an `Idempotency-Key` is present. 429 and 503
+   honour a whole-second `Retry-After`; 500, 502 and 504 use exponential backoff
+   (0.5 s, doubling, capped at 8 s); and there is a limit on the number of
+   retries.
+
+**Why text and not the network.** A test that needs a server is slow, flaky and
+impossible in the browser. A function that reads a string and returns a value
+is exact, fast and easy to test.
+
+---
+
+## L4. Production reality
+
+- **Always set a timeout.** A call with no timeout can wait forever and freeze your
+  worker. Use a short connect timeout and a longer read timeout where your client
+  allows it.
+- **Retry only what is safe, and wait longer each time.** Retry idempotent
+  requests, and retry on 429 and on 500, 502, 503 and 504 (the challenge does the same). Do not retry a 400 or a 404:
+  it will fail the same way. Wait with exponential backoff, and add **jitter**
+  (a random amount) so a thousand clients do not all come back at the same
+  instant. Set a maximum number of tries.
+- **Honour `Retry-After`.** On 429 and 503 the server is telling you how long to
+  wait. Your code should parse it (a number of seconds or a date).
+- **Idempotency keys for POST.** Generate one unique key per action (a UUID), send
+  it as `Idempotency-Key`, and reuse the *same* key on every retry of that action.
+  The server then returns the first result instead of acting again. This header
+  is an IETF Internet-Draft at the time of writing, and APIs that support it
+  define their own rules, so read their docs.
+- **Respect rate limits.** A 429 means slow down. Spread requests out, and batch
+  where the API allows it.
+- **Paginate.** Never assume a list comes back all at once. Follow the `next` link
+  or cursor the API gives you until it ends, and stop if a page is empty.
+- **Never log secrets.** Keep tokens in the `Authorization` header (not in the URL),
+  and redact them before you log a request. Keys belong in environment variables
+  or a secret store, not in your code or your repository.
+- **Check the status before you parse.** Do not call `json.loads` on an error
+  page. Check the status, then the `Content-Type`, then parse, and handle
+  `JSONDecodeError`.
+- **Failure at 3 a.m.:** a worker hangs for hours. Look for a call with no
+  timeout, a retry loop with no limit or no backoff, or a POST that was retried
+  without an idempotency key and created duplicates.
+
+---
+
+## L5. Frontier
+
+Read these, in this order, and look for the stated thing:
+
+1. RFC 9110 (HTTP Semantics): read sections 9 (methods) and 15 (status codes) for
+   the exact meaning of safe, idempotent and each code.
+2. RFC 9112 (HTTP/1.1): read the message format and the framing rules for
+   `Content-Length` and chunked.
+3. RFC 9111 (caching): read what `max-age`, `no-cache` and `no-store` do, and how a
+   stale response is revalidated with a conditional request.
+4. Fielding's dissertation, chapter 5 (REST): read the list of constraints and see
+   which of them real "REST" APIs often skip.
+5. RFC 9457 (problem details): a standard JSON shape for errors, served as
+   `application/problem+json`, with members `type`, `title`, `status`, `detail`
+   and `instance`. Read for why a machine-readable error beats a bare string.
+
+**HTTP/2 and HTTP/3, at a high level.** The meaning of requests and responses
+stays the same; how they travel changes. HTTP/2 (RFC 9113) sends binary frames,
+runs many requests at once over one connection, and compresses headers. HTTP/3
+(RFC 9114) runs on QUIC instead of TCP, so a lost packet delays only the stream
+it belongs to. Your code that says `GET /books/7` does not change.
+
+**Bridge to later realms: streaming.** LLM APIs often stream their answer a few
+words at a time. A common way is *server-sent events*: the server keeps one
+response open and sends lines such as `data: ...`, with a blank line after each
+event, using the content type `text/event-stream`. The browser's `EventSource`
+reconnects by itself and can send the last event id back. Whether a given LLM
+API uses this exact format is something to check in that API's docs (Realm 7).
+
+Open questions to carry forward: how to design an API that can change without
+breaking clients, how to combine idempotency keys with a queue, and what
+authentication schemes (API keys, OAuth) look like in practice.

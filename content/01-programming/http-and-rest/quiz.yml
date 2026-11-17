@@ -1,0 +1,274 @@
+- id: safe-versus-idempotent
+  question: "Which statement about HTTP methods is correct?"
+  options:
+    - "DELETE is safe and idempotent"
+    - "POST is idempotent but not safe"
+    - "PUT is idempotent but not safe"
+    - "GET is safe but not idempotent"
+  answer: 2
+  explanation: "Safe methods (GET, HEAD, OPTIONS, TRACE) are meant only to read. PUT and DELETE change things, so they are not safe, but repeating them has the same intended effect, so they are idempotent. POST is neither by default."
+  whyWrong:
+    "0": "DELETE removes something, so it is not safe."
+    "1": "POST can create a new thing each time, so it is not idempotent by default."
+    "3": "Every safe method is also idempotent."
+
+- id: created-status
+  question: "A POST /orders request creates a new order. Which status code fits best?"
+  options:
+    - "201 Created, with a Location header pointing at the new order"
+    - "200 OK with no other information"
+    - "204 No Content, because nothing was found"
+    - "302 Found, because the order is somewhere else"
+  answer: 0
+  explanation: "201 says a new resource was created, and Location tells the client where it is. 200 would also be understood, but 201 is the precise answer."
+  whyWrong:
+    "1": "200 works but does not tell the client a resource was created."
+    "2": "204 means success with no body, and it does not say anything was created."
+    "3": "302 is a redirect, which this is not."
+
+- id: status-401-403
+  question: "A request has a valid login token, but the user is not allowed to delete this project. Which status fits best?"
+  options:
+    - "401 Unauthorized"
+    - "422 Unprocessable Content"
+    - "404 Not Found, always"
+    - "403 Forbidden"
+  answer: 3
+  explanation: "403 means the server knows who you are and will not do it. 401 is for missing or invalid credentials."
+  whyWrong:
+    "0": "401 would mean the credentials are missing or not valid, which they are not here."
+    "1": "422 is about a request body that cannot be processed, not about permission."
+    "2": "A server may hide a forbidden thing behind 404, but 403 is the plain, honest answer."
+
+- id: redirect-method
+  question: "A client sends POST /old-form and gets back 307 with a Location header. What should it do?"
+  options:
+    - "Send a GET to the new location"
+    - "Send the POST again to the new location, with the same method and body"
+    - "Give up, because redirects only work for GET"
+    - "Wait for Retry-After"
+  answer: 1
+  explanation: "307 (and 308) were added so that the method and body are kept. With 301 and 302, clients are allowed to change POST to GET."
+  whyWrong:
+    "0": "That is the old behaviour of 301 and 302, not of 307."
+    "2": "A client can follow a 307 for a POST; it just has to keep the method."
+    "3": "Retry-After is not part of a plain redirect."
+
+- id: predict-parse-status-line
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    line = "HTTP/1.1 404 Not Found"
+    version, code, reason = line.split(" ", 2)
+    print(code, "|", reason)
+  options:
+    - "HTTP/1.1 | 404"
+    - "404 | Not"
+    - "Not Found | 404"
+    - "404 | Not Found"
+  answer: 3
+  explanation: "split(' ', 2) cuts at most twice, so the reason phrase, which has a space inside it, stays in one piece."
+  whyWrong:
+    "0": "That prints the first two parts; the code of the status is the second part and reason the third."
+    "1": "Without the limit of 2, a plain split() would break the reason into words."
+    "2": "The code comes second and the reason third, not the other way round."
+
+- id: predict-header-partition
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    line = "Date: Tue, 17 Nov 2026 10:30:00 GMT"
+    name, sep, value = line.partition(":")
+    print(name.lower(), "|", value.strip())
+  options:
+    - "date | Tue, 17 Nov 2026 10:30:00 GMT"
+    - "date | Tue, 17 Nov 2026 10"
+    - "Date | 17 Nov 2026"
+    - "date: tue, 17 nov 2026 10:30:00 gmt | "
+  answer: 0
+  explanation: "partition splits at the first colon only, so the colons inside the time stay in the value. Lower-casing the name makes it case-insensitive; strip removes the space after the colon."
+  whyWrong:
+    "1": "split(':') would cut at every colon, but partition stops at the first."
+    "2": "That drops text; partition keeps the whole value."
+    "3": "partition found the first colon, so the name and value are separate."
+
+- id: predict-join-headers
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    headers = {}
+    for name, value in [("Vary", "Accept"), ("vary", "Origin"), ("X-Id", "7")]:
+        key = name.lower()
+        headers[key] = headers[key] + ", " + value if key in headers else value
+    print(headers)
+  options:
+    - "{'vary': 'Origin', 'x-id': '7'}"
+    - "{'vary': 'Accept, Origin', 'x-id': '7'}"
+    - "{'Vary': 'Accept', 'vary': 'Origin', 'X-Id': '7'}"
+    - "{'vary': 'Accept,Origin', 'x-id': '7'}"
+  answer: 1
+  explanation: "The names are lower-cased, so both Vary lines land on the same key and are joined in order with a comma and a space."
+  whyWrong:
+    "0": "That keeps only the last value, losing 'Accept'."
+    "2": "That keeps the original case, so the two Vary lines would not be treated as one header."
+    "3": "The join text is ', ' with a space."
+
+- id: predict-content-length
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    rest = "helloEXTRA"
+    length = int("5")
+    print(rest[:length], len(rest) >= length)
+  options:
+    - "helloEXTRA True"
+    - "hello False"
+    - "hello True"
+    - "EXTRA True"
+  answer: 2
+  explanation: "Content-Length says the body is the first 5 characters, so the extra text is ignored. The text is long enough, so the check is True."
+  whyWrong:
+    "0": "That would read past the declared length."
+    "1": "The text has 10 characters, so it is long enough."
+    "3": "The slice keeps the start, not the end."
+
+- id: predict-backoff
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    base, cap = 0.5, 8.0
+    print([min(cap, base * 2 ** attempt) for attempt in range(6)])
+  options:
+    - "[0.5, 1.0, 2.0, 4.0, 8.0, 8.0]"
+    - "[0.5, 1.0, 1.5, 2.0, 2.5, 3.0]"
+    - "[1.0, 2.0, 4.0, 8.0, 16.0, 32.0]"
+    - "[0.5, 1.0, 2.0, 4.0, 8.0, 16.0]"
+  answer: 0
+  explanation: "The delay doubles each time (0.5, 1, 2, 4, 8). The next doubling would be 16, but min with the cap of 8 holds it at 8."
+  whyWrong:
+    "1": "That adds 0.5 each time, which is linear, not exponential."
+    "2": "That starts one doubling too late and ignores the cap."
+    "3": "The cap stops it at 8.0."
+
+- id: predict-json-roundtrip
+  kind: predict-output
+  question: "What does this print?"
+  code: |
+    import json
+
+    data = {"ok": True, "note": None, "items": (1, 2)}
+    print(json.loads(json.dumps(data)))
+  options:
+    - "{'ok': True, 'note': None, 'items': (1, 2)}"
+    - "{'ok': 'true', 'note': 'null', 'items': [1, 2]}"
+    - "{'ok': true, 'note': null, 'items': [1, 2]}"
+    - "{'ok': True, 'note': None, 'items': [1, 2]}"
+  answer: 3
+  explanation: "JSON true and null come back as True and None, but JSON has no tuple: a tuple is written as an array and read back as a list."
+  whyWrong:
+    "0": "The tuple does not survive a round trip; it becomes a list."
+    "1": "Booleans and null come back as real Python values, not strings."
+    "2": "That is JSON text, but print shows Python values, which use True and None."
+
+- id: retry-which-methods
+  question: "A POST /payments request times out. The client does not know whether the server processed it. What is the safest way to retry?"
+  options:
+    - "Send it again at once; the server will work it out"
+    - "Send it again with the same Idempotency-Key as the first try"
+    - "Never send it again"
+    - "Send it again with a new random Idempotency-Key each time"
+  answer: 1
+  explanation: "Reusing the same key tells the server this is the same action, so it can return the first result instead of charging twice. A new key each time would look like a new payment."
+  whyWrong:
+    "0": "Without a key, the server may take it as a second payment."
+    "2": "Never retrying loses requests that did not reach the server."
+    "3": "A different key means a different action, so a double charge is possible."
+
+- id: retry-after-meaning
+  question: "A 429 response has the header Retry-After: 30. What should a well-behaved client do?"
+  options:
+    - "Retry immediately, once"
+    - "Treat it as a permanent error and stop forever"
+    - "Wait at least 30 seconds before sending another request"
+    - "Change the method to GET and retry"
+  answer: 2
+  explanation: "429 means too many requests, and Retry-After says how long to wait. A number is a count of seconds; it may also be a date."
+  whyWrong:
+    "0": "Retrying at once is the behaviour the server is asking you to stop."
+    "1": "429 is a temporary slow-down signal, not a permanent failure."
+    "3": "Changing the method does not change the rate limit."
+
+- id: content-length-chunked
+  question: "A response has no Content-Length header but says Transfer-Encoding: chunked. How does the client know where the body ends?"
+  options:
+    - "A chunk of size 0 marks the end of the body"
+    - "When the connection is closed, always"
+    - "After exactly 1024 bytes"
+    - "At the first empty line"
+  answer: 0
+  explanation: "In chunked coding each piece starts with its size in hexadecimal, and a piece of size 0 ends the body."
+  whyWrong:
+    "1": "Chunked coding exists so that the connection can stay open for the next message."
+    "2": "There is no fixed size; each chunk states its own."
+    "3": "The first empty line ends the headers, not the body."
+
+- id: spot-bug-no-timeout
+  kind: spot-bug
+  question: "This worker sometimes hangs for hours when the remote server stops answering. What is the problem?"
+  code: |
+    import urllib.request
+
+    def fetch(url):
+        with urllib.request.urlopen(url) as response:
+            return response.read()
+  options:
+    - "The url must be passed as bytes"
+    - "The with statement keeps the connection open too long"
+    - "response.read() cannot read the whole body"
+    - "urlopen is called with no timeout, so it can wait on a dead connection with no limit"
+  answer: 3
+  explanation: "Without a timeout argument, the call uses the global default, which is normally no limit. Pass timeout=5 (or a suitable number) so a dead server raises an error instead of freezing the worker."
+  whyWrong:
+    "0": "urlopen takes a string URL or a Request object."
+    "1": "The with statement closes the connection when the block ends."
+    "2": "read() returns the whole body when no size is given."
+
+- id: spot-bug-retry-post
+  kind: spot-bug
+  question: "A client retries any request that fails with a 503. Customers report duplicate orders. What is the bug?"
+  code: |
+    def send(method, url, body, post):
+        for attempt in range(5):
+            response = post(method, url, body)
+            if response.status != 503:
+                return response
+        raise RuntimeError("gave up")
+  options:
+    - "It should compare status with 500, not 503"
+    - "It retries only five times"
+    - "It retries POST requests with no idempotency key, so an order that was actually created gets created again"
+    - "It should never return a response"
+  answer: 2
+  explanation: "A 503 on a POST does not prove the work was not done. Only retry idempotent methods, or add an Idempotency-Key that the server uses to spot the duplicate. Backoff is also missing."
+  whyWrong:
+    "0": "503 is a normal status to retry for safe requests."
+    "1": "A limit of five is sensible; the problem is what is retried."
+    "3": "Returning the response is the point of the function."
+
+- id: spot-bug-token-in-url
+  kind: spot-bug
+  question: "What is wrong with this way of calling an API?"
+  code: |
+    url = f"https://api.example.com/books?api_key={API_KEY}"
+    logger.info("GET %s", url)
+  options:
+    - "logger.info cannot take two arguments"
+    - "The key is in the URL and gets written to the log, where anyone with log access can read it"
+    - "The url should be https, not http"
+    - "f-strings cannot hold variables"
+  answer: 1
+  explanation: "URLs end up in logs, proxies and browser history. Send the key in an Authorization header, and redact it before logging."
+  whyWrong:
+    "0": "logger.info accepts a format string and arguments."
+    "2": "The URL already uses https."
+    "3": "f-strings are made to hold variables."
