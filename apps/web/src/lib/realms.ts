@@ -8,7 +8,7 @@ export interface Realm {
 }
 
 export const REALMS: Realm[] = [
-  { n: 1, name: "Programming Fundamentals", blurb: "Python, Git, HTTP, the CLI", quest: "python-basics", questCount: 7 },
+  { n: 1, name: "Programming Fundamentals", blurb: "Python, Git, HTTP, the CLI", quest: "python-basics", questCount: 8 },
   { n: 2, name: "Maths and ML Foundations", blurb: "Gradients, probability, first models", quest: "gradient-descent", questCount: 1 },
   { n: 3, name: "Data Engineering", blurb: "NumPy, pandas, SQL, clean datasets" },
   { n: 4, name: "Deep Learning", blurb: "Backprop, optimisers, attention" },

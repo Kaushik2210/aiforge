@@ -9,6 +9,8 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   fullyParallel: true,
+  // Several pages draw 3D with software WebGL in CI and on laptops; two workers keep the timing-based tests steady.
+  workers: 2,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: { baseURL: `http://localhost:${port}`, channel, trace: "retain-on-failure" },
