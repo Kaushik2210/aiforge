@@ -1,0 +1,167 @@
+- title: "Pro Git: What is Git? (snapshots, three states)"
+  url: "https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "Git stores snapshots rather than differences, nearly every operation is local, everything is checksummed, and the working tree, staging area and Git directory."
+
+- title: "Pro Git: Git Objects"
+  url: "https://git-scm.com/book/en/v2/Git-Internals-Git-Objects"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "How blobs, trees and commits are stored under .git/objects, and how an id comes from a header plus the content."
+
+- title: "Pro Git: Git References"
+  url: "https://git-scm.com/book/en/v2/Git-Internals-Git-References"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "Branches as files holding a commit id, HEAD as a symbolic ref, detached HEAD, and lightweight versus annotated tags."
+
+- title: "Pro Git: Basic Branching and Merging"
+  url: "https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "Fast-forward versus three-way merges, merge commits with two parents, and how conflict markers look."
+
+- title: "Pro Git: Rebasing"
+  url: "https://git-scm.com/book/en/v2/Git-Branching-Rebasing"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "How rebase replays commits, and why you must not rebase commits that others already have."
+
+- title: "Pro Git: Undoing Things"
+  url: "https://git-scm.com/book/en/v2/Git-Basics-Undoing-Things"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "commit --amend, unstaging, git restore, and which undo steps can lose uncommitted work."
+
+- title: "Pro Git: Reset Demystified"
+  url: "https://git-scm.com/book/en/v2/Git-Tools-Reset-Demystified"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "The three trees (HEAD, index, working directory) and how --soft, --mixed and --hard move them."
+
+- title: "Pro Git: Revision Selection"
+  url: "https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "HEAD@{n}, parent references with ^ and ~, and ranges with two dots."
+
+- title: "Git documentation: git-merge-base"
+  url: "https://git-scm.com/docs/git-merge-base"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "The definition of a best common ancestor, why criss-cross merges can have several, and --all and --is-ancestor."
+
+- title: "Git documentation: git-hash-object"
+  url: "https://git-scm.com/docs/git-hash-object"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "How to compute an object id for a file or standard input, and the -t and -w options."
+
+- title: "Git documentation: git-reflog"
+  url: "https://git-scm.com/docs/git-reflog"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "What the reflog records, that it is local, and the default expiry times of its entries."
+
+- title: "Git documentation: gitignore"
+  url: "https://git-scm.com/docs/gitignore"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "Pattern rules, precedence, and why an ignore file does not affect files that are already tracked."
+
+- title: "Git documentation: git-reset"
+  url: "https://git-scm.com/docs/git-reset"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "What --soft, --mixed and --hard each change in HEAD, the index and the working tree."
+
+- title: "Git documentation: git-rebase"
+  url: "https://git-scm.com/docs/git-rebase"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "How rebase replays commits, --continue and --abort, interactive mode, and recovering from an upstream rebase."
+
+- title: "Git documentation: hash function transition"
+  url: "https://git-scm.com/docs/hash-function-transition"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "The design for moving from SHA-1 to SHA-256 and what interoperability it promises; it is a plan, not a status page."
+
+- title: "GitHub Docs: About pull requests"
+  url: "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "What a pull request is, draft pull requests, and the merge status box."
+
+- title: "GitHub Docs: About protected branches"
+  url: "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "What a branch protection rule can require: reviews, status checks, signed commits and linear history, and blocked force pushes."
+
+- title: "GitHub Docs: About rulesets"
+  url: "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "How rulesets layer on one branch, can be switched off, and have a bypass list."
+
+- title: "GitHub Docs: Removing sensitive data from a repository"
+  url: "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "Rotate the secret first, then rewrite history with git-filter-repo, and why forks, clones and cached views still hold the data."
+
+- title: "GitHub Docs: Understanding GitHub Actions"
+  url: "https://docs.github.com/en/actions/get-started/understand-github-actions"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "Workflows, events, jobs, steps, actions and runners, and where workflow files live."
+
+- title: "GitHub Docs: Managing your personal access tokens"
+  url: "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "Fine-grained versus classic tokens, expiry, minimal scope, and keeping tokens out of plain text."
+
+- title: "GitHub Docs: About commit signature verification"
+  url: "https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "GPG, SSH and S/MIME signing, the Verified status, and why rebase and merge on GitHub drops signatures."
+
+- title: "GitHub Docs: About large files on GitHub"
+  url: "https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "The 50 MiB warning and 100 MiB block, repository size advice, and Git LFS."
+
+- title: "DVC documentation: internal files (the cache)"
+  url: "https://doc.dvc.org/user-guide/project-structure/internal-files"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-17
+  readFor: "A content-addressed cache outside Git, where Git tracks only small pointer files."

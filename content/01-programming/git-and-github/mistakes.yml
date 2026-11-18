@@ -1,0 +1,31 @@
+- mistake: "Committing a secret (an API key or token) and then just deleting it in the next commit."
+  why: "The old commit is still in the history, and anyone with a clone, a fork or the commit id can read it. Treat the secret as leaked."
+  detect: "Search history, not just the current files (for example git log -p -S with part of the key). Revoke and rotate the key first, then rewrite history if needed."
+
+- mistake: "Rebasing or amending commits that are already pushed and shared."
+  why: "Rebase and amend make new commits with new ids. Teammates still have the old ones, and the two lines of history collide."
+  detect: "A push is rejected, or teammates see the same commits twice after a pull. Rewrite only your own unshared commits."
+
+- mistake: "Running git reset --hard (or git restore .) without checking what is uncommitted."
+  why: "It overwrites the working tree. Changes that were never committed cannot be brought back, because Git never saved them."
+  detect: "Run git status and git diff first. Commit or stash your work, because committed work can be found again with the reflog."
+
+- mistake: "Adding a file to .gitignore and expecting Git to forget it."
+  why: "An ignore file only affects untracked files. A file already committed stays tracked and its changes keep showing up."
+  detect: "The file still appears in git status. Run git rm --cached on it, commit, and keep the ignore rule."
+
+- mistake: "Force-pushing a shared branch with plain --force."
+  why: "It overwrites the remote branch even if a teammate pushed something new, and their commits can be lost."
+  detect: "A teammate says their commits vanished. Avoid force pushes on shared branches, and use --force-with-lease on your own branch, which refuses if the remote moved."
+
+- mistake: "Writing commit messages like 'fix' or 'stuff', and mixing many topics in one commit."
+  why: "History is a record for people. A vague message and a large mixed commit make review, bisecting and reverting much harder."
+  detect: "You cannot tell what a commit did from git log --oneline. Make one topic per commit and start the message with a short imperative line."
+
+- mistake: "Making commits on a detached HEAD and then switching away."
+  why: "Those commits are on no branch. Nothing points to them, so they look lost, and in time Git may delete them."
+  detect: "git status says HEAD detached. Create a branch with git switch -c before you leave, or find the commit again in git reflog."
+
+- mistake: "Committing large binary files or datasets straight into the repository."
+  why: "Git keeps every version forever, so the repository grows with each change. GitHub warns above 50 MiB and blocks files above 100 MiB."
+  detect: "Cloning gets slow or a push is refused. Use Git LFS or a data tool such as DVC and keep a small pointer in Git."

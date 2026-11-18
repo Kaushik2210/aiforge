@@ -1,0 +1,283 @@
+- id: three-areas
+  question: "You edit a file, run git add on it, and then edit it again before committing. What will git commit save?"
+  options:
+    - "Both versions, as two commits"
+    - "The file as it is now in the working tree"
+    - "The file as it was when you ran git add (the staged version)"
+    - "Nothing, because the file changed after git add"
+  answer: 2
+  explanation: "A commit saves what is in the index (the staging area), which holds the content from the moment you ran git add. The second edit is only in the working tree until you stage it again."
+  whyWrong:
+    "0": "One git commit makes one commit."
+    "1": "The working tree is not what a commit reads. Only staged content goes in."
+    "3": "The staged version is still there, so the commit works."
+
+- id: snapshots
+  question: "Which statement about how Git stores history is correct?"
+  options:
+    - "Each commit points to a snapshot of the whole project, and unchanged files reuse the content already stored"
+    - "Each commit stores only the lines that changed since the last commit"
+    - "Each branch stores its own full copy of every file"
+    - "Git stores file names inside the blobs"
+  answer: 0
+  explanation: "Git records snapshots. A commit points to a tree for the whole project, and a file that did not change points to the same blob as before, so it is stored once."
+  whyWrong:
+    "1": "That describes delta-based systems. Git thinks in snapshots (it may pack data to save space, but the model is snapshots)."
+    "2": "A branch is just a pointer to a commit, so it costs almost nothing."
+    "3": "A blob holds only content. Names live in the tree."
+
+- id: predict-hash-header
+  kind: predict-output
+  question: "Git hashes a header made from the kind, a space, the length in bytes and a NUL byte, then the content. What does this print?"
+  code: |
+    text = "café"
+    data = text.encode("utf-8")
+    print(b"blob " + str(len(data)).encode() + b"\0")
+  options:
+    - "b'blob 4\\x00'"
+    - "b'blob caf\\xc3\\xa9\\x00'"
+    - "b'blob 5'"
+    - "b'blob 5\\x00'"
+  answer: 3
+  explanation: "The accented letter takes two bytes in UTF-8, so the text has 4 characters but 5 bytes. The header uses the byte count, and the NUL byte shows as \\x00 in the printed bytes."
+  whyWrong:
+    "0": "4 is the number of characters. Git counts bytes."
+    "1": "Only the length goes into the header, not the content."
+    "2": "The NUL byte is part of the header and is printed."
+
+- id: predict-empty-blob
+  kind: predict-output
+  question: "What does this print? (The empty file has a famous id in every Git repository.)"
+  code: |
+    import hashlib
+    print(hashlib.sha1(b"blob 0\0").hexdigest()[:7])
+  options:
+    - "da39a3e"
+    - "e69de29"
+    - "0000000"
+    - "b'blob 0'"
+  answer: 1
+  explanation: "Git hashes the header blob 0 plus a NUL byte even for empty content, and the id starts with e69de29. da39a3e is the SHA-1 of nothing at all, with no header."
+  whyWrong:
+    "0": "That is SHA-1 of an empty input with no header. Git adds the header first."
+    "2": "A SHA-1 value is never a row of zeros here."
+    "3": "hexdigest returns a hex string, not bytes."
+
+- id: predict-merge-parents
+  kind: predict-output
+  question: "In this graph m is a merge commit whose first parent is t. What does this print when it follows first parents only?"
+  code: |
+    g = {"m": ["t", "s"], "t": ["r"], "s": ["r"], "r": []}
+    c, path = "m", []
+    while c:
+        path.append(c)
+        c = g[c][0] if g[c] else None
+    print(path)
+  options:
+    - "['m', 't', 's', 'r']"
+    - "['m', 's', 'r']"
+    - "['m', 't']"
+    - "['m', 't', 'r']"
+  answer: 3
+  explanation: "The first parent of a merge is the branch you were on. Following only first parents goes m, then t, then r, and r has no parent, so it stops. This is the same walk as git log --first-parent."
+  whyWrong:
+    "0": "That visits both parents, but the loop only follows the first."
+    "1": "s is the second parent, so a first-parent walk skips it."
+    "2": "t has a parent r, so the walk continues."
+
+- id: predict-ancestors
+  kind: predict-output
+  question: "A commit counts as its own ancestor in git merge-base. What does this print?"
+  code: |
+    g = {"c": ["b"], "b": ["a"], "a": []}
+    seen, stack = {"c"}, ["c"]
+    while stack:
+        for p in g[stack.pop()]:
+            if p not in seen:
+                seen.add(p)
+                stack.append(p)
+    print(sorted(seen))
+  options:
+    - "['a', 'b', 'c']"
+    - "['a', 'b']"
+    - "['c']"
+    - "['c', 'b', 'a']"
+  answer: 0
+  explanation: "The set starts with c itself, then the loop adds b and a. sorted() puts them in alphabetical order."
+  whyWrong:
+    "1": "The set starts with c, so it is included."
+    "2": "The loop follows parents, so it also finds b and a."
+    "3": "sorted() returns alphabetical order, not the walking order."
+
+- id: reset-hard-loses
+  question: "You have uncommitted edits to a tracked file and run git reset --hard HEAD. What happens to the edits?"
+  options:
+    - "They move to the index so you can commit them"
+    - "They are lost, because the working tree is overwritten and Git never saved them"
+    - "They are saved in the reflog"
+    - "Git asks you to confirm each file"
+  answer: 1
+  explanation: "--hard resets the index and the working tree to match the commit, with no questions. Uncommitted changes to tracked files were never stored by Git, so the reflog cannot bring them back."
+  whyWrong:
+    "0": "That is what --soft or --mixed would keep, not --hard."
+    "2": "The reflog records where branches and HEAD pointed, not your uncommitted edits."
+    "3": "Git does not ask. That is why --hard is dangerous."
+
+- id: rebase-shared
+  question: "You rebased your feature branch, which three teammates already pulled and built on. What is the problem?"
+  options:
+    - "Rebase deletes the remote branch"
+    - "Rebase cannot be used on a branch with more than one author"
+    - "Rebase makes new commits with new ids, so their copies of the old commits no longer match yours"
+    - "Nothing, because Git merges the two histories by itself"
+  answer: 2
+  explanation: "Rebase replays your commits as new ones. Teammates still hold the old ones, so the histories diverge and you may see duplicate commits and painful merges. Rebase only commits that nobody else has."
+  whyWrong:
+    "0": "Rebase changes your local branch. It does not touch the remote until you push."
+    "1": "Git allows it. The trouble is what it does to shared history."
+    "3": "Git can sometimes skip identical patches, but it does not repair this for you."
+
+- id: secret-committed
+  question: "You pushed a commit that contains a live API key. What is the best first step?"
+  options:
+    - "Revoke or rotate the key, then clean the history if needed"
+    - "Make the repository private and carry on"
+    - "Delete the file in a new commit and push"
+    - "Run git reset --hard and force-push, then you are done"
+  answer: 0
+  explanation: "Once pushed, assume the key is leaked: clones, forks and cached views may have it. Revoke or rotate it first, because that removes the danger. Rewriting history comes after and does not reach every copy."
+  whyWrong:
+    "1": "Someone may already have copied it."
+    "2": "The old commit still has the key and anyone can read it."
+    "3": "A rewrite does not reach forks and other clones, so the key must still be rotated."
+
+- id: detached-head
+  question: "git status says HEAD detached at 3f2a9c1, and you made two commits there. How do you keep them?"
+  options:
+    - "Run git gc to save them"
+    - "Run git checkout main, and Git will merge them in for you"
+    - "Nothing, detached commits are saved on main"
+    - "Run git switch -c rescue before you leave, which puts a branch on them"
+  answer: 3
+  explanation: "In detached HEAD, new commits belong to no branch. Creating a branch at that spot gives them a name. If you already left, find the commit with git reflog and branch from it."
+  whyWrong:
+    "0": "git gc cleans up unreachable objects, so it can remove them in time."
+    "1": "Switching away leaves the commits behind with no branch pointing to them."
+    "2": "They are not on any branch."
+
+- id: fast-forward
+  question: "main is at commit C2. Your branch feature has commits C3 and C4 on top of C2, and main has no new commits. What does git merge feature do while on main?"
+  options:
+    - "It makes a new merge commit with two parents"
+    - "It moves main forward to C4 without a new commit (a fast-forward)"
+    - "It refuses, because the branches differ"
+    - "It rebases feature onto main"
+  answer: 1
+  explanation: "Because feature is a direct descendant of main, Git only has to move the main pointer to C4. A merge commit appears only if both sides have new commits (or with --no-ff)."
+  whyWrong:
+    "0": "A merge commit is needed only when the histories have diverged."
+    "2": "Merging a descendant branch is the easy case."
+    "3": "merge never rebases anything."
+
+- id: gitignore-effect
+  question: "Which statement about .gitignore is correct?"
+  options:
+    - "It removes files from the repository history"
+    - "It stops Git tracking a file that is already committed"
+    - "It only affects files that are not yet tracked"
+    - "It stops other people from creating those files"
+  answer: 2
+  explanation: "The ignore rules apply to untracked files. A file that is already tracked stays tracked until you run git rm --cached on it."
+  whyWrong:
+    "0": "History is not changed by an ignore file."
+    "1": "A tracked file keeps being tracked."
+    "3": "It only changes what Git shows and adds on your side."
+
+- id: branch-protection
+  question: "Your team wants main to need a review and passing tests before anything lands, and no force pushes. What do you set up on GitHub?"
+  options:
+    - "A branch protection rule or ruleset that requires a pull request, status checks, and blocks force pushes"
+    - "A .gitignore entry for main"
+    - "A larger token expiry for each developer"
+    - "A rule in the commit message that says do not force push"
+  answer: 0
+  explanation: "Branch protection rules and rulesets enforce reviews, required status checks and blocked force pushes on the server. Conventions in messages or ignore files enforce nothing."
+  whyWrong:
+    "1": ".gitignore is about untracked files, not branches."
+    "2": "Token expiry has nothing to do with merge rules."
+    "3": "Text in a message is not enforced by anything."
+
+- id: pat-choice
+  question: "A script needs to read one private repository. Which token is the best choice?"
+  options:
+    - "A classic token with every scope, with no expiry"
+    - "Your account password"
+    - "A token written into the script so it never gets lost"
+    - "A fine-grained token limited to that repository, read-only, with an expiry date"
+  answer: 3
+  explanation: "GitHub recommends fine-grained tokens: limit them to the repositories and permissions the job needs, set an expiry, and keep the value in a secret store, not in the code."
+  whyWrong:
+    "0": "A broad classic token without expiry makes a leak much worse."
+    "1": "Passwords are not used for this, and sharing one is worse than any token."
+    "2": "A token in the source code ends up in the repository."
+
+- id: spot-bug-gitignore
+  kind: spot-bug
+  question: "You committed .env by mistake last week. You run these commands, but .env changes still show up in git status. Why?"
+  code: |
+    echo ".env" >> .gitignore
+    git add .gitignore
+    git commit -m "Ignore .env"
+    git status
+  options:
+    - "You must write .env* with a star"
+    - "git add .gitignore does not work on hidden files"
+    - "The file is already tracked, and .gitignore does not affect tracked files; it needs git rm --cached .env"
+    - "The .gitignore file must be inside the .git directory"
+  answer: 2
+  explanation: "Ignore rules apply only to untracked files. Because .env was committed, Git keeps tracking it. Run git rm --cached .env, commit, and treat any secret inside it as leaked."
+  whyWrong:
+    "0": "The pattern .env already matches a file with that name."
+    "1": "git add works on dot files."
+    "3": "The file lives in the working tree, not in .git."
+
+- id: spot-bug-force-push
+  kind: spot-bug
+  question: "Priya rebases the shared branch release and pushes. Her teammates then lose commits. What is the mistake?"
+  code: |
+    git checkout release
+    git rebase main
+    git push --force origin release
+  options:
+    - "She should have used git pull instead of git checkout"
+    - "She rewrote commits that other people already had, and a plain --force overwrites the remote with no check"
+    - "git rebase can only be used on main"
+    - "She should have pushed to a tag"
+  answer: 1
+  explanation: "Rebase creates new commits, so rewriting a shared branch breaks everyone's copy. A plain --force also overwrites commits the remote has and she never saw. Merge instead, or use --force-with-lease on your own branch only."
+  whyWrong:
+    "0": "Switching branches is not the problem."
+    "2": "Rebase works on any branch. The risk is rewriting shared history."
+    "3": "Tags are not a way to share branch work."
+
+- id: spot-bug-byte-length
+  kind: spot-bug
+  question: "This function should give the same id as git hash-object, but it gives wrong ids for some files. What is the bug?"
+  code: |
+    import hashlib
+
+    def blob_id(text):
+        data = text.encode("utf-8")
+        header = f"blob {len(text)}\0".encode()
+        return hashlib.sha1(header + data).hexdigest()
+  options:
+    - "len(text) counts characters, but Git needs the number of bytes, so it is wrong for non-ASCII text"
+    - "The header must come after the data"
+    - "It should use sha256"
+    - "The NUL byte should be a space"
+  answer: 0
+  explanation: "The header holds the size in bytes. For text with characters such as an accented e, the character count and byte count differ, so the id is wrong. Use len(data)."
+  whyWrong:
+    "1": "The header always comes first."
+    "2": "Git still uses SHA-1 by default."
+    "3": "A NUL byte ends the header, a space comes between the kind and the length."

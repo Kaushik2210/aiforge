@@ -1,0 +1,26 @@
+- { id: c-snapshots, front: "Does Git store diffs or snapshots?", back: "Snapshots. Each commit records what the whole project looked like. Unchanged files point to the copy already stored, so nothing is copied twice." }
+- { id: c-three-areas, front: "What are the three areas in Git?", back: "The working tree (your files), the index or staging area (what the next commit will hold) and the repository, the .git directory (the saved history)." }
+- { id: c-object-types, front: "What are the four kinds of Git object?", back: "Blob (file content), tree (a directory listing), commit (a tree, parents, author, committer, message) and tag (an annotated name for another object)." }
+- { id: c-object-id, front: "How is a Git object id computed?", back: "SHA-1 of the text '<kind> <byte length>', a NUL byte, then the content. Same content always gives the same id." }
+- { id: c-blob-no-name, front: "Does a blob know its file name?", back: "No. A blob holds only content. The name lives in the tree that points to the blob." }
+- { id: c-commit-parts, front: "What is inside a commit object?", back: "One tree id, zero or more parent ids, an author line, a committer line, a blank line and the message." }
+- { id: c-branch, front: "What is a branch?", back: "A movable pointer: a small file holding the id of one commit. Making a commit moves the current branch to the new commit." }
+- { id: c-head, front: "What is HEAD?", back: "Usually a pointer to the current branch (a symbolic ref). If it holds a raw commit id instead, you are in detached HEAD." }
+- { id: c-detached, front: "What is a detached HEAD and how do you keep work made there?", back: "HEAD points straight at a commit, not a branch. New commits are not on any branch, so make one with git switch -c name before you leave." }
+- { id: c-ff, front: "When can Git fast-forward a merge?", back: "When the branch being merged is a direct descendant of the current commit. Git just moves the pointer and makes no merge commit." }
+- { id: c-three-way, front: "What is a three-way merge?", back: "When histories have split, Git compares both tips with their common ancestor (the merge base) and makes a merge commit with two parents." }
+- { id: c-merge-base, front: "What is the merge base?", back: "The best common ancestor of two commits: a common ancestor that is not an ancestor of another common ancestor. Criss-cross merges can have several." }
+- { id: c-merge-vs-rebase, front: "Merge versus rebase?", back: "Merge keeps the true history and adds a merge commit. Rebase replays your commits on a new base, making new commits with new ids and a straight line." }
+- { id: c-rebase-rule, front: "What is the golden rule of rebase?", back: "Do not rebase commits that others may already have, because rebase makes new commits and leaves them with the old ones." }
+- { id: c-reset-soft, front: "What does git reset --soft do?", back: "Moves the current branch to the target commit only. The index and the working tree stay as they were." }
+- { id: c-reset-mixed, front: "What does git reset (mixed, the default) do?", back: "Moves the branch and resets the index to match, so changes are unstaged but your files are kept." }
+- { id: c-reset-hard, front: "What does git reset --hard do?", back: "Moves the branch, resets the index and overwrites the working tree. Uncommitted changes to tracked files are lost." }
+- { id: c-reflog, front: "What is the reflog?", back: "A local log of where HEAD and branch tips have been. Use it to find a commit after a bad reset or a deleted branch. It is not pushed or cloned and entries expire." }
+- { id: c-gitignore, front: "What does .gitignore not do?", back: "It does not stop tracking a file that is already committed. Use git rm --cached on the file, then ignore it." }
+- { id: c-secret-leak, front: "You committed a secret. What is the first step?", back: "Treat it as leaked: revoke or rotate it first. Then rewrite history if needed (for example with git filter-repo). Forks, clones and caches may still have it." }
+- { id: c-pr, front: "What is a pull request?", back: "A proposal to merge one branch into another on GitHub, with a place for review and discussion. A draft PR cannot be merged yet." }
+- { id: c-protection, front: "What can branch protection or a ruleset require?", back: "Pull request reviews, passing status checks, signed commits, linear history, and it can block force pushes and deletion." }
+- { id: c-actions, front: "What are the parts of GitHub Actions?", back: "An event starts a workflow (a YAML file in .github/workflows). A workflow has jobs, a job runs steps on a runner, and a step runs a command or an action." }
+- { id: c-token, front: "How should you treat a personal access token?", back: "Like a password. Prefer a fine-grained token with the fewest permissions and an expiry date, and keep it in a secret store, never in the repository." }
+- { id: c-signed, front: "What does a verified signed commit prove?", back: "That the commit was made with a particular key. It does not prove the code is safe or that the key holder is trustworthy." }
+- { id: c-hash-ml, front: "Why do ML tools like DVC reuse Git's idea?", back: "They store big files by a hash of their content, once, outside Git, and keep a small pointer file in Git. Same content means same key." }

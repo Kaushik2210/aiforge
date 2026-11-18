@@ -1,0 +1,39 @@
+- question: "How does Git store your project? Is it diffs or snapshots?"
+  modelAnswer: "Git stores snapshots. Each commit points to a tree that describes the whole project at that moment, and unchanged files point to the same stored content as before, so they are not copied again. Everything is stored in a content-addressed object database: a blob holds file content, a tree lists names and blobs or sub-trees, a commit holds a tree, parents, author, committer and a message. The id of each object is a hash of its content."
+  followUps: ["What does it mean that a blob has no file name?", "Why does changing one byte change the id of every commit after it?"]
+
+- question: "Explain the working tree, the index and the repository."
+  modelAnswer: "The working tree holds the files you edit. The index (staging area) records exactly what the next commit will contain. The repository (the .git directory) holds the saved objects and the refs. git add copies content from the working tree into the index, and git commit turns the index into a new commit. This is why you can stage part of your changes and commit only that."
+  followUps: ["What does git diff compare, and what does git diff --staged compare?", "Where does git reset --mixed leave your changes?"]
+
+- question: "What is a branch, and what is HEAD?"
+  modelAnswer: "A branch is a movable pointer, a small file that holds the id of one commit. When you commit, the current branch moves to the new commit. HEAD normally points to the current branch, so it says where you are. If HEAD holds a raw commit id instead, it is a detached HEAD, and new commits belong to no branch until you create one."
+  followUps: ["How would you rescue commits made on a detached HEAD?", "Why is creating a branch so cheap?"]
+
+- question: "What is the difference between a fast-forward merge and a three-way merge?"
+  modelAnswer: "A fast-forward happens when the branch you merge is a direct descendant of your current commit: Git moves the pointer forward and makes no new commit. If both sides have new commits, Git does a three-way merge using the two tips and their merge base, the best common ancestor, and records a merge commit with two parents. If both sides changed the same lines, Git stops with a conflict that you fix by hand."
+  followUps: ["What does git merge --no-ff change?", "Can a pair of commits have more than one merge base?"]
+
+- question: "Merge or rebase? When would you use each?"
+  modelAnswer: "Merge keeps the real history and adds a merge commit. Rebase replays your commits on top of another base, which creates new commits with new ids and gives a straight line. The final files can be the same. Use rebase to tidy your own local, unshared work. Never rebase commits that others already have, because their copies will no longer match. Many teams merge to the main branch through a pull request, and some prefer squash or rebase merges for a linear history."
+  followUps: ["What happens to a teammate who built on commits you rebased?", "What does --force-with-lease protect against?"]
+
+- question: "Explain git reset --soft, --mixed and --hard."
+  modelAnswer: "All three move the current branch to a target commit. --soft stops there, so the index and working tree stay as they were. --mixed (the default) also resets the index, so changes become unstaged but your files are kept. --hard also overwrites the working tree, so uncommitted changes to tracked files are lost. Only --hard can destroy work that was never committed."
+  followUps: ["How would you squash the last three commits with reset?", "How do you undo a reset --hard of committed work?"]
+
+- question: "You ran a bad command and a commit seems lost. How do you recover it?"
+  modelAnswer: "Use the reflog. It records where HEAD and branch tips have been in your local repository, so git reflog lists earlier positions such as HEAD@{3}. Find the commit you want and make a branch there, or reset to it. Committed work is usually recoverable this way until the entries expire. The reflog is local and is not shared, and work that was never committed is not in it."
+  followUps: ["Why does a fresh clone have only a one-line reflog?", "Which kinds of lost work cannot be recovered?"]
+
+- question: "A teammate committed an API key to the main branch. What do you do?"
+  modelAnswer: "Treat the key as leaked. First revoke or rotate it, because anyone with a clone, a fork or the commit id may already have it. Then, if the history must be cleaned, rewrite it with a tool such as git filter-repo, force-push, and tell everyone to re-clone, because forks, other clones and cached views can still hold the data. Add a secret scanner or push protection and keep keys in a secret store or environment variables."
+  followUps: ["Why is deleting the file in a new commit not enough?", "How would you stop it happening again?"]
+
+- question: "What would you set up to protect the main branch of a team repository?"
+  modelAnswer: "Use a branch protection rule or a ruleset on main that requires a pull request with at least one review, requires status checks (tests and lint run by CI such as GitHub Actions) to pass, blocks force pushes and deletion, and optionally requires signed commits or a linear history. Rulesets can be layered and switched off, and have a bypass list for named roles."
+  followUps: ["What does a signed commit prove and not prove?", "What is a bypass list in a ruleset, and when is it risky?"]
+
+- question: "Why do ML tools such as DVC work well next to Git?"
+  modelAnswer: "Git is good at small text files and bad at huge binaries, because every version is kept forever. DVC stores big files in a content-addressed cache, named by a hash of the content, so identical files are stored once. Git tracks only small pointer files, so a commit pins an exact version of the data. This is the same idea as Git's own object store, applied to datasets and models."
+  followUps: ["How does a hash help you check that a dataset did not change?", "What is Git LFS and how is it different?"]

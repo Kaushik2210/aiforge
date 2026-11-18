@@ -1,0 +1,17 @@
+id: git-and-github-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - three-areas
+  - predict-hash-header
+  - reset-hard-loses
+  - rebase-shared
+  - predict-merge-parents
+  - secret-committed
+  - spot-bug-gitignore
+  - spot-bug-force-push
+challenges:
+  - object-id
+  - merge-base
+interleaveFrom:
+  - python-basics

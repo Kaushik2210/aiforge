@@ -1,0 +1,367 @@
+---
+id: git-and-github
+title: Git and GitHub
+realm: 1
+zone: Python foundations
+prerequisites: []
+estimatedMinutes: 150
+verifiedOn: 2026-11-17
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "Git stores snapshots, not diffs. Every commit points to a tree that describes the whole project at that moment. A file that did not change points to the content already stored, so it is not copied again."
+  - "Git has three areas. The working tree holds the files you edit. The index (staging area) holds what the next commit will contain. The repository (the .git directory) holds the saved objects and refs. git add moves content from the working tree to the index, and git commit turns the index into a commit."
+  - "A branch is a movable pointer to one commit, and HEAD says where you are (usually it points at the current branch). Making a commit moves the current branch forward. Merging joins two lines of work: a fast-forward just moves a pointer, and a three-way merge makes a commit with two parents."
+  - "GitHub is a website and service built around Git repositories. It adds pull requests (a place to review a change before it is merged), branch protection, and automation with GitHub Actions. Git itself works fully without GitHub."
+coreComplexity:
+  - "Git is a content-addressed store. The id of an object is the SHA-1 of the text kind, a space, the length in bytes, a NUL byte and then the content. Same content always gives the same id, and changing one byte of a file changes the ids of its blob, the trees above it and every later commit, which is why history cannot be edited quietly."
+  - "Rebase and amend do not edit commits. They make new commits with new ids and move a branch to them. That is harmless for work only you have, and a problem for commits others already built on. Merge keeps the true history; rebase tells a tidier story. Do not rebase shared history."
+  - "git reset moves the current branch to a commit. --soft stops there, --mixed (the default) also resets the index, and --hard also overwrites the working tree. Only --hard can destroy work that was never committed. Committed work is usually recoverable through the reflog, which is local and expires."
+  - "A .gitignore file affects only untracked files; a file already committed stays tracked until you run git rm --cached on it. Deleting a secret in a new commit does not remove it from history."
+  - "A secret that was committed (and especially pushed) must be treated as leaked. Rotate or revoke it first. Rewriting history comes second, it changes commit ids for everyone, and it does not reach forks, other clones or cached views."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain why you should not rebase a branch that teammates have already pulled, and what you can do instead."
+  rubric:
+    - "Says rebase does not move commits but creates new commits with new ids (the old ones are replaced on your branch), so teammates who still have the old commits now have a history that no longer matches yours."
+    - "Describes the result: diverged history, duplicate commits or painful conflicts after a pull, and a force-push that can overwrite other people's work."
+    - "Names an alternative: merge instead (or rebase only your own unshared commits), and if you must rewrite shared history, tell the team and use a safer push such as --force-with-lease."
+miniGame: none-yet
+bossId: git-and-github-boss
+---
+
+# Git and GitHub
+
+> **Realm 1, Programming Fundamentals.** Guide: *Mira*, the lantern-bearer
+> (an original AIForge character). Each time she walks a new road she leaves a
+> lantern at every fork and writes the lantern's name on a map. Later she can
+> walk back to any lantern, or compare two roads. That map is a bit like Git.
+
+Every project you build in this academy will live in Git. It is how you save
+your work, undo mistakes, try ideas safely and work with other people. GitHub is
+where most of those projects are shared.
+
+<Callout type="note" title="Honest about the browser">
+The code editor on this site runs Python in your browser (Pyodide). It cannot
+run the `git` program, and it has no network and no file system to speak of. So
+this quest teaches **how Git works** by rebuilding two of its core ideas in
+plain Python: content-addressed objects (the id of an object) and the commit
+graph (finding the merge base). The real `git` commands appear as read-only
+samples marked *not runnable here*. Try those in a terminal on your own computer.
+</Callout>
+
+---
+
+## L1. Intuition
+
+**Snapshots on a map.** When you commit, Git takes a snapshot of your whole
+project and puts a label on it. Each snapshot remembers which snapshot came just
+before it (its *parent*). Follow the parents and you walk back through history.
+
+**Three places your files can be.**
+
+| place | what it is | how a change gets there |
+|---|---|---|
+| working tree | the files you open and edit | you type |
+| index (staging area) | the list of what the next commit will hold | `git add` |
+| repository | the saved history in the `.git` folder | `git commit` |
+
+Think of packing a box. The working tree is your desk. The index is the box you
+are filling. A commit is taping the box shut and writing a label on it.
+
+**A branch is a sticky note.** A branch is just a name that points at one
+commit. You can have many sticky notes on the same history. When you make a new
+commit, the note for your current branch moves forward to it. `HEAD` is "you are
+here": it normally points at the current branch.
+
+**Why use branches?** So you can try something without touching the working
+version, then bring it back when it is ready (a *merge*).
+
+**GitHub is a shared home for repositories.** You *push* your commits to it and
+*pull* other people's. On top of Git it adds *pull requests*: a page where a
+change is discussed and checked before it joins the main branch.
+
+<Callout type="warn" title="Where this picture misleads">
+Git and GitHub are not the same thing. Git is a program on your computer, and it
+works with no internet at all. GitHub is one company's website that hosts Git
+repositories (other hosts exist). Also, a branch is not a folder or a copy of
+your files. It is only a pointer, which is why making one is instant.
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### Git stores snapshots, and every object has an id
+
+According to Pro Git, Git is at its core a *content-addressable* store: you give
+it content and it hands back a key. The objects live under `.git/objects`. There
+are four kinds:
+
+| kind | holds |
+|---|---|
+| blob | the content of one file (no file name) |
+| tree | a directory: names, modes and the ids of blobs or smaller trees |
+| commit | one tree id, zero or more parent ids, an author, a committer, a message |
+| tag | an annotated name for another object (usually a commit) |
+
+The id is a SHA-1 hash of a small header plus the content:
+
+```text
+header = kind + " " + (length of content in bytes) + NUL byte
+id     = SHA-1(header + content)
+```
+
+So the empty file always has the id `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391`, in
+every repository on every computer. Two files with the same content share one
+blob. This is how an unchanged file costs nothing in a new snapshot.
+
+```python
+import hashlib
+
+data = b"test content\n"
+header = b"blob " + str(len(data)).encode() + b"\0"
+print(hashlib.sha1(header + data).hexdigest())
+# d670460b4b4aece5915caf5c68d12f560a9fe3e4  (the same id git hash-object gives)
+```
+
+Because a commit stores its parents' ids, and a tree stores its files' ids,
+changing one byte anywhere changes every id above it. Nothing can be altered
+quietly. (SHA-1 is Git's default; see L5 for the plan to move to SHA-256.)
+
+### A commit, written out
+
+A commit object is plain text:
+
+```text
+tree 371cfbfa71f65ddd2bec95b41af7ea87a5f201fc
+parent a4837f9c16326baed632c67ac051ce6a4d13d401
+author Ada Lovelace <ada@example.com> 1700000000 +0000
+committer Grace Hopper <grace@example.com> 1700000100 +0530
+
+First line of the message
+```
+
+The time is the number of seconds since 1970 (a Unix timestamp) and the
+offset from UTC as plus or minus hours and minutes. A merge commit has two (or
+more) `parent` lines, and the first is the branch you were on. Hash that text
+with the header `commit <length>` and you get the commit id. You will do exactly
+this in the first challenge.
+
+### Branches, HEAD and tags are small files
+
+Per Pro Git's chapter on references, a branch is a file under `.git/refs/heads`
+holding a commit id. `HEAD` is usually a *symbolic* reference to a branch. If
+`HEAD` holds a raw commit id instead, you are in **detached HEAD**: any new
+commits belong to no branch until you make one (`git switch -c name`). A
+lightweight tag is a name that never moves; an annotated tag is a separate tag
+object with a tagger, a date and a message.
+
+### Merging: fast-forward and three-way
+
+- **Fast-forward.** If the branch you merge is a direct descendant of where you
+  are, Git just moves the pointer forward. No new commit.
+- **Three-way merge.** If both sides have new commits, Git looks at the two tips
+  and their *merge base* (the best common ancestor), combines the changes, and
+  makes a *merge commit* with two parents.
+- **Conflict.** If both sides changed the same lines, Git stops and writes
+  markers into the file. You choose what the file should say, remove the
+  markers, `git add` the file, and commit.
+
+```text
+<<<<<<< HEAD
+the version from the branch you are on
+=======
+the version from the branch you are merging
+>>>>>>> feature
+```
+
+The **merge base** is the best common ancestor: a commit both sides can reach
+that is not an ancestor of another common commit. A commit counts as its own
+ancestor, so if you merge a branch that is already inside yours, the merge base
+is that branch's tip. In odd histories (a *criss-cross* merge) there can be more
+than one best ancestor, and `git merge-base --all` prints them all. You will
+build this in the second challenge.
+
+### Merge or rebase
+
+`git rebase` finds your commits, sets them aside, moves to the new base and
+replays them one by one. They are *new commits* with new ids, even if the
+changes look the same. The files end up the same as a merge would give; only the
+shape of history differs. Merge tells the true story. Rebase tells a straight
+one.
+
+The rule from Pro Git: do not rebase commits that exist outside your repository
+and that people may have based work on. Rebasing local, unpushed work to tidy it
+is fine.
+
+### Undoing things
+
+| goal | command | what happens |
+|---|---|---|
+| fix the last commit message or add a forgotten file | `git commit --amend` | replaces the last commit with a new one |
+| unstage a file | `git restore --staged FILE` | the file stays as you edited it |
+| throw away edits to a file | `git restore FILE` | edits are gone for good |
+| move the branch back, keep staged work | `git reset --soft COMMIT` | only the branch moves |
+| move the branch back, unstage work | `git reset COMMIT` | branch and index move; files stay |
+| move the branch back and wipe files | `git reset --hard COMMIT` | branch, index and files all move; uncommitted edits lost |
+
+`git revert COMMIT` is the safe way to undo a shared commit: it adds a new commit
+that reverses an old one and rewrites nothing.
+
+**The reflog is the safety net.** Git keeps a local log of where `HEAD` and your
+branches have been. After a bad reset, `git reflog` shows entries such as
+`HEAD@{3}`, and you can make a branch there to get the commit back. By default,
+reachable entries expire after 90 days and unreachable ones after 30. It is local
+only, and it never contains work that was not committed.
+
+### `.gitignore`
+
+A `.gitignore` file lists patterns of files Git should leave alone, such as
+`__pycache__/` or `.env`. A trailing slash matches directories, `*` matches
+anything except a slash, and `!` brings a file back. It affects only **untracked**
+files. To stop tracking a file that is already committed, run
+`git rm --cached FILE`, and then add the pattern.
+
+### Commands, in a terminal (not runnable here)
+
+```bash
+# NOT RUNNABLE HERE: the browser sandbox cannot run git.
+git init                      # start a repository in this folder
+git status                    # what changed, what is staged
+git add notes.md              # copy this file's content into the index
+git commit -m "Add notes"     # turn the index into a commit
+git switch -c idea            # make a branch and move to it
+git switch main               # go back
+git merge idea                # fast-forward or three-way merge
+git log --oneline --graph     # see the shape of history
+git merge-base main idea      # the best common ancestor
+git hash-object notes.md      # the blob id Git would use
+git reflog                    # where HEAD has been (your safety net)
+```
+
+<Step prompt="you ran git reset --hard HEAD~2 and two commits seem gone. Is the work lost?">
+Probably not. The commits are not on your branch any more, but they are still in
+the object database and in the reflog. Run `git reflog`, find the entry from
+before the reset (for example `HEAD@{1}`), and make a branch there or reset back
+to it. The work you never committed before the reset is the part that is lost.
+</Step>
+
+---
+
+## L3. Build it
+
+Two challenges. Run them in the browser editor (Pyodide) or locally with
+`python tests.py <file>`. They use only the Python standard library and need no
+network, no files and no `git` program.
+
+1. **`object-id`**: compute a Git object id. `object_id(kind, data)` returns the
+   SHA-1 hex id of `kind`, a space, the byte length, a NUL byte and the data. It
+   accepts `blob`, `tree`, `commit` and `tag`; an unknown kind is a `ValueError`,
+   and a kind that is not a string or data that is not `bytes` is a `TypeError`.
+   Then `commit_body(tree, parents, author, committer, message)` builds the exact
+   bytes of a commit object so that its id equals the id of a real commit made
+   with `git`. The tests use real ids printed by Git on a scratch repository
+   (the empty blob, a one-line and a multi-line blob, a tree, a tag, a root
+   commit, a commit with a parent and a merge commit).
+2. **`merge-base`**: given a commit graph as a dict (commit id to a list of parent
+   ids, first parent first) and two commits, return their best common ancestor.
+   A commit is its own ancestor; unrelated histories give `None`; if a
+   criss-cross merge leaves several best ancestors, return the one that sorts
+   first (real Git can return all of them, and which one it prints without
+   `--all` is not specified); an unknown id is a `KeyError` naming it. It must be
+   iterative, because a long history would hit Python's recursion limit.
+
+**Why rebuild Git instead of calling it.** The browser cannot run `git`, and a
+function that reads text and returns a value is exact, fast and easy to test.
+Doing it by hand also shows why Git is so reliable: it is only hashing and
+walking a graph.
+
+---
+
+## L4. Production reality
+
+- **Commit hygiene.** One topic per commit. Start the message with a short
+  imperative line ("Add quiz bank for gradient descent"), then a blank line and
+  more detail if needed. Small commits are easy to review and easy to revert.
+- **Pull requests.** Work on a branch, push it, and open a pull request. A *draft*
+  pull request shares work in progress and cannot be merged. A reviewer reads the
+  change, comments, and approves or asks for changes. Keep pull requests small
+  enough to review in one sitting.
+- **Protect the main branch.** GitHub branch protection rules or rulesets can
+  require pull request reviews and passing status checks, can require signed
+  commits or a linear history, and block force pushes and deletion by default.
+  Rulesets can be layered on one branch, switched off, and given a bypass list;
+  only one branch protection rule applies to a branch.
+- **CI gates with GitHub Actions.** An *event* (a push, a pull request) starts a
+  *workflow*, a YAML file in `.github/workflows`. A workflow has *jobs*; a job
+  runs *steps* on a *runner*; a step runs a command or a reusable *action*. A
+  good gate runs your tests and linters on every pull request, and the branch
+  protection rule requires them to pass.
+- **Secrets and tokens.** Never commit keys. Put them in environment variables,
+  a secret manager, or the Actions secrets store. A personal access token works
+  like a password, so prefer a *fine-grained* token limited to the repositories
+  and permissions the job needs, with an expiry date. Inside Actions, the
+  built-in `GITHUB_TOKEN` is often enough.
+- **If a secret is committed, it is leaked.** Order matters: (1) revoke or rotate
+  the secret now; (2) if the history must be cleaned, rewrite it with a tool such
+  as `git filter-repo` and force-push; (3) tell everyone to re-clone, because
+  other clones, forks and cached views can still hold it and GitHub's guidance
+  says to expect that; (4) add secret scanning and a `.gitignore`. Deleting the
+  file in a new commit does nothing for the history.
+- **Signed commits.** A signature (GPG, SSH or S/MIME) ties a commit to a key, and
+  GitHub shows a *Verified* label. It proves which key made the commit. It does
+  not prove the code is safe or that the key holder is trustworthy. A rule can
+  require signed commits on a protected branch. Note that GitHub's own "rebase
+  and merge" does not keep the original signatures.
+- **Large files.** Git keeps every version of every file forever, so big binaries
+  make a repository heavy. Git warns about files over 50 MiB and GitHub blocks files over 100 MiB, and
+  suggests Git LFS for such files. Keep datasets and model weights out of normal
+  Git history.
+- **Monorepo or polyrepo, at a glance.** A *monorepo* keeps many projects in one
+  repository: easy shared changes and one set of tools, but a bigger repository
+  and more careful access and CI setup. *Polyrepo* keeps one repository per
+  project: clear ownership and small clones, but changes that span projects need
+  several pull requests. Neither is always better; teams pick by how much their
+  projects change together.
+- **Safe force pushes.** If you must overwrite your own branch after a rebase, use
+  `git push --force-with-lease`, which refuses if someone else pushed in the
+  meantime. Never force-push a shared branch without telling the team.
+- **Failure at 3 a.m.:** a deploy broke and nobody knows which change did it. Look
+  at the history of the main branch (`git log --first-parent --oneline`), use
+  `git bisect` to find the first bad commit, and `git revert` it. This only works
+  if commits are small and the history was not rewritten.
+
+---
+
+## L5. Frontier
+
+Read these, in this order, and look for the stated thing:
+
+1. Pro Git, *Git Objects* and *Git References*: rebuild a repository by hand with
+   `git hash-object -w`, `git write-tree` and `git commit-tree` in a scratch
+   folder, and watch the ids match what you computed in Python.
+2. The `git-merge-base` manual page: find the definition of a best common ancestor
+   and the note that criss-cross histories can have several.
+3. The `hash-function-transition` document: read the goals of moving from SHA-1 to
+   SHA-256. It is a design and transition plan. It describes how a SHA-256
+   repository could talk to SHA-1 servers by converting objects locally, and it
+   says older Git versions cannot read a SHA-256 repository. Whether and how your
+   installed version supports it is something to check in its release notes
+   (TODO-VERIFY: the current support status in the latest Git release).
+4. GitHub's guide to removing sensitive data: read why rotating comes first.
+5. DVC's page on its internal files: see a content-addressed cache outside Git.
+
+**The idea Git gave to ML.** Storing things under a hash of their content means
+identical content is stored once, a name can always be checked against its
+content, and a small pointer can stand for a huge file. Data tools such as DVC use
+this: the big file goes to a cache named by a content hash, and Git tracks only a
+small pointer file, so each commit pins exact data. The DVC page says its hash is
+usually MD5 and not Git's SHA-1, so the idea is shared but the details differ.
+For model registries and reproducible experiments, the questions to carry
+forward are: what is the pointer, what hash does it use, and where does the big
+file really live? (TODO-VERIFY: how specific model registries version weights
+before relying on one.)
+
+Open questions to carry forward: how Git packs objects to save space (delta
+compression sits under the snapshot idea), how bisecting finds a bad commit in a
+few steps, and how a team keeps a clean history without rewriting shared work.

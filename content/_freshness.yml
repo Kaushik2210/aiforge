@@ -28,3 +28,9 @@ items:
   - quest: http-and-rest
     claim: "RFC 9110/9112/9111/9457/6585/9113/9114 behaviours cited, Python http.client, urllib.request and json docs, WHATWG server-sent events, and the Idempotency-Key Internet-Draft (draft-ietf-httpapi-idempotency-key-header-08 on 2026-10-22, still a draft)"
     verifiedOn: 2026-11-17
+  - quest: git-and-github
+    claim: "Git behaviours and git-scm.com pages cited (Pro Git objects, references, branching, rebasing, reset; git-merge-base, hash-object, reflog, gitignore, rebase; reflog expiry 90 and 30 days; SHA-256 transition document is a plan; real ids checked with Git 2.51.2)"
+    verifiedOn: 2026-11-17
+  - quest: git-and-github
+    claim: "GitHub UI and rules cited: pull requests, branch protection versus rulesets, removing sensitive data (git-filter-repo 2.47 flag), Actions concepts, fine-grained personal access tokens, commit signature verification, large file limits (50 MiB warning, 100 MiB block), DVC cache page"
+    verifiedOn: 2026-11-17
