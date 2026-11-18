@@ -1,0 +1,2 @@
+title: Compute a Git object id
+summary: "Write object_id(kind, data) that returns the 40-character SHA-1 hex id Git gives an object (hash of '<kind> <byte length>' + a NUL byte + the data; kinds blob, tree, commit, tag; unknown kind is a ValueError, a non-str kind or non-bytes data is a TypeError), and commit_body(tree, parents, author, committer, message) that builds the exact bytes of a commit object so its id matches a real commit made by git."

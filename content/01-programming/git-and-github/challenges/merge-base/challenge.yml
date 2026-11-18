@@ -1,0 +1,2 @@
+title: Find the merge base of two commits
+summary: "Write merge_base(graph, a, b) for a commit graph given as a dict of commit id to parent ids (first parent first). Return the best common ancestor (a common ancestor that is not an ancestor of another common ancestor; a commit counts as its own ancestor), None for unrelated histories, the alphabetically first one when a criss-cross merge gives several, and raise KeyError naming an unknown commit. It must not use recursion."
