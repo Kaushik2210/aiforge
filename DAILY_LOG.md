@@ -712,3 +712,22 @@ TODO-VERIFY / not done
 - `readMotionMode` is shared by the hero and the strips; the scene got an `onReady` callback and a `banner` framing; mesh resolution 150 to 110 and a lower pixel-ratio cap for strips to ease software rendering.
 - 5 new Playwright tests (one canvas per page, real progress in the label and following it, reduced motion and Focus, no WebGL, no sideways scroll). Full suite: 109 of 110 passed in one run under heavy load and the last failure (a timing poll in the effects lab) passes alone; it now waits longer. Several flows tests time out only when many workers render software WebGL at once; CI retries once.
 - Not tried on a real GPU or phone; the strips are checked by screenshot at 1280 and 390 px.
+
+## Day 28: Git and GitHub quest
+
+What shipped
+- Quest `git-and-github` (Realm 1, 8th quest): L1 to L5 lesson with Mira, 18 quiz items, 25 cards, interview questions, mistakes, 24 sources, boss. It says plainly that the browser cannot run git: the quest rebuilds Git's core ideas in pure Python and marks real commands not runnable here.
+- Challenges: `object-id` (real Git object ids and the exact commit text; 18 mutants caught) and `merge-base` (best common ancestor in a commit graph, iterative; 13 mutants caught). Realm 1 counts 8 quests.
+
+Sources: Pro Git, the git docs, GitHub Docs (pull requests, rulesets, sensitive data, tokens, signing, Actions), DVC docs.
+
+Review
+- A separate reviewer re-derived the vectors with real git 2.51.2 (blob, tree, tag and commit ids match; merge-base agreed with `git merge-base --all` on 10 graphs). It fixed a false interview answer (a fresh clone does not have an empty reflog), a source `readFor` that overclaimed, an over-specified tuple test, and added six new wrong solutions that slipped past as permanent mutants plus hidden tests.
+- My checks: site build and axe pass. Two ASCII e2e tests needed updating because Realm 1 now has 8 quests and Git is a built topic. E2E now runs two workers, because many software-WebGL pages at once made timing tests and axe time out.
+
+TODO-VERIFY / not done
+- Not run in the in-browser editor, only with CPython 3.13. The sha256 transition and model-registry claims are hedged in the lesson. A correct but quadratic merge-base passes the tests (only a runner timeout would catch it). The "no network" wording could be softer.
+- Not deployed since the new theme and the inner-page strips.
+
+Tomorrow
+- Realm 1 quest 9: Linux and the command line; or redeploy.
