@@ -731,3 +731,22 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Realm 1 quest 9: Linux and the command line; or redeploy.
+
+## Day 29: Linux and the command line quest
+
+What shipped
+- Quest `linux-and-cli` (Realm 1, 9th and last planned Realm 1 quest): L1 to L5 lesson with Mira, 19 quiz items (5 predict-output, 4 spot-bug), 33 cards, 10 interview questions, 8 mistakes, 19 sources, boss. It says plainly that the browser cannot run a shell or a real Linux system; real commands are marked not runnable here.
+- Challenges: `chmod-modes` (apply chmod specs, show ls-style mode strings; 27 mutants caught) and `shell-split` (POSIX quoting rules; 29 mutants caught). Realm 1 counts 9 quests.
+
+Sources: POSIX Shell Command Language (2024), GNU Bash and coreutils manuals, gnulib modechange.c, Linux man-pages, kernel cgroup v2 docs, FHS 3.0, OpenSSH, sudo, systemd.timer, ShellCheck, Microsoft WSL permissions page.
+
+Review
+- The writer checked chmod-modes against real GNU chmod 8.32 (8,149 valid rows) and shell-split against bash --posix (about 1,400 lines). A separate reviewer repeated this with fresh samples (about 3,700 chmod cases, 2,000 shell lines, 0 real mismatches), and found: a wrong shell_split that deleted every backslash-newline slipped past all tests (now caught by new hidden tests and mutants), a 1,000,000 character hidden test that would reject a correct slow solution (reduced), undocumented differences from a real shell (now stated), wrong umask wording, three source overclaims and an inaccurate quiz explanation.
+- One correction to my own brief: GNU chmod applies the umask to removal and to = as well when who is omitted; the docs and tests say so.
+- My checks: site build, axe on the new quest, unit tests and the e2e specs all pass; quiz answer positions were spread once with the shuffle script (5/5/4/5).
+
+TODO-VERIFY / not done
+- Special-bit start modes cannot be checked against real chmod on this Windows filesystem (gnulib-derived hand tests only). An unquoted newline is a separator here by contract; no real shell confirms it. The Bash manual redirection and set pages and the coreutils umask page were checked from memory by the reviewer. Not run in the in-browser editor. Linux facts about /bin symlinks, pipefail in old shells, cron environments and logrotate need a later check.
+
+Tomorrow
+- Realm 1 is built. Next: Realm 2 (Linear algebra or probability) or polish.
