@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const ROUTES = ["/", "/dashboard/", "/map/", "/skills/", "/review/", "/settings/", "/fx-lab/", "/quests/gradient-descent/", "/quests/python-basics/", "/quests/python-functions-and-modules/", "/quests/python-oop-and-errors/", "/quests/generators-and-iterators/", "/quests/async-and-concurrency/", "/quests/data-structures-and-algorithms/", "/quests/http-and-rest/", "/quests/git-and-github/", "/games/gradient-hiker/", "/games/loss-mountains/"];
+const ROUTES = ["/", "/dashboard/", "/map/", "/skills/", "/review/", "/settings/", "/fx-lab/", "/quests/gradient-descent/", "/quests/python-basics/", "/quests/python-functions-and-modules/", "/quests/python-oop-and-errors/", "/quests/generators-and-iterators/", "/quests/async-and-concurrency/", "/quests/data-structures-and-algorithms/", "/quests/http-and-rest/", "/quests/git-and-github/", "/quests/linux-and-cli/", "/games/gradient-hiker/", "/games/loss-mountains/"];
 const THEMES = ["light", "dark"] as const;
 
 for (const theme of THEMES) {

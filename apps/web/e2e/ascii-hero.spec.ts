@@ -20,7 +20,7 @@ test("decorative rules and realm brackets are hidden or generated, and the realm
   const rules = page.locator(".ascii-rule");
   expect(await rules.count()).toBeGreaterThanOrEqual(1); // above the quest map
   for (const rule of await rules.all()) await expect(rule).toHaveAttribute("aria-hidden", "true");
-  await expect(page.getByRole("link", { name: /Realm 1: .*8 quests/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Realm 1: .*9 quests/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Realm 2: .*1 quest/ })).toBeVisible();
   const bracket = await page.locator(".realm-node").first().evaluate((el) => getComputedStyle(el, "::before").content);
   expect(bracket).toContain("[");
@@ -63,7 +63,8 @@ test("the skills page also shows the tree as layered text, hidden from assistive
   await expect(tree).toHaveAttribute("aria-hidden", "true");
   await expect(tree).toContainText("== layer 0");
   await expect(tree).toContainText("[*] Python basics");
-  await expect(tree).toContainText("[ ] Linux and the command line");
+  await expect(tree).toContainText("[*] Linux and the command line");
+  await expect(tree).toContainText("[ ] Linear algebra");
   await expect(tree).toContainText("<= Python basics");
   for (const width of [375, 768]) {
     await page.setViewportSize({ width, height: 900 });
