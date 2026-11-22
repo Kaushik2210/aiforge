@@ -1,0 +1,39 @@
+- question: "What happens between pressing Enter on a command line and the program starting?"
+  modelAnswer: "The shell reads the line and splits it into words, honouring quotes. It then performs expansions: tilde, variables, command substitution, then field splitting of unquoted results, then pathname expansion (globbing), and finally quote removal. It sets up redirections and pipes, looks up the command (a builtin, or a file found by searching the directories in PATH), and starts it with the final list of arguments and a copy of the environment. The program never sees the quotes or the wildcard characters, only the result."
+  followUps: ["Why does ls *.txt behave differently when no file matches?", "Where does the program find its environment variables?"]
+
+- question: "Explain Unix file permissions, including the special bits."
+  modelAnswer: "Each file has an owner, a group and a mode. The mode holds three classes (user, group, other) of read, write and execute bits, shown as digits 0 to 7, plus three special bits in a leading digit: setuid (4000), setgid (2000) and sticky (1000). The kernel uses exactly one class: user if you own the file, else group if you are in its group, else other. On a directory, x means you may pass through it. Setuid or setgid on a program changes the identity it runs with, setgid on a directory makes new files inherit the group, and sticky on a directory means only the owner of a file (or of the directory, or root) can delete or rename it."
+  followUps: ["Why can the owner of a file with mode 064 not read it?", "What does 1777 on /tmp achieve?"]
+
+- question: "What does umask do, and how does it relate to chmod?"
+  modelAnswer: "umask is a per-process mask of permission bits to remove from the mode a program requests when it creates a file or directory. With umask 022, a request for 666 gives 644 and 777 gives 755. It never adds bits. GNU chmod also uses the umask when a symbolic mode has no who letters: chmod +x adds execute only where the umask allows, while chmod a+x ignores the umask."
+  followUps: ["What umask would give new files mode 600?", "Why might a team set a different umask for a shared folder?"]
+
+- question: "What is the difference between > file 2>&1 and 2>&1 > file?"
+  modelAnswer: "Redirections are processed from left to right, and 2>&1 means make file descriptor 2 a copy of descriptor 1 as it is at that moment. In > file 2>&1 descriptor 1 is first pointed at the file, then 2 copies it, so both go to the file. In 2>&1 > file descriptor 2 copies the screen first and only then does 1 move to the file, so errors still appear on the screen."
+  followUps: ["How would you send errors to one file and output to another?", "What does a pipe do with standard error by default?"]
+
+- question: "A deployment script prints success but the download inside it failed. What could be going on?"
+  modelAnswer: "A likely cause is a pipeline such as curl URL | tee file. By default the exit status of a pipeline is the status of its last command, so a failure in curl is hidden, and set -e does not trigger. Using set -o pipefail makes the pipeline fail when any stage fails. More generally set -e is ignored in conditions and in && and || lists, so important steps should be checked explicitly, and the script should be run through ShellCheck."
+  followUps: ["Which contexts ignore set -e?", "Is pipefail available in every sh?"]
+
+- question: "How do you safely delete files found with find?"
+  modelAnswer: "Run find with -print first to see exactly what matches, then use either find with -delete placed after the tests, or find -exec rm -- {} +, or find -print0 piped to xargs -0 rm --. NUL separation is needed because file names can contain spaces and newlines. Putting -delete before the tests would make find try to delete everything under the start point, since find evaluates its arguments as an expression. Quote patterns such as '*.tmp' so the shell does not expand them first."
+  followUps: ["Why does xargs sometimes run the command with no arguments, and how do you stop it?", "What does -- do before a file name?"]
+
+- question: "What is the difference between SIGTERM and SIGKILL, and what does exit status 137 tell you?"
+  modelAnswer: "SIGTERM (15) asks a process to terminate and can be caught, so the program can clean up. SIGKILL (9) cannot be caught, blocked or ignored, so the kernel just ends the process with no cleanup. kill with no option sends SIGTERM. A shell reports a process killed by signal N as 128 + N, so 137 means SIGKILL, which is also what the kernel's out-of-memory killer uses, so a vanished job with status 137 should make you check memory limits and the kernel log."
+  followUps: ["How would a long training loop handle SIGTERM?", "Which signals cannot be caught?"]
+
+- question: "How do you handle secrets in scripts and on the command line?"
+  modelAnswer: "Do not put them in arguments, because other users may see them in the process list and they stay in shell history, and do not commit them to Git. Read them from a file that only the service user can read (mode 600), from an environment variable set by the service manager, or from a secret manager. Remember that exported variables are inherited by every child process, so scope them narrowly, avoid echoing them in logs, and rotate any secret that was exposed."
+  followUps: ["How would you check what a running process was started with?", "Why does ssh ignore a private key with mode 644?"]
+
+- question: "Why is chmod 777 considered bad practice, and what do you do instead?"
+  modelAnswer: "Mode 777 gives every user on the machine read, write and execute access, so any compromised or careless account can change the file, and it usually hides the real problem, which is the wrong owner, group or path permissions. Find out which user must access the file, give it the least access that works (for example 640 or 750 with a shared group), and remember that every directory on the path needs search permission. Use the sticky bit on shared writable directories."
+  followUps: ["What is the least access a web server needs to serve static files?", "What does setgid on a directory help with?"]
+
+- question: "How do containers relate to Linux, and why does that matter for a training job?"
+  modelAnswer: "A Linux container is a normal process that the kernel gives a restricted view of, using namespaces (separate views of process IDs, mounts, network, host name and users) and cgroups (limits and accounting for memory, CPU, process count and I/O). It shares the host kernel, so kernel facts apply directly: memory limits can trigger the OOM killer inside the cgroup, resource limits such as open files apply, and signals behave as on the host. GPU access also depends on the host driver, so check how your container tooling exposes it."
+  followUps: ["How is a container different from a virtual machine?", "What would you check when a container job disappears with status 137?"]

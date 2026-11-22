@@ -34,3 +34,12 @@ items:
   - quest: git-and-github
     claim: "GitHub UI and rules cited: pull requests, branch protection versus rulesets, removing sensitive data (git-filter-repo 2.47 flag), Actions concepts, fine-grained personal access tokens, commit signature verification, large file limits (50 MiB warning, 100 MiB block), DVC cache page"
     verifiedOn: 2026-11-17
+  - quest: linux-and-cli
+    claim: "POSIX Shell Command Language 2024 edition behaviours cited (quoting, field splitting, pathname expansion left unchanged when nothing matches, redirection, pipeline exit status and pipefail, set -e exceptions), GNU Bash Reference Manual pages (redirection order, set builtin, exit status 126/127/128+N), GNU coreutils 9.12 chmod, symbolic modes, umask and directory setuid rules, gnulib modechange.c; expected chmod values checked with GNU chmod 8.32 from Git for Windows"
+    verifiedOn: 2026-11-18
+  - quest: linux-and-cli
+    claim: "Linux man-pages 6.19 (2026-02-08) cited: path_resolution(7), inode(7), signal(7), environ(7), hier(7), namespaces(7), cgroups(7), getrlimit(2), proc_pid_oom_score_adj(5); kernel cgroup v2 memory.max/OOM; findutils find and xargs man pages; FHS 3.0 (2015) versus current distributions (TODO-VERIFY /bin symlink to /usr/bin)"
+    verifiedOn: 2026-11-18
+  - quest: linux-and-cli
+    claim: "Tool and platform pages cited: OpenSSH ssh(1) key permissions, sudo manual, systemd.timer (systemd 262 page), crontab(5) (cronie), ShellCheck v0.11.0, Microsoft Learn WSL file-permissions page (last updated 2021; re-check); TODO-VERIFY items: logrotate setup, cron environment on a given distribution, NVIDIA container toolkit driver details, macOS BSD tool differences"
+    verifiedOn: 2026-11-18

@@ -1,0 +1,524 @@
+---
+id: linux-and-cli
+title: Linux and the command line
+realm: 1
+zone: Python foundations
+prerequisites: []
+estimatedMinutes: 150
+verifiedOn: 2026-11-18
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "A shell is a program that reads a line, does its own work on it (splitting it into words, removing quotes, expanding variables and wildcards) and only then starts the commands with the final list of arguments. The program you start never sees the quotes or the wildcard; it just gets the arguments."
+  - "Every process starts with three open channels: standard input (file descriptor 0), standard output (1) and standard error (2). Redirection (>, <, 2>&1) points those channels at files, and a pipe (|) connects the output of one command to the input of the next. Redirections are processed from left to right, so the order matters."
+  - "Every file has an owner, a group and a mode. The mode has three classes (user, group, other) of three bits each (read, write, execute), plus three special bits (setuid, setgid, sticky). The kernel picks exactly one class for you: owner if you own the file, otherwise group if you are in its group, otherwise other. The classes never add up."
+  - "Every command ends with an exit status. 0 means success and anything else means some kind of failure; $? holds the last one. Shells use it for && and ||, for if, and (with set -e) to stop a script. A status above 128 usually means the command was killed by a signal."
+coreComplexity:
+  - "Unquoted variable expansions are split into words (by default on space, tab and newline) and then each word is checked for wildcard characters. So rm $file with a file called my notes.txt runs rm with two arguments, and a file called * becomes every file name in the directory. Quote it: rm -- \"$file\". This one rule explains a large share of shell bugs."
+  - "Quoting has three tools with different strength. A backslash keeps the next character literal. Single quotes keep everything literal. Double quotes keep most things literal but still allow $, backticks and a backslash that escapes only $, backtick, double quote, backslash and newline. Getting that last rule wrong is how quoting parsers go wrong, which is why this quest rebuilds it."
+  - "A pipeline's exit status is, by default, the status of the last command only. With set -o pipefail it is the last non-zero status in the pipeline. set -e (stop on error) has many exceptions: it is ignored in an if test, in the left part of && and ||, in all but the last command of a pipeline (unless pipefail), and inside anything that runs in such a context. Treat set -euo pipefail as a seat belt that helps, not as a guarantee."
+  - "Permissions are checked along the whole path. To open /a/b/c you need search (execute) permission on / and a and b, and then the right bit on c. On a directory, r lets you list names, w lets you create and remove entries, and x lets you pass through it. Setuid and setgid on an executable change the identity the program runs with, which is why they are rare and dangerous. The sticky bit on a directory means files in it can be removed only by their owner, the directory's owner or a privileged process."
+  - "A signal is a small message to a process. SIGTERM asks it to stop and it can catch it and clean up. SIGKILL cannot be caught, blocked or ignored, so the process gets no chance to clean up (temporary files stay, child processes may be left behind). kill with no option sends SIGTERM. Use SIGKILL only after SIGTERM has had time to work."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain why rm $file can delete the wrong things when the file name contains a space (or a star), and how you fix it."
+  rubric:
+    - "Says the shell splits the unquoted expansion into separate words before running the command (word splitting), so one file name becomes several arguments, and that an unquoted star can also be turned into a list of matching file names (pathname expansion)."
+    - "Says the program never sees the quotes or the original text, because the shell does the splitting and wildcard work before it starts the program."
+    - "Gives the fix: put the variable in double quotes (rm -- \"$file\"), and optionally name safer habits such as set -u, ${var:?} for a variable that must not be empty, or ShellCheck to catch the mistake."
+miniGame: none-yet
+bossId: linux-and-cli-boss
+---
+
+# Linux and the command line
+
+> **Realm 1, Programming Fundamentals.** Guide: *Mira*, the lantern-bearer
+> (an original AIForge character). Mira does not carry a map. She talks to the
+> road: short, exact sentences, each one doing one thing. The command line is a
+> bit like that. A few small words, said precisely, and the machine obeys.
+
+Almost every server, every cloud machine, every training cluster and every
+container you will meet as an AI engineer runs Linux, and you talk to it with a
+shell. This quest is not a list of commands to memorise. It is the **rules**
+underneath them: what the shell does to your line before the program runs, how
+permissions decide who can do what, and what happens to output and errors.
+
+<Callout type="note" title="Honest about the browser">
+The code editor on this site runs Python in your browser (Pyodide). It cannot run
+a shell, it has no Linux file system and it cannot start processes. So this
+quest teaches the command line's rules by rebuilding two of them in plain Python:
+**file permission modes** (what `chmod` does to a number) and **command-line
+quoting** (how a shell cuts a line into arguments). Every real shell command in
+this lesson is a read-only sample marked *NOT RUNNABLE HERE*. Try them in a
+terminal on your own computer, in a scratch folder, and never as root.
+</Callout>
+
+---
+
+## L1. Intuition
+
+**The shell is a translator, not a mind reader.** You type a line. The shell
+reads it, rewrites it a little, and then asks the system to run a program with
+the rewritten list of arguments. The program has no idea what you typed.
+
+```text
+you type:       ls  "my notes"  *.txt
+shell rewrites: ls   my notes    a.txt b.txt      (but as 3 separate arguments:
+                                                   "my notes", "a.txt", "b.txt")
+```
+
+The star was replaced by the shell. `ls` never saw a star.
+
+**Everything is a place on one tree.** There is one big tree of folders that
+starts at `/` (the *root*). Your own files live under your home folder. Devices
+and information about running programs even show up as files in special folders.
+That idea, "treat it like a file", is why so many tools can be joined together.
+
+**Three doors on every program.** Each program has a door to read from (input),
+a door to write results to (output) and a door to write complaints to (errors).
+By default they are your keyboard and your screen. You can point them elsewhere:
+into a file, or into the next program.
+
+**Permissions are a guest list with three lines.** For each file there is a line
+for the owner, a line for the owner's group, and a line for everybody else. Each
+line says who may read, write or run it.
+
+**Mira's habit.** When she is about to do something she cannot undo, she first
+says what she is about to do, out loud, in a harmless way. In a shell that is
+`echo` before `rm`, or `ls` before you delete.
+
+<Callout type="warn" title="Where this picture misleads">
+"The shell is a translator" is true for the classic Unix shells (sh, bash, zsh).
+Windows has its own shells (cmd and PowerShell) with different rules, so the
+quoting and wildcard rules in this quest do not transfer to them. Also, "the
+three lines" are checked in order and only **one** applies to you. You do not get
+the owner's rights plus the group's rights; see L2.
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### Everything is a file, and the tree has a plan
+
+On Linux, many different things are reached through paths: regular files,
+directories, devices (under `/dev`) and information about the system and its
+processes (under `/proc`). That is the "everything is a file" idea. It is a
+design habit, not a perfect law (a network connection is not a path, for
+example), but it explains why `cat`, `grep` and `>` work on so many things.
+
+The Linux manual page on the file hierarchy (hier(7)) describes the usual
+layout, and the Filesystem Hierarchy Standard (FHS 3.0, March 2015) is the formal
+version. Distributions can differ, so treat this as a map, not a promise:
+
+| path | what you usually find there |
+|---|---|
+| `/` | the root of the tree |
+| `/home` | users' home folders (`/root` is usually root's home) |
+| `/etc` | configuration files that belong to this machine |
+| `/usr` | shareable, mostly read-only programs and data |
+| `/bin` | programs needed to boot and repair the system (on many modern systems this is a link into `/usr`; check yours with `ls -l /bin`, TODO-VERIFY which distributions) |
+| `/var` | files that change in size: logs, queues, caches |
+| `/var/log` | log files |
+| `/tmp` | temporary files that may be deleted at any time, even at reboot |
+| `/dev` | device files |
+| `/proc` | information about processes and the kernel |
+| `/opt` | add-on software packages |
+
+**Absolute and relative paths.** A path that starts with `/` is *absolute*: it
+begins at the root. Any other path is *relative*: it begins at the current
+working directory. Every directory has two entries by convention: `.` (this
+directory) and `..` (its parent). You cannot go above the root: `/..` is `/`.
+`~` is shorthand the shell turns into your home directory (that is the shell's
+doing, so a program that is given a literal `~` does not know it).
+
+### Permissions: three classes, three bits, three special bits
+
+`ls -l` shows a mode like `-rwxr-xr--` or `drwxr-xr-x`. The first character is the
+type (`-` for a regular file, `d` for a directory). The next nine are three
+groups of three: user (owner), group, other. In each group, `r` is read, `w` is
+write and `x` is execute (for a directory, `x` means search: you may pass
+through it to reach things inside).
+
+Each group is one octal digit: r is 4, w is 2, x is 1. So `rwx` is 7, `r-x` is
+5, `r--` is 4. The mode `rwxr-xr--` is `754`. Three more bits sit in a fourth,
+leading digit:
+
+| digit | bit | what it does |
+|---|---|---|
+| 4000 | setuid | on a program, it runs with the **owner's** identity |
+| 2000 | setgid | on a program, with the group's identity; on a directory, new files inherit the directory's group |
+| 1000 | sticky | on a directory, only a file's owner (or the directory's owner, or root) can remove or rename it |
+
+In `ls -l` these replace the `x` in their class: `s` for setuid or setgid and `t`
+for sticky when the execute bit is also set, and a capital `S` or `T` when it is
+not (a hint that something is odd). You will build this display in the first
+challenge.
+
+**Only one class applies.** The kernel checks, in this order: are you the
+owner? Then only the user bits count. Else are you in the file's group? Then only
+the group bits count. Otherwise the other bits count. The classes do not combine.
+A file with mode `064` (`---rw-r--`) cannot be read by its own owner, even though
+group and other can. (The owner can still change the mode with `chmod`.)
+
+**`chmod`: numbers and letters.** `chmod 755 file` sets the whole mode. The
+symbolic form changes part of it: `chmod u+x file` adds execute for the owner,
+`chmod go-w file` removes write for group and other, `chmod a=r file` sets exactly
+read for everybody. The letter `X` adds execute only if the target is a directory
+or already has execute for someone. That is the safe way to open up a folder tree
+without making every plain file executable.
+
+**`umask`: the default you do not get.** When a program creates a file it asks for
+a mode, and the process's *umask* removes bits from the request. With umask `022`,
+a request for `666` gives `644`, and a request for `777` gives `755`. In a
+`chmod` spec with **no** who letters (like `chmod +x file` or `chmod =rw file`),
+GNU chmod also respects the umask: bits that the umask has set are left alone (not added and not removed). This
+surprises people, and the first challenge makes you handle it exactly.
+
+**Directories and the special bits.** GNU chmod does not clear the setuid and
+setgid bits of a directory when you give a plain number like `755` (four digits
+or fewer), because setgid on shared folders is useful. A five-digit number such
+as `00755`, or the symbolic `a-s`, does clear them. This is a GNU rule, and the
+GNU manual says portable scripts should not rely on it. Read how the challenge
+statement spells out exactly which parts it implements.
+
+### Standard streams, redirection and pipes
+
+Each process starts with three open *file descriptors*: **0** is standard input,
+**1** is standard output and **2** is standard error. A redirection changes where
+one of them points:
+
+| you write | meaning |
+|---|---|
+| `cmd > file` | send output (fd 1) to `file`, replacing it |
+| `cmd >> file` | append output to `file` |
+| `cmd < file` | read input (fd 0) from `file` |
+| `cmd 2> errors.txt` | send error output (fd 2) to a file |
+| `cmd 2>&1` | make fd 2 a copy of whatever fd 1 points at **right now** |
+| `cmd1 \| cmd2` | connect cmd1's output to cmd2's input |
+
+**The order matters.** Redirections are processed left to right. The Bash manual
+has the classic pair. `ls > dirlist 2>&1` sends both output and errors to the
+file. `ls 2>&1 > dirlist` first points errors at the screen (where output is
+right now) and only then moves output to the file, so errors still appear on the
+screen. Read `2>&1` as "make 2 a copy of 1, as it is now".
+
+**A pipe is not a file.** `a | b` runs both at the same time and connects them.
+By default the pipeline's exit status is that of the **last** command (`b`), so a
+failure in `a` is easy to miss. See set -o pipefail below.
+
+### Exit status
+
+Every command ends with a number. `0` means success, non-zero means failure.
+`$?` is the status of the last command. Special values from the Bash manual:
+`127` means the command was not found, `126` means it was found but is not
+executable, and a command killed by signal number N gets `128 + N` (so SIGTERM,
+signal 15, shows as `143`). Because `if cmd; then` tests the exit status, a
+shell script's logic is built on these numbers.
+
+### Quoting and word splitting
+
+The POSIX shell language defines three quoting tools. A backslash keeps the
+next character literal (except that backslash-newline is removed). Single quotes
+keep everything literal. Double quotes keep everything literal except `$`,
+backtick and backslash, where a backslash escapes only `$`, backtick, `"`,
+backslash and newline.
+
+Now the dangerous part. After expansion (variables, command substitution), the
+shell takes every result that was **not** inside double quotes and **splits** it
+into fields (on space, tab and newline by default, because of the `IFS`
+variable). Then each field is checked for wildcard characters and replaced with
+matching file names (*pathname expansion*, or *globbing*). Quotes switch both off.
+
+```bash
+# NOT RUNNABLE HERE: needs a real shell.
+file="my notes.txt"
+rm $file           # runs: rm my notes.txt     (two arguments!)
+rm "$file"         # runs: rm "my notes.txt"   (one argument)
+rm -- "$file"      # the -- also stops a name that starts with - being read as an option
+```
+
+**Globbing is done by the shell, not the program.** `ls *.txt` is rewritten by
+the shell to `ls a.txt b.txt` before `ls` starts. If nothing matches, POSIX says
+the pattern is left unchanged, so the program receives a literal `*.txt` and
+usually complains that no such file exists. To give a program a literal star
+(for example `find -name '*.py'`), quote it so that the program receives it.
+
+### Environment variables and PATH
+
+The *environment* is a list of `NAME=value` strings that a process receives from
+its parent when it starts (environ(7)). Children inherit a copy; changing your
+copy does not change your parent's. In a shell, `NAME=value` makes a shell
+variable and `export NAME` hands it to the programs you start.
+
+`PATH` is a list of directories separated by colons. When you type a command
+name with no slash, the shell (through the exec functions) searches those
+directories from left to right for an executable file. An empty entry in `PATH`
+means the current directory, which is deprecated and risky: a file called `ls`
+in the folder you are standing in could run instead of the real one. To run a
+program in the current folder you must say so: `./myscript`.
+
+### Processes and signals
+
+A *process* is a running program. `ps` lists processes and `top` shows them live.
+A *signal* is a tiny message sent to a process. The ones you will meet most
+(signal(7)):
+
+| signal | number (x86) | default effect |
+|---|---|---|
+| SIGHUP | 1 | terminate (the terminal went away) |
+| SIGINT | 2 | terminate (Ctrl-C) |
+| SIGTERM | 15 | terminate (a polite request; can be caught) |
+| SIGKILL | 9 | terminate (cannot be caught, blocked or ignored) |
+
+`kill PID` sends SIGTERM by default (POSIX). `kill -9 PID` (or `kill -s KILL PID`)
+sends SIGKILL. Good practice: send SIGTERM, wait a few seconds, and use SIGKILL
+only if the process is stuck. SIGKILL gives the program no chance to save its
+work or remove its lock and temporary files. (Signal numbers vary by CPU
+architecture; the table is for x86 as given in the manual page.)
+
+### Finding and changing text: the five tools to know
+
+| tool | job | example |
+|---|---|---|
+| `grep` | print lines that match a pattern | `grep -rn "TODO" src/` |
+| `find` | walk a tree and select files | `find . -name '*.log' -mtime +7` |
+| `sed` | edit a stream of lines | `sed 's/cat/dog/g' in.txt` |
+| `awk` | pick columns and do small calculations per line | `awk '{ print $1, $3 }' data.txt` |
+| `xargs` | build a command line from input | `... \| xargs -0 rm` |
+
+**Never join `find` and `xargs` with plain text when names can hold spaces.** File
+names can contain spaces and even newlines. `find` can end each name with a NUL
+byte (`-print0`), which a name can never contain, and `xargs -0` reads
+NUL-separated input and treats quotes and backslashes literally:
+
+```bash
+# NOT RUNNABLE HERE: needs a real shell and files.
+find . -name '*.tmp' -print0 | xargs -0 rm --
+find . -name '*.tmp' -exec rm -- {} +        # no pipe needed; + batches many names per run
+```
+
+Two more cautions from the `find` manual. `-delete` implies `-depth`, and because
+`find` reads its line as an expression, putting `-delete` **first** makes it try
+to delete everything below the start point. Always test with `-print` first. And
+GNU `xargs` normally runs the command once even for empty input; `-r` (`--no-run-if-empty`)
+stops that.
+
+### A few commands, in a terminal (not runnable here)
+
+```bash
+# NOT RUNNABLE HERE: the browser sandbox cannot run a shell.
+pwd                          # where am I?
+ls -la                       # list files with modes, owners, hidden ones
+cd /var/log                  # go somewhere (absolute path)
+cd ..                        # go up one level
+mkdir -p project/data        # make folders, including parents
+cp -r src backup             # copy a tree
+mv old.txt new.txt           # rename or move
+cat notes.txt | head -n 5    # show first five lines
+less big.log                 # page through a long file
+grep -c ERROR app.log        # count lines that contain ERROR
+cmd > out.txt 2> err.txt     # separate normal output and errors
+echo "status: $?"            # exit status of the previous command
+chmod u+x run.sh && ./run.sh # make it executable, then run it from here
+```
+
+### Editors, at a glance
+
+You will sometimes land on a machine with only a terminal editor. **nano** shows
+its key help at the bottom of the screen and is the gentlest. **vim** is modal:
+`i` enters insert mode, `Esc` leaves it, `:wq` saves and quits and `:q!` quits
+without saving. **emacs** is a large environment with its own key chords. Know
+enough of one to fix a config file, and use a full editor (VS Code, for example)
+for real work, even over SSH.
+
+### SSH keys, at a glance
+
+SSH logs you in to another machine securely. Public-key login uses a pair of
+files: a private key that stays secret on your machine, and a public key that you
+put on the server. The OpenSSH manual says private key files under `~/.ssh` must
+not be accessible by others, and that `ssh` simply ignores such a key if they
+are. The usual setting is `chmod 700 ~/.ssh` and `chmod 600 ~/.ssh/id_ed25519`
+(the exact key file name depends on the key type you chose).
+
+### `sudo`, and why it needs care
+
+`sudo` runs one command as another user, usually the superuser, as allowed by a
+policy file. That is useful and dangerous: as root, a typo can delete or expose
+things that no normal user could touch. Habits that help: use it for the single
+command that needs it, not for a whole shell session; read the command twice;
+never `sudo` a script you did not read; and do not "fix" a permission error by
+running everything as root. The sudo manual also notes that if you start a shell
+or an editor with a shell escape through sudo, later commands are not logged by
+the usual default logging, so a shell opened with sudo is hard to audit.
+
+### Cron and systemd timers, at a glance
+
+To run something on a schedule, Linux offers *cron* and *systemd timers*. A cron
+job is a line with five time fields (minute, hour, day of month, month, day of
+week) followed by a command; the cron daemon documented in crontab(5) sets
+`SHELL=/bin/sh` and a few variables for the job. A systemd timer is a `.timer`
+unit file that activates a matching `.service` unit (a `foo.timer` starts
+`foo.service` by default); it can run at calendar times (`OnCalendar=`), a delay
+after boot (`OnBootSec=`), and with `Persistent=true` it catches up on a missed
+run. Whichever you use, remember that a scheduled job has a different environment
+from your interactive shell: do not assume your `PATH` or your variables are
+there (TODO-VERIFY: check the environment of cron on your own distribution).
+
+<Step prompt="you run ./train.sh 2>&1 > train.log and error messages still print on your screen. Why?">
+Redirections are read left to right. `2>&1` makes fd 2 a copy of fd 1 as it is at
+that moment, and at that moment fd 1 is still your screen. Only afterwards does
+`> train.log` move fd 1 to the file, and fd 2 stays on the screen. Write
+`./train.sh > train.log 2>&1` (or `&> train.log` in bash) to send both to the file.
+</Step>
+
+---
+
+## L3. Build it
+
+Two challenges. Run them in the browser editor (Pyodide) or locally with
+`python tests.py <file>`. They use only the Python standard library, no
+`subprocess`, no files and no `shlex`, so they run anywhere, including this site.
+
+1. **`chmod-modes`**: rebuild what `chmod` does to a number. `apply_chmod(mode,
+   spec, is_dir=False, umask=0o022)` applies an octal spec (`"755"`, `"4755"`) or
+   a symbolic spec (`"u+x"`, `"go-rwx"`, `"a=r,u+w"`, `"og+rX-w"`, `"g=u"`, with
+   `r w x X s t` and the operators `+ - =`) and returns the new 12-bit mode. It
+   follows GNU chmod's rules, including the umask for specs with no who letters,
+   `X`, copying from another class, which letters have an effect (`o+s` does
+   nothing), and how directories keep their setuid and setgid bits. A bad spec is
+   a `ValueError`. Then `mode_string(mode, is_dir=False)` produces the `ls -l`
+   text, including `s`, `S`, `t` and `T`. The expected values were checked
+   against real GNU `chmod` (coreutils 8.32, in Git for Windows) and against the
+   rules in the gnulib source that GNU chmod uses. Operator-octal specs such as
+   `+440` are a GNU extension and are deliberately *not* part of the challenge.
+2. **`shell-split`**: rebuild how a shell cuts a line into arguments.
+   `shell_split(line)` follows POSIX quoting for a subset: unquoted whitespace
+   separates, single quotes are literal, double quotes are literal except for the
+   five-character backslash rule, an unquoted backslash escapes one character,
+   backslash-newline vanishes, adjacent pieces join (`"a"'b'c` is `abc`), and
+   `''` is a real empty argument. Nothing is expanded: `$HOME`, `*` and `#` stay
+   ordinary text (a real shell treats a `#` at the start of a word as a comment, treats
+   an unquoted newline as the end of a command, and bash and POSIX 2024 give `$'...'`
+   a special meaning; this function does none of that, and counts an unquoted newline
+   as a plain separator, like space). An unterminated quote or a lone trailing backslash is
+   a `ValueError`. We compared the results against a real POSIX-mode shell on
+   more than a thousand generated lines. Python's own `shlex.split` is *not* the
+   same: for example it keeps the backslash in `"\$x"`, where the shell removes it.
+   You may not import `shlex` in your solution, and it would give wrong answers on
+   those lines anyway.
+
+**Why rebuild instead of calling the tools.** The browser cannot run a shell, and
+a function that turns a string into a result is exact, fast and easy to test. It
+also makes you meet each rule once, alone, instead of when a script breaks at
+3 a.m.
+
+---
+
+## L4. Production reality
+
+- **Least privilege.** Give each service its own user, give that user only the
+  files it needs, and run it without root. Prefer group access (`750` or `640`
+  with a shared group) over opening files to everyone.
+- **Never `chmod 777`.** It lets every user on the machine change the file, and
+  it usually hides the real problem (the wrong owner or group). Find out who needs
+  access and give exactly that. A world-writable directory without the sticky bit
+  lets users delete each other's files; that is what `/tmp`'s sticky bit (`1777`)
+  is for.
+- **Secrets are not command-line arguments.** Other users on the same machine can
+  often see a process's arguments in the process list, and a command typed in a
+  shell can stay in your history. Pass secrets through a file with mode `600`, a
+  secret manager, or an environment variable (and remember that children inherit
+  the environment, so a secret you export reaches every program you start from
+  that shell). Never commit them (see the Git quest).
+- **Quote every expansion.** Write `"$var"` and `"$@"`, use `--` before file names
+  that came from users, and use `${var:?message}` for a variable that must not be
+  empty before an `rm`. The shell is happy to run `rm -rf "$DIR"/*` with `DIR`
+  empty, and that means `rm -rf /*`.
+- **Safe `rm -rf` habits.** Run the same command with `ls` or `echo` first. Use
+  `find ... -print` before `-delete`. Never glob into `rm` from untrusted names.
+  Keep backups of anything you cannot rebuild.
+- **`set -euo pipefail`, with caveats.** `-e` stops on an error, `-u` makes an
+  unset variable an error, and `-o pipefail` makes a pipeline fail if any part
+  fails. They catch real bugs, but `-e` is switched off in `if` tests and in
+  `&&`/`||` chains, so some failures still pass silently. `pipefail` was added to
+  the POSIX shell standard only in its 2024 edition, so very old shells may not
+  have it (TODO-VERIFY: your target shell). Write checks you care about
+  explicitly.
+- **ShellCheck.** `shellcheck script.sh` is a static analysis tool that warns
+  about unquoted variables, bad `[ ]` tests and shell-specific features, and runs
+  in CI with one line. Run it on every script you commit.
+- **Idempotent scripts.** A script that is safe to run twice is much easier to
+  operate: `mkdir -p`, `ln -sfn`, "create if missing", "write to a temporary file,
+  then `mv` into place". Cron and retries will run your script more than once.
+- **Logs and disk space.** A disk that fills up breaks surprising things: databases
+  stop writing, scripts cannot create temp files and logins fail. `df -h` shows free
+  space per file system and `du -sh` shows what a folder uses. Rotate logs (a tool
+  such as `logrotate` or the journal's own limits; TODO-VERIFY the setup on your
+  distribution), cap their size, and alert before the disk is full, not after.
+- **Windows, WSL and macOS, at a glance.** On Windows, WSL gives you a real Linux
+  file system for its own files. Microsoft's documentation says Linux files get
+  normal Linux permission handling there, while files under `/mnt/c` (your Windows
+  drives) get permissions computed from Windows by default, and removing all write
+  bits sets the Windows read-only attribute (the page we read was last updated in
+  2021; check the current one). In a Git-for-Windows shell on an NTFS folder, our
+  own check found that `chmod` could not store most mode bits at all. macOS ships
+  BSD versions of many tools whose options can differ from the GNU ones used on most
+  Linux systems (TODO-VERIFY against your man pages). The lesson: do permission
+  work on a real Linux file system.
+- **Failure at 3 a.m.:** a nightly job did not run. Check the exit status and logs
+  first (`systemctl status`, `journalctl`, or the cron mail and log), then check
+  the environment (`PATH`, working directory, user), then the permissions of the
+  script (is it executable? can this user read it?). Most scheduled-job failures
+  are one of those.
+
+---
+
+## L5. Frontier
+
+Read these, in this order, and look for the stated thing:
+
+1. The POSIX *Shell Command Language* chapter: read the quoting section (2.2) and
+   the word expansion order, and compare with the rules your `shell_split` follows.
+2. The GNU coreutils manual on file permissions, then the Bash manual's *Redirections*,
+   *Exit Status* and *The Set Builtin*: find the exact exceptions list for `set -e`.
+3. The Linux manual pages `namespaces(7)` and `cgroups(7)`: list what each namespace
+   type isolates, and what a cgroup controller limits.
+4. The kernel's *Control Group v2* document: find what `memory.max` does when a
+   group hits its limit and reclaim cannot help.
+5. `getrlimit(2)` and `proc_pid_oom_score_adj(5)`: soft and hard limits, and the
+   range of the OOM score adjustment.
+
+**Containers are Linux features combined.** A Linux container is a normal process
+(or a few) that the kernel shows a restricted view of. *Namespaces* give it its own
+view of process IDs, mount points, network devices, host name, users and more,
+and *cgroups* limit and account for the CPU, memory, process count and I/O it can
+use. Container tools combine these (and more, such as permission restrictions)
+into one friendly command (TODO-VERIFY: check the exact mix against your runtime's
+own documentation). The point for you: a container is not a small virtual machine
+with its own kernel; it shares the host's kernel, so kernel-level facts such as
+limits, signals and permissions apply to it directly.
+
+**Why ML training jobs care.**
+
+- *Memory limits and the OOM killer.* The man pages describe `oom_score_adj` (from
+  -1000 to 1000, where -1000 effectively turns off OOM killing for that task). The
+  kernel's cgroup v2 document says that when a group reaches `memory.max` and
+  memory cannot be reclaimed, the OOM killer runs inside that group. A training
+  job that quietly grows its memory can therefore be killed with no Python
+  traceback, only an exit status of `137` (that is `128 + 9`, SIGKILL). If a job
+  "just disappeared", look at the kernel log and the container's memory limit.
+- *Resource limits.* `ulimit` (a shell builtin) sets per-process limits such as the
+  number of open files; limits are inherited by child processes. A data loader that
+  opens thousands of files can hit the open-files limit even when the disk is fine.
+- *GPU drivers.* GPU software needs a driver matched to the hardware, and in a
+  container the driver normally comes from the host, with the container carrying
+  only the libraries it needs (TODO-VERIFY against NVIDIA's container toolkit
+  documentation before relying on specifics such as versions).
+- *Signals and checkpoints.* Schedulers usually stop a job with SIGTERM first and
+  SIGKILL after a grace period. A training loop that catches SIGTERM and writes a
+  checkpoint loses much less work than one that does not.
+
+Open questions to carry forward: how `/proc` exposes live process information,
+how `strace` shows the system calls a program makes, how a process gets its
+identity at login and under `sudo`, and how to read a systemd unit file for a
+long-running service.

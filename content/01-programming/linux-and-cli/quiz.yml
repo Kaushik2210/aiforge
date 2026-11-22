@@ -1,0 +1,308 @@
+- id: owner-class-only
+  question: "A file you own has mode 064 (---rw-r--). You are also in the file's group. Can you read it?"
+  options:
+    - "Yes. The three classes add up, so you get everything any of them allows"
+    - "Yes. The group bits allow read, and you are in the group"
+    - "No. You own it, so only the user bits apply, and they are ---"
+    - "No, but only because the sticky bit is missing"
+  answer: 2
+  explanation: "The kernel picks one class: owner if you own the file, otherwise group, otherwise other. The classes do not combine, so the owner bits (---) apply and read is denied. As the owner you can still change the mode with chmod."
+  whyWrong:
+    "0": "Classes never add up. Exactly one applies."
+    "1": "The group bits are never looked at, because the owner class matched first."
+    "3": "The sticky bit is about removing files from a directory, not about reading."
+
+- id: umask-creates
+  question: "With umask 027, a program creates a file and asks for mode 666. What mode does the file get?"
+  options:
+    - "640"
+    - "666"
+    - "027"
+    - "750"
+  answer: 0
+  explanation: "The umask removes bits from the requested mode. 666 with the bits of 027 removed (group write, and all of other) leaves 640."
+  whyWrong:
+    "1": "That ignores the umask, which exists to take bits away."
+    "2": "The umask is a mask of bits to remove, not the mode itself."
+    "3": "That would add execute bits that nobody asked for. A umask never adds."
+
+- id: directory-search-bit
+  question: "You own a directory with mode 644 (rw-r--r--). What happens when you run cd into it?"
+  options:
+    - "It works, because you own it"
+    - "It works but you see no files"
+    - "It works, because r is enough to enter a directory"
+    - "It fails with permission denied, because a directory needs the x (search) bit to be entered"
+  answer: 3
+  explanation: "For a directory, x means search: permission to pass through it. Without x even the owner cannot cd into it or reach files inside. The r bit only lets you list the names."
+  whyWrong:
+    "0": "Owning the directory does not skip the permission bits."
+    "1": "The cd itself is refused, so you never get as far as listing."
+    "2": "r lets you list names, but entering needs x."
+
+- id: glob-by-shell
+  question: "You run grep error *.log in a folder with a.log and b.log. What does grep receive?"
+  options:
+    - "One argument, the text *.log, and grep expands it"
+    - "Three arguments: error, a.log and b.log. The shell expanded the star first"
+    - "Only a.log, because the star matches one file"
+    - "A list of every file on the disk"
+  answer: 1
+  explanation: "Pathname expansion (globbing) is done by the shell before the program starts. grep gets error, a.log and b.log and never sees the star. If nothing matched, POSIX says the pattern is left unchanged and grep would get the literal text."
+  whyWrong:
+    "0": "That is the case only when the star is quoted or nothing matches."
+    "2": "A star matches any number of names, and every match is passed."
+    "3": "The star only matches names in the folder you named, here the current one."
+
+- id: redirect-order
+  question: "Which command sends both the output and the error messages of run.sh into all.log?"
+  options:
+    - "./run.sh 2>&1 > all.log"
+    - "./run.sh | all.log"
+    - "./run.sh > all.log 2> all.log"
+    - "./run.sh > all.log 2>&1"
+  answer: 3
+  explanation: "Redirections run left to right. First fd 1 goes to all.log, then 2>&1 makes fd 2 a copy of fd 1, so both go to the file. In the other order, fd 2 copies the screen before fd 1 moves."
+  whyWrong:
+    "0": "Here 2>&1 copies fd 1 while it still points at the screen, so errors stay on the screen."
+    "1": "A pipe connects to a command, not a file. all.log is not a program."
+    "2": "This opens the file twice, with two independent write positions, so the two streams can overwrite each other. The reliable form is > file 2>&1, which shares one open file."
+
+- id: exit-status-not-found
+  question: "In bash you run a command name that does not exist, and then echo $?. What do you see?"
+  options:
+    - "127"
+    - "1"
+    - "0"
+    - "255"
+  answer: 0
+  explanation: "POSIX and the Bash manual say a command that is not found gives exit status 127. A command that is found but not executable gives 126."
+  whyWrong:
+    "1": "1 is a common generic failure, but not the code for not found."
+    "2": "0 means success, and the command did not run at all."
+    "3": "255 is not the convention for this."
+
+- id: sigterm-sigkill
+  question: "A stuck program ignores your attempts to stop it. What is the sensible order?"
+  options:
+    - "Start with SIGKILL, because it always works"
+    - "Send SIGTERM first and give it time to clean up, then SIGKILL only if it is still stuck"
+    - "Send SIGHUP and SIGKILL together"
+    - "Never use SIGKILL, because it is not a real signal"
+  answer: 1
+  explanation: "SIGTERM can be caught, so the program can save work and remove temporary files. SIGKILL cannot be caught, blocked or ignored, so it works, but the program gets no chance to clean up. Use it as the last step."
+  whyWrong:
+    "0": "It does work, but it skips all cleanup, so it should not be the first move."
+    "2": "Sending both removes the polite chance for cleanup."
+    "3": "SIGKILL is a real signal (number 9 on x86)."
+
+- id: pipeline-status
+  question: "In bash without any special options, false | true is run and then echo $?. What is printed?"
+  options:
+    - "1, because the first command failed"
+    - "1, because pipelines return the largest status"
+    - "0, because a pipeline's status is the status of its last command"
+    - "It is a syntax error"
+  answer: 2
+  explanation: "By default the exit status of a pipeline is the status of the last command, here true, so 0. With set -o pipefail the status would be the last non-zero status in the pipeline, here 1."
+  whyWrong:
+    "0": "A failure in an earlier command is hidden unless pipefail is on."
+    "1": "There is no largest-status rule."
+    "3": "It is valid syntax."
+
+- id: secrets-in-arguments
+  question: "Which is the safest way to give a long-running program an API key on a shared Linux server?"
+  options:
+    - "Write it into a file that only the service user can read (mode 600) or use a secret manager, and have the program read it"
+    - "Put it in the command line, such as ./run --key=abc123"
+    - "Make the file mode 777 so the service can always find it"
+    - "Put it in the script and commit the script"
+  answer: 0
+  explanation: "Other users can often see a process's arguments in the process list, and a typed command can stay in shell history. A file with mode 600, or a secret manager, limits who can read it. Committing a key to Git leaks it (see the Git quest)."
+  whyWrong:
+    "1": "Arguments are often visible to other users and are kept in history."
+    "2": "Mode 777 lets every user read and change the file."
+    "3": "A committed key must be treated as leaked."
+
+- id: sticky-tmp
+  question: "Why does /tmp usually have mode 1777 (drwxrwxrwt) instead of plain 777?"
+  options:
+    - "The 1 means one user at a time"
+    - "The sticky bit makes files in it permanent"
+    - "The sticky bit lets everyone run any file in it"
+    - "The sticky bit means only a file's owner (or the directory's owner or root) can remove or rename files in it, even though everyone can write there"
+  answer: 3
+  explanation: "On a directory, the sticky bit restricts deleting and renaming: even with write permission on the directory, you can remove only your own files. That is what makes a shared writable folder safe enough."
+  whyWrong:
+    "0": "The leading digit is the special-bit digit (1000 is sticky), not a user count."
+    "1": "It has nothing to do with keeping files."
+    "2": "Execute permission is separate and is not granted by the sticky bit."
+
+- id: predict-umask
+  kind: predict-output
+  question: "A umask removes bits from a requested mode. What does this print?"
+  code: |
+    requested = 0o777
+    umask = 0o022
+    print(oct(requested & ~umask))
+  options:
+    - "0o022"
+    - "0o755"
+    - "0o644"
+    - "0o777"
+  answer: 1
+  explanation: "~umask turns on every bit except those of the umask. AND-ing with the request removes group write and other write, leaving 0o755."
+  whyWrong:
+    "0": "That is the umask itself, not the result."
+    "2": "0o644 is what a file request of 0o666 would give."
+    "3": "The mask would have no effect then."
+
+- id: predict-filemode
+  kind: predict-output
+  question: "The standard library can print a mode the way ls -l does. What does this print?"
+  code: |
+    import stat
+
+    print(stat.filemode(0o104755))
+  options:
+    - "-rwxr-xr-x"
+    - "-rwSr-xr-x"
+    - "-rwsr-xr-x"
+    - "drwxr-xr-x"
+  answer: 2
+  explanation: "0o100000 is the regular-file type and 4755 is setuid plus 755. Setuid replaces the owner's x with s, because the owner x bit is set, so the text is -rwsr-xr-x."
+  whyWrong:
+    "0": "That would be mode 755 without the setuid bit."
+    "1": "A capital S shows setuid when the owner x bit is NOT set. Here it is set."
+    "3": "The type bits say regular file, not directory."
+
+- id: predict-shlex-split
+  kind: predict-output
+  question: "Python's shlex follows shell-like quoting. What does this print?"
+  code: |
+    import shlex
+
+    print(shlex.split("cp 'my notes.txt' backup/"))
+  options:
+    - "['cp', 'my notes.txt', 'backup/']"
+    - "['cp', 'my', 'notes.txt', 'backup/']"
+    - "['cp', \"'my notes.txt'\", 'backup/']"
+    - "['cp \\'my notes.txt\\' backup/']"
+  answer: 0
+  explanation: "Single quotes group the words into one argument and are removed. That is the same idea as the shell, and it is the quoting you rebuild in the shell-split challenge."
+  whyWrong:
+    "1": "That is what happens without the quotes, when the space separates words."
+    "2": "The quotes are removed, they do not stay in the argument."
+    "3": "The line is split into three arguments, not left as one string."
+
+- id: predict-word-splitting
+  kind: predict-output
+  question: "An unquoted shell variable is split on whitespace. This Python code mimics that split. What does it print?"
+  code: |
+    file = "my notes.txt"
+    print(file.split())
+  options:
+    - "['my notes.txt']"
+    - "my notes.txt"
+    - "['my', ' ', 'notes.txt']"
+    - "['my', 'notes.txt']"
+  answer: 3
+  explanation: "split() with no argument cuts on whitespace, like the shell does on an unquoted expansion. So rm $file would get two arguments, my and notes.txt, instead of one."
+  whyWrong:
+    "0": "That would be the quoted form: one argument."
+    "1": "That is a string, but split() returns a list."
+    "2": "split() throws the whitespace away."
+
+- id: predict-signal-status
+  kind: predict-output
+  question: "A shell reports a command killed by signal N as 128 + N. What does this print for a command killed by SIGTERM?"
+  code: |
+    import signal
+
+    print(128 + signal.SIGTERM)
+  options:
+    - "137"
+    - "15"
+    - "143"
+    - "128"
+  answer: 2
+  explanation: "SIGTERM is signal 15, so the status is 128 + 15 = 143. SIGKILL (9) gives 137, which is the code you see when the kernel OOM killer ends a process."
+  whyWrong:
+    "0": "137 is 128 + 9, the code for SIGKILL."
+    "1": "15 is the signal number, not the exit status."
+    "3": "128 is only the base; the signal number is added to it."
+
+- id: spot-bug-unset-rm
+  kind: spot-bug
+  question: "This cleanup script sometimes wipes far more than the build folder. What is the bug?"
+  code: |
+    #!/bin/sh
+    # BUILD_DIR is meant to be set by the caller
+    rm -rf $BUILD_DIR/*
+  options:
+    - "The star should be quoted so it is not expanded"
+    - "If BUILD_DIR is unset or empty, the line becomes rm -rf /*, and the variable is also unquoted"
+    - "rm -rf cannot delete folders"
+    - "The shebang line must say bash"
+  answer: 1
+  explanation: "An unset variable expands to nothing, so the path becomes /* and the command removes everything it is allowed to. Guard the variable (set -u, or the form ${BUILD_DIR:?} which stops with an error when it is empty) and quote it."
+  whyWrong:
+    "0": "Quoting the star would stop the glob from working at all. The danger is the empty variable."
+    "2": "rm -rf deletes folders. That is exactly why it is dangerous."
+    "3": "The line works in sh. The shebang is not the problem."
+
+- id: spot-bug-find-xargs
+  kind: spot-bug
+  question: "This command breaks on a file called old report.log. What is the bug?"
+  code: |
+    find . -name '*.log' | xargs rm
+  options:
+    - "xargs splits the file names on whitespace, so old and report.log become two separate arguments; use -print0 with xargs -0"
+    - "find cannot search for names with a star"
+    - "rm cannot be used with xargs"
+    - "The quotes around *.log must be double quotes"
+  answer: 0
+  explanation: "By default xargs treats blanks and newlines as separators and gives quotes and backslashes special meaning. A name with a space is torn apart. find -print0 ends names with a NUL byte, and xargs -0 splits on that, which a file name cannot contain."
+  whyWrong:
+    "1": "find is given the star in single quotes so that find itself, not the shell, matches the names. That is correct."
+    "2": "rm is a very common target of xargs."
+    "3": "Single quotes are right here. They stop the shell from expanding the star."
+
+- id: spot-bug-ssh-key
+  kind: spot-bug
+  question: "After this script, ssh keeps asking for a password instead of using the key. What is the most likely cause?"
+  code: |
+    mkdir -p ~/.ssh
+    cp /tmp/deploy_key ~/.ssh/id_ed25519
+    ssh server.example.com
+  options:
+    - "ssh keys must be called id_rsa"
+    - "The ssh command needs sudo"
+    - "cp cannot copy hidden folders"
+    - "The copied private key probably has a mode that other users can read (for example 644), and ssh ignores such a private key; it needs chmod 600"
+  answer: 3
+  explanation: "The OpenSSH manual says a private key file must not be accessible by others and that ssh ignores one that is. cp creates the file using the umask, which often leaves it readable by group and other. Fix it with chmod 600 ~/.ssh/id_ed25519."
+  whyWrong:
+    "0": "ssh also looks for id_ed25519 and other key names."
+    "1": "Running ssh as root would not fix a key permission problem and is not needed to log in."
+    "2": "cp copies into hidden folders without trouble."
+
+- id: spot-bug-set-e-pipe
+  kind: spot-bug
+  question: "The author expects this script to stop when the download fails, but it prints done anyway. Why?"
+  code: |
+    #!/bin/bash
+    set -e
+    curl -fsS "$URL" | tee page.html
+    echo done
+  options:
+    - "tee always returns 0"
+    - "The status of a pipeline is the status of its last command (tee), so curl failing does not stop the script unless set -o pipefail is on"
+    - "set -e only works in sh, not bash"
+    - "curl -f hides all errors"
+  answer: 1
+  explanation: "Without pipefail, the pipeline's exit status comes from tee, which succeeds, so set -e sees a success. Adding set -o pipefail (set -eo pipefail) makes the pipeline fail when curl fails. Treat these options as a seat belt with exceptions, not a guarantee."
+  whyWrong:
+    "0": "tee can fail too (for example if it cannot write the file). The real reason is the pipeline rule: only the last status counts, and that is what pipefail changes."
+    "2": "set -e works in bash and in sh."
+    "3": "-f makes curl return an error status on server errors, which is the opposite."

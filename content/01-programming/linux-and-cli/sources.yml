@@ -1,0 +1,132 @@
+- title: "The Open Group Base Specifications: Shell Command Language (POSIX.1-2024)"
+  url: "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "Quoting (backslash, single and double quotes), field splitting, pathname expansion, redirection, pipelines and their exit status (including pipefail), exit status values and the set -e exceptions."
+
+- title: "GNU Bash Reference Manual: Redirections"
+  url: "https://www.gnu.org/software/bash/manual/html_node/Redirections.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "Left-to-right processing of redirections and the ls > dirlist 2>&1 versus ls 2>&1 > dirlist example."
+
+- title: "GNU Bash Reference Manual: The Set Builtin and Exit Status"
+  url: "https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "set -e and its exceptions, set -u, set -o pipefail and set -f; with the Exit Status page for 126, 127 and 128+N."
+
+- title: "GNU Coreutils manual: File permissions (modes, symbolic modes, umask, directories and setuid)"
+  url: "https://www.gnu.org/software/coreutils/manual/html_node/File-permissions.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "The symbolic mode grammar, how an empty who uses the umask, X, copying permissions, the special bits and how directories keep setuid and setgid."
+
+- title: "gnulib modechange.c (the code GNU chmod uses to compute modes)"
+  url: "https://github.com/coreutils/gnulib/blob/master/lib/modechange.c"
+  type: repo
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "The exact mode_compile and mode_adjust rules, including the umask, the omit-change rule for directories and how = clears special bits."
+
+- title: "Linux man-pages: path_resolution(7)"
+  url: "https://man7.org/linux/man-pages/man7/path_resolution.7.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "Absolute and relative paths, . and .., the root, search permission along a path, and how exactly one of the owner, group and other permission classes is used."
+
+- title: "Linux man-pages: inode(7)"
+  url: "https://man7.org/linux/man-pages/man7/inode.7.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "The st_mode bits: file type, setuid, setgid (including its meaning on directories) and the sticky bit."
+
+- title: "Linux man-pages: signal(7)"
+  url: "https://man7.org/linux/man-pages/man7/signal.7.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "SIGTERM, SIGKILL, SIGINT and SIGHUP, their numbers on x86 and which signals cannot be caught, blocked or ignored."
+
+- title: "Linux man-pages: environ(7)"
+  url: "https://man7.org/linux/man-pages/man7/environ.7.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "The environment as NAME=value strings, inheritance by child processes, and how PATH is searched (and why an empty entry is risky)."
+
+- title: "Linux man-pages: hier(7) and the Filesystem Hierarchy Standard 3.0"
+  url: "https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "What /etc, /usr, /var, /tmp, /dev, /proc and /home are for, noting FHS 3.0 is from 2015 and distributions differ."
+
+- title: "findutils: find(1) and xargs(1) manual pages"
+  url: "https://man7.org/linux/man-pages/man1/find.1.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "-print0, -delete (implies -depth, and the warning about putting it first), -exec with + and ;, and for xargs the -0 and -r options and its exit statuses."
+
+- title: "OpenSSH manual: ssh(1)"
+  url: "https://man.openbsd.org/ssh.1"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "Why a private key under ~/.ssh must not be accessible by others and is ignored otherwise."
+
+- title: "Linux man-pages: namespaces(7) and cgroups(7)"
+  url: "https://man7.org/linux/man-pages/man7/namespaces.7.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "What each namespace type isolates and what cgroup controllers limit."
+
+- title: "The Linux kernel documentation: Control Group v2"
+  url: "https://docs.kernel.org/admin-guide/cgroup-v2.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "memory.max and memory.high, and the OOM killer running inside a cgroup at its limit."
+
+- title: "Linux man-pages: getrlimit(2) (see also proc_pid_oom_score_adj(5))"
+  url: "https://man7.org/linux/man-pages/man2/getrlimit.2.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-18
+  readFor: "Soft and hard resource limits, RLIMIT_NOFILE, inheritance across fork and execve (the OOM score adjustment range is on its own page, proc_pid_oom_score_adj(5))."
+
+- title: "sudo manual page"
+  url: "https://www.sudo.ws/docs/man/sudo.man/"
+  type: docs
+  primary: false
+  verifiedOn: 2026-11-18
+  readFor: "What sudo does, its environment handling and what is and is not logged when you start a shell through it."
+
+- title: "systemd.timer manual (compare crontab(5) on your system)"
+  url: "https://www.freedesktop.org/software/systemd/man/latest/systemd.timer.html"
+  type: docs
+  primary: false
+  verifiedOn: 2026-11-18
+  readFor: "A .timer unit activating a .service, OnCalendar, OnBootSec and Persistent; compare with the five fields of a cron line."
+
+- title: "ShellCheck, a static analysis tool for shell scripts"
+  url: "https://github.com/koalaman/shellcheck"
+  type: repo
+  primary: false
+  verifiedOn: 2026-11-18
+  readFor: "What it warns about and how to run it on scripts and in CI."
+
+- title: "Microsoft Learn: File permissions for WSL"
+  url: "https://learn.microsoft.com/en-us/windows/wsl/file-permissions"
+  type: docs
+  primary: false
+  verifiedOn: 2026-11-18
+  readFor: "How permissions work for Linux files versus Windows drives under /mnt/c in WSL (the page showed a last-updated date of 2021, so check what is current)."

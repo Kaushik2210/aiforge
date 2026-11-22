@@ -1,0 +1,17 @@
+id: linux-and-cli-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - owner-class-only
+  - umask-creates
+  - glob-by-shell
+  - redirect-order
+  - predict-filemode
+  - predict-shlex-split
+  - spot-bug-unset-rm
+  - spot-bug-find-xargs
+challenges:
+  - chmod-modes
+  - shell-split
+interleaveFrom:
+  - python-basics

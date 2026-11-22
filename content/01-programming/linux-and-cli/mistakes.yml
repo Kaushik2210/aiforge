@@ -1,0 +1,31 @@
+- mistake: "Leaving a variable unquoted, as in rm $file or cp $src $dst."
+  why: "The shell splits an unquoted expansion into words and then expands wildcards in them. A name with a space becomes two arguments, and a name like * becomes every file in the folder."
+  detect: "A command works on simple names and misbehaves on names with spaces. Quote every expansion (\"$file\", \"$@\"), put -- before names that came from users, and run ShellCheck."
+
+- mistake: "Running rm -rf with a variable that can be empty, such as rm -rf $DIR/*."
+  why: "An unset or empty variable expands to nothing, so the path becomes /* and the command removes everything it is allowed to remove."
+  detect: "Use set -u, or the form ${DIR:?message} so the script stops when the variable is empty. Print the command with echo first, and keep backups."
+
+- mistake: "Using chmod 777 to make a permission error go away."
+  why: "It lets every user on the machine read, change and (for scripts) run the file. It hides the real cause, which is usually the wrong owner or group."
+  detect: "Check ls -l and the identity the program runs as, then give the owner or a shared group exactly the access it needs, for example 640 or 750. Remember the directories on the path need x as well."
+
+- mistake: "Writing 2>&1 before the file redirection, as in cmd 2>&1 > out.log."
+  why: "Redirections run left to right. At the moment 2>&1 is read, fd 1 still points at the screen, so errors are copied to the screen and only normal output goes to the file."
+  detect: "Error messages still appear on the screen and are missing from the log. Write cmd > out.log 2>&1 instead."
+
+- mistake: "Trusting set -e, or the exit status of a pipeline, to catch every failure."
+  why: "By default a pipeline's status is that of its last command, and set -e is ignored in if tests, in && and || lists and inside code that runs there. A failed first stage can pass silently."
+  detect: "A script prints success after a download or a first stage failed. Use set -o pipefail where your shell supports it, and check important commands explicitly with if or ||."
+
+- mistake: "Piping find into xargs with plain text, as in find . -name '*.tmp' | xargs rm."
+  why: "xargs splits on blanks and newlines and gives quotes and backslashes special meaning, so file names with spaces or quotes are cut apart or misread. A wrong split can delete the wrong files."
+  detect: "Commands fail or touch other files when names contain spaces. Use find -print0 | xargs -0, or find -exec cmd {} +."
+
+- mistake: "Reaching for kill -9 first."
+  why: "SIGKILL cannot be caught, so the program cannot save its work, release locks or delete temporary files. Child processes can be left running."
+  detect: "Stale lock or temp files after a restart. Send plain kill (SIGTERM) first, wait a few seconds, and use SIGKILL only if the process is still stuck."
+
+- mistake: "Putting secrets in command-line arguments or in a world-readable file."
+  why: "Arguments can be visible to other users in the process list and stay in shell history, and a file readable by others can be read by anyone on the machine. Child processes also inherit exported variables."
+  detect: "A key shows up in ps output or history. Read secrets from a file with mode 600 or from a secret manager, and rotate any secret that was exposed."
