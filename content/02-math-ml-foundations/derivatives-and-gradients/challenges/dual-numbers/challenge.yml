@@ -1,0 +1,2 @@
+title: Forward-mode derivatives with dual numbers
+summary: "Build a Dual class that carries a value and its derivative through +, -, *, /, integer powers, exp, log, sin and cos, and use it in derivative(f, x). The chain rule happens automatically as the numbers flow through your code. Error cases: log of a value that is zero or negative raises ValueError, dividing by zero raises ZeroDivisionError, and a non-integer exponent raises TypeError."

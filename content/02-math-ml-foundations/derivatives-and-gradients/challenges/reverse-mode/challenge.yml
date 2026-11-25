@@ -1,0 +1,2 @@
+title: Reverse-mode differentiation on a tiny graph
+summary: "Build a Var class that records a computation graph as you compute, then write backward(out) to push gradients from the output back to every input with the chain rule. Gradients add up when a Var is used twice, a repeated backward call starts clean, and the walk must be iterative so a 1,500-step chain does not hit the recursion limit."
