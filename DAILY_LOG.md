@@ -750,3 +750,24 @@ TODO-VERIFY / not done
 
 Tomorrow
 - Realm 1 is built. Next: Realm 2 (Linear algebra or probability) or polish.
+
+## Day 30: Realm 2 begins, Derivatives and gradients
+
+What shipped
+- Quest `derivatives-and-gradients` (Realm 2, now its first quest; Gradient Descent is second): L1 to L5 lesson with Mira, 16 quiz items (3 predict-output, 1 spot-bug), 28 cards, 9 interview questions, 8 mistakes, 10 sources, boss. It says plainly that the browser cannot run PyTorch, so the quest rebuilds the idea in pure Python; the PyTorch snippet is marked not runnable here. The finite-difference error table and float32 figures are my own measurements and the lesson says so.
+- Challenges: `dual-numbers` (forward-mode autodiff with a Dual class; 27 mutants caught) and `reverse-mode` (a tiny computation graph with an iterative backward; 27 mutants caught). Realm 2 now counts 2 quests and the home path, map and ASCII map follow.
+- `scripts/shuffle-quiz.py`: the helper that spreads quiz answers and runs predict-output code is now in the repo (the scratch copy was lost). It quotes number-like strings, because PyYAML wrote an option `1e-16` unquoted and the site parser read it as a number; that crashed the new quest page build, and `pnpm verify` does not catch it.
+
+Sources: micrograd, d2l.ai autograd, PyTorch autograd docs and checkpointing, Baydin et al. AD survey, JAX autodiff cookbook, Mathematics for Machine Learning, Python math docs.
+
+Review
+- A separate reviewer re-derived 120 random expressions per challenge with sympy (max error 1.4e-14, far inside the 1e-9 tolerance), fixed 8 small defects (a wrong rounded number in the error table, an h versus h/2 error term, a quiz explanation that contradicted another item, a first-person line in a source note) and added hidden tests and mutants for two dual-number cases and a recursive walk that raises the recursion limit.
+- Chain length is 1,500, not 5,000: real Pyodide crashed with a fatal stack error above about 2,000 operations. Stated in the lesson and docstrings.
+- My checks: site build, axe on the new quest, unit tests and the full e2e suite (116) pass; `pnpm verify` first failed once from load and passed on rerun. The map flow test now expects the new first quest.
+
+TODO-VERIFY / not done
+- The exact cost constant of reverse versus forward mode, the contents of the Mathematics for Machine Learning chapter 5, and differentiable-programming details are marked in the lesson. `Var(0) ** 0` is not in the contract.
+- Not run in the in-browser editor beyond the runner integration test.
+
+Tomorrow
+- Realm 2 next: Linear algebra, Probability and statistics, then ML fundamentals.
