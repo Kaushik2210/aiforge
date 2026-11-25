@@ -1,0 +1,384 @@
+---
+id: derivatives-and-gradients
+title: Derivatives and gradients
+realm: 2
+zone: Calculus for learning
+prerequisites: []
+estimatedMinutes: 150
+verifiedOn: 2026-11-25
+tiers: [L1, L2, L3, L4, L5]
+skipTiers: []
+coreFundamentals:
+  - "The derivative of a function at a point is its slope there: how fast the output changes per tiny change in the input. It is the limit of secant slopes as the gap shrinks to zero, and the tangent line it describes is the best straight-line approximation near that point."
+  - "A function of many inputs has one partial derivative per input (change one input, hold the rest fixed). The gradient is the vector of all the partials. It points in the direction of steepest increase, and its length is how steep that increase is."
+  - "The chain rule says that when one function feeds another, you multiply their local slopes. Every neural network is a long chain of small functions, so the chain rule is the engine of backpropagation."
+  - "Automatic differentiation (autodiff) applies the chain rule to the actual operations a program runs, so the derivative is exact up to floating-point rounding. It is not symbolic algebra and not finite differences."
+coreComplexity:
+  - "Forward mode pushes one input direction through the program and costs about one extra pass per input. Reverse mode pulls one output back through the program and costs about one backward pass per output. A training loss is one number built from millions of parameters, so reverse mode wins by a very large factor; the price is memory, because the forward values must be kept until the backward pass uses them."
+  - "Numerical differentiation has two competing errors. A big step h gives truncation error (the secant is not the tangent). A tiny h gives round-off error (the subtraction of two nearly equal floats loses digits). There is a best h in between, and the centered difference is much more accurate than the one-sided one for the same h."
+  - "When a Var or tensor is used more than once, its gradient is the SUM of the contributions from every use. Overwriting instead of adding is the classic backprop bug, and a repeated backward call must decide whether it accumulates or starts clean (PyTorch accumulates into leaf tensors; this quest's challenge resets)."
+  - "A product of many local slopes smaller than 1 shrinks toward zero (vanishing gradients), and a product of many slopes larger than 1 blows up (exploding gradients). This is just the chain rule applied to a deep chain."
+  - "The gradient is only local. A zero gradient can be a minimum, a maximum, a saddle or a flat region, and non-differentiable points (such as the kink of ReLU at 0) need a convention."
+explainItBack:
+  prompt: "In 3 to 5 sentences, explain to a friend why training a network with a million parameters uses reverse-mode autodiff, and what the cost is."
+  rubric:
+    - "Says the loss is a single number that depends on very many parameters, and that reverse mode gets the derivative with respect to all of them in about one backward pass, while forward mode would need about one pass per parameter."
+    - "Explains that the backward pass applies the chain rule from the output back to each input, adding contributions when a value is used more than once."
+    - "Names the cost: the forward values (activations) must be stored until the backward pass needs them, so memory grows with the depth and size of the computation."
+miniGame: none-yet
+bossId: derivatives-and-gradients-boss
+---
+
+# Derivatives and gradients
+
+> **Realm 2, Mathematics & ML Foundations.** Guide: *Mira*, the lantern-bearer
+> of the Loss Mountains (an original AIForge character). Before she walks down
+> a mountain she learns to read the ground under her boots: which way it tilts,
+> and how steeply.
+
+[Gradient Descent](/quests/gradient-descent/) says "walk against the gradient".
+This quest explains where the gradient comes from, and how a program finds it
+for you without you doing any algebra. That second part is called *automatic
+differentiation*, and it is how every deep learning library trains a model.
+
+<Callout type="note" title="Honest about the browser">
+The code editor on this site runs Python in your browser (Pyodide). It cannot run
+PyTorch or JAX. So this quest **rebuilds the core idea in plain Python**: forward
+mode with dual numbers, and reverse mode on a tiny computation graph. Real library
+code is shown only as read-only samples marked *NOT RUNNABLE HERE*. Try those on
+your own computer.
+</Callout>
+
+---
+
+## L1. Intuition
+
+**Slope is a rate of change.** Drive for one hour and cover 60 km: your average
+speed is 60 km per hour. Look at the speedometer at one instant: that is your
+speed *right now*. The first is a slope between two moments. The second is the
+derivative: the slope shrunk down to a single moment.
+
+**Zoom in until it looks straight.** Pick a smooth curve and zoom in on one
+point. Zoom enough and the curve looks like a straight line. The slope of that
+line is the derivative at that point, and the line is the *tangent*. This is
+the whole reason derivatives are useful: close to a point, a complicated function
+behaves like a simple straight line, and straight lines are easy to reason about.
+
+**Many inputs, one slope each.** A loss depends on many parameters. Nudge one
+parameter, keep the others still, and see how fast the loss changes: that is one
+*partial derivative*. Collect one per parameter and you have the *gradient*.
+It points uphill, in the steepest direction. Mira walks the other way.
+
+**A program is a chain of small steps.** To compute `y = sin(x * x)`, a program
+does `u = x * x`, then `y = sin(u)`. Each step is simple and we know its slope.
+The slope of the whole thing is the slopes of the steps multiplied together.
+That sentence is the chain rule, and it is most of this quest.
+
+<Callout type="warn" title="Where the picture breaks">
+The tangent line is only a good stand-in *near* the point. Far away, a curve
+leaves its tangent. That is why gradient descent takes small steps, and why a
+gradient never tells you where the global bottom is, only which way is down
+right here.
+</Callout>
+
+---
+
+## L2. Mechanics
+
+### The derivative as a limit
+
+The slope between `x` and `x + h` is called a *secant* slope:
+
+```
+secant slope = (f(x + h) - f(x)) / h
+```
+
+The derivative is what that approaches as `h` shrinks toward 0. Worked by hand on
+`f(x) = x²` at `x = 3`:
+
+| h | secant slope `(f(3+h) - f(3)) / h` |
+|---|---|
+| 1 | 7 |
+| 0.1 | 6.1 |
+| 0.01 | 6.01 |
+| toward 0 | 6 |
+
+So `f'(3) = 6`, which matches the rule `f'(x) = 2x`. The tangent line at `x = 3`
+is `y = 9 + 6·(x - 3)`: near 3, `f(x)` is about `9 + 6·(x - 3)`.
+
+### Rules you need
+
+Learn these by heart; everything else is built from them.
+
+| function | derivative |
+|---|---|
+| a constant `c` | 0 |
+| `xⁿ` | `n·xⁿ⁻¹` |
+| `exp(x)` | `exp(x)` |
+| `log(x)` (natural log, for `x > 0`) | `1/x` |
+| `sin(x)` | `cos(x)` |
+| `cos(x)` | `-sin(x)` |
+| `tanh(x)` | `1 - tanh(x)²` |
+
+Rules for combining functions `u(x)` and `v(x)` (a prime means "derivative"):
+
+```
+sum:        (u + v)' = u' + v'
+product:    (u * v)' = u' * v + u * v'
+quotient:   (u / v)' = (u' * v - u * v') / v²
+chain:      (u(v(x)))' = u'(v(x)) * v'(x)
+```
+
+A check by hand. Take `f(x) = x / (1 + x²)`. The quotient rule gives
+`f'(x) = (1·(1 + x²) - x·2x) / (1 + x²)² = (1 - x²) / (1 + x²)²`. At `x = 0.5`
+that is `0.75 / 1.5625 = 0.48`.
+
+### The chain rule
+
+When one function feeds another, multiply the slopes. Take `y = (3x + 1)²` at
+`x = 2`. Split it: `u = 3x + 1 = 7`, `y = u² = 49`. The slopes are
+`du/dx = 3` and `dy/du = 2u = 14`, so `dy/dx = 14 · 3 = 42`.
+
+A longer chain just multiplies more slopes. For `y = sin(x·x)`:
+
+```
+u = x * x         du/dx = 2x
+y = sin(u)        dy/du = cos(u)
+dy/dx = cos(x*x) * 2x
+```
+
+**Why this is the engine of backprop.** A neural network is a long chain:
+layer 1, layer 2, ..., loss. The slope of the loss with respect to an early
+weight is a product of the local slopes of every step after it. Backprop is
+simply the chain rule, organised so no local slope is computed twice.
+
+<Step prompt="a value x is used twice: y = x * x + x. What is dy/dx at x = 3?">
+Each use contributes, and contributions add. The first use (as `x * x`) gives
+`2x = 6`. The second use gives `1`. The total is `6 + 1 = 7`. Remember this one:
+the challenge in L3 tests exactly it.
+</Step>
+
+### Partial derivatives and the gradient
+
+Take `f(x, y) = x² + 3xy`. Hold `y` fixed and treat it as a constant: the slope
+along `x` is `∂f/∂x = 2x + 3y`. Hold `x` fixed: `∂f/∂y = 3x`. The gradient is the
+vector of both:
+
+```
+∇f(x, y) = (2x + 3y, 3x)        at (1, 2):  (8, 3)
+```
+
+**Why the gradient points uphill.** Pick a direction `u` of length 1. How fast
+does `f` change if you walk that way? It is the *directional derivative*, the
+dot product of the gradient and the direction:
+
+```
+rate of change along u  =  ∇f · u  =  |∇f| * cos(angle between them)
+```
+
+This is largest when the angle is 0, that is, when `u` points along the
+gradient. So the gradient is the direction of steepest increase, and its length
+`|∇f|` is the steepest rate. At `(1, 2)` the length is `√73 ≈ 8.54`. Walking along
+`u = (0.6, 0.8)` gives `8·0.6 + 3·0.8 = 7.2`, less than 8.54, as it must be.
+
+**Why minus the gradient is steepest descent.** The rate along `-∇f / |∇f|` is
+`-|∇f|`, the most negative any direction can give. That is the gradient descent
+update from the previous quest, now justified:
+
+$$
+x_{t+1} = x_t - \eta \, \nabla f(x_t)
+$$
+
+### Jacobian at a glance
+
+When a function has several outputs as well as several inputs, there is one
+gradient per output. Stack them as rows and you get a matrix of all the partials:
+the *Jacobian*. For `f(x, y) = (x·y, x + y)` at `(2, 3)`:
+
+```
+[ ∂(xy)/∂x    ∂(xy)/∂y  ]   [ y  x ]   [ 3  2 ]
+[ ∂(x+y)/∂x   ∂(x+y)/∂y ] = [ 1  1 ] = [ 1  1 ]
+```
+
+The chain rule for vector functions is a product of Jacobians. You will not
+multiply big Jacobians by hand; autodiff multiplies *vectors by Jacobians*,
+which is far cheaper. That is the next section.
+
+### Two ways to push the chain rule through a program
+
+Write the chain rule for a program with steps `x → u → v → y`:
+`dy/dx = (dy/dv)·(dv/du)·(du/dx)`. You can multiply the factors in two orders.
+
+- **Forward mode.** Start at the input and multiply left to right. Each value
+  carries its slope with it: the pair *(value, slope)*. One sweep gives the
+  slope of every output with respect to **one** chosen input.
+- **Reverse mode.** Run the program forward and remember every value. Then start
+  at the output and multiply right to left, spreading "how much does y care about
+  this?" back to every input. One sweep gives the slope of **one** output with
+  respect to **every** input.
+
+A training loss is one output and millions of inputs (the parameters). Forward
+mode would need a sweep for each parameter. Reverse mode needs one backward
+sweep in total, which costs only a small constant multiple of the forward
+computation (the survey in the sources gives the details; TODO-VERIFY the exact
+constant before quoting one). That is why deep learning libraries use reverse
+mode. Forward mode wins when there are few inputs and many outputs.
+
+A tiny reverse-mode example. Let `a = 2`, `b = 3`, `c = a·b`, `d = c + a`.
+Forward: `c = 6`, `d = 8`. Backward, starting with `d.grad = 1`:
+
+```
+d = c + a  ->  c.grad += 1 * 1 = 1      a.grad += 1 * 1 = 1
+c = a * b  ->  a.grad += c.grad * b = 3  b.grad += c.grad * a = 2
+result: a.grad = 4, b.grad = 2
+```
+
+Check by algebra: `d = a·b + a`, so `∂d/∂a = b + 1 = 4` and `∂d/∂b = a = 2`.
+
+### Vanishing and exploding gradients at a glance
+
+The slope with respect to an early input is a product of local slopes. The
+slope of the sigmoid function never exceeds 0.25, so a chain of 50 of them can
+multiply to at most `0.25⁵⁰ ≈ 7.9e-31`: practically zero, and early layers stop
+learning. If instead each local slope is 1.5, then `1.5⁵⁰ ≈ 6.4e8`: the update
+explodes. Fixes (better activations, normalisation, residual connections, gradient
+clipping) belong to later quests; for now just see that it is the chain rule.
+
+---
+
+## L3. Build it
+
+Two challenges, both pure Python with no libraries. Run them in the browser
+editor (Pyodide) once the runner lands; until then run `python tests.py <file>`
+locally with the `SUBMISSION` variable set, as in the other quests.
+
+1. **`dual-numbers`** (forward mode). A `Dual` holds a value and a derivative.
+   You teach `+ - * /`, integer powers, `exp`, `log`, `sin` and `cos` how to
+   carry the derivative along, and `derivative(f, x)` runs your function on
+   `Dual(x, 1.0)`. The product and chain rules happen inside the arithmetic, so
+   you never write a derivative of `f` by hand.
+2. **`reverse-mode`** (backprop on a tiny graph). A `Var` remembers how it was
+   made. `backward(out)` walks the graph from the output to the inputs with an
+   *iterative* loop and fills `.grad`. The tests build a chain of 1,500
+   operations, more than Python's default recursion limit of 1,000. It must add gradients when a Var is used
+   twice, and a second call must not carry over stale values.
+
+Compare with Gradient Descent's `grad-check`: there you *estimated* a gradient
+from function values. Here you *compute* it exactly, and your code can be checked
+against the estimate.
+
+**What "exact" means.** Autodiff gives the derivative of the program as written,
+up to floating-point rounding. It does not approximate with a small step `h`.
+
+---
+
+## L4. Production reality
+
+### Gradient checking in practice
+
+Compare autodiff (or your hand-derived gradient) with a centered difference on a
+small input. The numbers below are my own measurement with Python 3.13 doubles,
+for `f(x) = sin(x)` at `x = 1`, where the true slope is `cos(1) = 0.5403023...`.
+The table shows the absolute error of each estimate.
+
+| h | forward difference | centered difference |
+|---|---|---|
+| 1e-1 | 4.3e-2 | 9.0e-4 |
+| 1e-3 | 4.2e-4 | 9.0e-8 |
+| 1e-5 | 4.2e-6 | 1.1e-11 |
+| 1e-8 | 3.0e-9 | 2.6e-9 |
+| 1e-10 | 5.8e-8 | 5.8e-8 |
+| 1e-12 | 4.3e-5 | 1.2e-5 |
+| 1e-16 | 0.54 | 1.5e-2 |
+
+Read it left to right. Shrinking `h` first helps (truncation error falls: about
+proportional to `h` for the forward difference and to `h²` for the centered one).
+Then it hurts (round-off error grows because we subtract two nearly equal floats
+and divide by a tiny number). At `h = 1e-16` the forward difference computes
+`x + h == x`, so it sees no change and returns a slope of 0: an error of 0.54.
+The best `h` for the centered difference here is around `1e-5`; the best value
+depends on the function and the point, so try a few.
+
+In **float32** the useful range is much narrower. In a rough simulation of mine
+(rounding the inputs and the result of each step to float32 while computing
+`sin` in double), the centered error at the same point was about 1.4e-5 at
+`h = 1e-3` but about 8.8e-4 at `h = 1e-5`. Gradient-check in float64, on a tiny
+model, with relative error (the Gradient Descent quest quotes CS231n's rule of
+thumb: about 1e-7 or below is good, about 1e-2 or above is probably wrong).
+
+What a check does *not* prove: that the loss is the right objective, or that the
+check covers non-smooth points such as the kink of ReLU.
+
+### Pitfalls with real frameworks
+
+- **Gradients accumulate.** PyTorch adds each backward pass into the `.grad` of
+  leaf tensors, so a training loop must clear them between steps. The quest's
+  `backward` resets instead, a deliberate simplification.
+- **`detach` and `no_grad`.** Cutting a value out of the graph (`detach`, or
+  running under `torch.no_grad()`) means no gradient flows through it. That is
+  right for evaluation and for target values, and a silent bug when you did it by
+  accident: the parameter simply never learns, with no error. If a gradient is
+  `None` or all zeros, look for a detach, an in-place operation or a conversion to
+  a plain number or NumPy array.
+- **Memory.** Reverse mode must keep the forward values it needs for the backward
+  pass. The PyTorch docs describe operations saving tensors for backward, and
+  freeing them after the backward pass unless you ask to keep the graph. So
+  activation memory grows with the depth and batch size; most out-of-memory errors
+  in training are this.
+- **Checkpointing trades compute for memory.** Activation checkpointing (in
+  PyTorch, `torch.utils.checkpoint`) throws away intermediate values in the forward
+  pass and re-runs part of the forward pass during backward to regenerate them.
+  Less memory, more compute.
+- **The graph is rebuilt each step.** PyTorch builds a fresh graph on every forward
+  pass, which is why ordinary Python loops and `if` statements just work.
+- **Round-off.** Subtracting nearly equal numbers, `exp` of large inputs and
+  `log` of tiny ones all lose accuracy or overflow. Use the stable library
+  versions (for example `log_softmax`) instead of writing them by hand.
+
+A real library sample, read-only:
+
+```python
+# NOT RUNNABLE HERE: needs PyTorch, which the browser sandbox cannot run.
+import torch
+
+x = torch.tensor(3.0, requires_grad=True)
+y = x * x + x
+y.backward()
+print(x.grad)   # tensor(7.)  (same answer as the Step in L2)
+```
+
+---
+
+## L5. Frontier
+
+Read these in order and look for the stated thing:
+
+1. Baydin, Pearlmutter, Radul, Siskind, *Automatic differentiation in machine
+   learning: a survey* (arXiv 1502.05767): read for how autodiff differs from
+   symbolic and numerical differentiation, and for forward versus reverse mode.
+2. Karpathy's micrograd repository and the lecture that builds it: a scalar
+   autodiff engine of roughly 100 lines, the same shape as your `reverse-mode`
+   challenge. Notice the reverse sweep over a topological order.
+3. The JAX autodiff documentation: `grad` takes a function and returns a function,
+   so you can apply it again for higher-order derivatives (`grad(grad(f))`).
+   JAX's `jvp` is forward mode and `vjp` is reverse mode.
+
+**Beyond machine learning.** The survey says autodiff has long been used in
+fields such as fluid dynamics, atmospheric science and engineering optimisation.
+In ML the same machinery is now applied to whole programs (*differentiable
+programming*), including loops and branches. The details of what can be
+differentiated, and how well, vary by system: TODO-VERIFY specifics against each
+system's documentation before relying on them (for example how a framework treats
+non-smooth functions and control flow whose branch depends on the input).
+
+Open questions to carry forward: higher-order derivatives (Hessians) and their
+cost, how to differentiate through an optimisation or an ODE solver, and how
+compilers can fuse and rearrange a backward pass to save memory.
+
+---
+
+## Game
+
+No mini-game yet for this quest: the existing games
+[Gradient Hiker](/games/gradient-hiker/) and
+[Loss Mountains](/games/loss-mountains/) let you feel the gradient in action.

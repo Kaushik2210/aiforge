@@ -1,0 +1,69 @@
+- title: "Automatic differentiation in machine learning: a survey (Baydin, Pearlmutter, Radul and Siskind)"
+  url: "https://arxiv.org/abs/1502.05767"
+  type: paper
+  primary: true
+  verifiedOn: 2026-11-25
+  readFor: "How autodiff differs from symbolic and numerical differentiation, forward versus reverse mode, and how it relates to backpropagation."
+
+- title: "micrograd (Andrej Karpathy)"
+  url: "https://github.com/karpathy/micrograd"
+  type: repo
+  primary: true
+  verifiedOn: 2026-11-25
+  readFor: "A tiny scalar autodiff engine with a Value class and a backward pass; the same shape as the reverse-mode challenge."
+
+- title: "The spelled-out intro to neural networks and backpropagation: building micrograd (Andrej Karpathy)"
+  url: "https://www.youtube.com/watch?v=VMj-3S1tku0"
+  type: video
+  primary: true
+  verifiedOn: 2026-11-25
+  readFor: "Derivatives from intuition, then building a computation graph and a backward pass step by step."
+
+- title: "Dive into Deep Learning: Automatic Differentiation"
+  url: "https://d2l.ai/chapter_preliminaries/autograd.html"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-25
+  readFor: "The computational graph, the backward pass, and detach, explained with short code."
+
+- title: "Mathematics for Machine Learning (Deisenroth, Faisal and Ong), chapter 5 Vector Calculus"
+  url: "https://mml-book.github.io/"
+  type: book
+  primary: true
+  verifiedOn: 2026-11-25
+  readFor: "A careful treatment of partial derivatives, gradients, Jacobians and the chain rule for machine learning (the book is free to read online; TODO-VERIFY the chapter contents before assigning pages)."
+
+- title: "PyTorch tutorial: A Gentle Introduction to torch.autograd"
+  url: "https://docs.pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-25
+  readFor: "How PyTorch records a graph of operations, what requires_grad and no_grad do, and how backward fills .grad."
+
+- title: "PyTorch docs: Autograd mechanics"
+  url: "https://docs.pytorch.org/docs/stable/notes/autograd.html"
+  type: docs
+  primary: true
+  verifiedOn: 2026-11-25
+  readFor: "Saved tensors for backward, no-grad and inference modes, and how gradients accumulate into leaf tensors."
+
+- title: "PyTorch docs: torch.utils.checkpoint"
+  url: "https://docs.pytorch.org/docs/stable/checkpoint.html"
+  type: docs
+  primary: false
+  verifiedOn: 2026-11-25
+  readFor: "Activation checkpointing: less stored memory in exchange for recomputing during backward."
+
+- title: "JAX docs: Autodiff cookbook"
+  url: "https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html"
+  type: docs
+  primary: false
+  verifiedOn: 2026-11-25
+  readFor: "jvp (forward mode) versus vjp (reverse mode), and why grad uses reverse mode for many inputs and one output."
+
+- title: "Python docs: math module"
+  url: "https://docs.python.org/3/library/math.html"
+  type: docs
+  primary: false
+  verifiedOn: 2026-11-25
+  readFor: "exp, log, sin, tanh, and ulp and nextafter for seeing the spacing of floats."

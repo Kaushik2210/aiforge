@@ -1,0 +1,31 @@
+- mistake: "Forgetting the inner derivative in the chain rule."
+  why: "It is easy to differentiate the outer function and stop. For sin(x*x) the answer is cos(x*x) times 2x, not cos(x*x)."
+  detect: "The hand answer disagrees with a centered difference by a factor that looks like the inner slope. Write the chain out as u = ..., y = ... and multiply both slopes."
+
+- mistake: "Overwriting a gradient instead of adding to it when a value is used more than once."
+  why: "Each use of a value sends back its own contribution and the true gradient is their sum. Writing = keeps only the last one."
+  detect: "Gradients are wrong only for values that appear twice, such as y = x*x + x. Test a tiny graph with a reused variable and compare with algebra."
+
+- mistake: "Not clearing old gradients before the next backward pass (or assuming they are cleared)."
+  why: "PyTorch adds each backward pass into the .grad of leaf tensors. Without clearing, step 2 uses the sum of step 1 and step 2. This quest's challenge resets instead, so the two behaviours differ."
+  detect: "Gradient size grows step after step, or the loss behaves as if the learning rate were growing. Print one gradient before and after a second backward call."
+
+- mistake: "Using a finite-difference step that is too small."
+  why: "Round-off takes over: x + h can equal x, and subtracting nearly equal floats cancels the digits. A step of 1e-16 on a value near 1 returns slope 0."
+  detect: "The numerical gradient is exactly 0 or jumps around as h changes. Try h from 1e-2 down to 1e-10 and look for the sweet spot, and use float64."
+
+- mistake: "Trusting a one-sided difference for gradient checking."
+  why: "Its error shrinks only like h, so it needs a very small h, where round-off is already a problem. The centered difference error shrinks like h squared."
+  detect: "A correct gradient fails the check by about h/2 times the second derivative. Switch to the centered difference."
+
+- mistake: "Cutting the graph by accident with detach, no_grad, an in-place edit or a conversion to a plain number."
+  why: "Autograd only follows operations it recorded. After the cut, no gradient reaches the earlier parameters, and nothing raises an error."
+  detect: "A parameter's grad is None or all zeros and its value never changes. Walk back from the loss and check each tensor has a grad function."
+
+- mistake: "Thinking a zero gradient means you are at a minimum."
+  why: "The gradient is zero at maxima and saddles too, and ReLU has no slope at exactly 0, so a convention is used there."
+  detect: "Training stalls while the loss is still high. Look at the loss value and, if you can, the curvature, not only the gradient norm."
+
+- mistake: "Writing a recursive backward pass for a deep graph."
+  why: "Python limits recursion depth, and a long chain of operations (thousands of steps in an unrolled loop) raises RecursionError. An explicit stack has no such limit."
+  detect: "backward works on small graphs and fails with RecursionError on long ones. Test a chain of several thousand operations."

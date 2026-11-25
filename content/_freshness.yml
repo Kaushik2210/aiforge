@@ -43,3 +43,6 @@ items:
   - quest: linux-and-cli
     claim: "Tool and platform pages cited: OpenSSH ssh(1) key permissions, sudo manual, systemd.timer (systemd 262 page), crontab(5) (cronie), ShellCheck v0.11.0, Microsoft Learn WSL file-permissions page (last updated 2021; re-check); TODO-VERIFY items: logrotate setup, cron environment on a given distribution, NVIDIA container toolkit driver details, macOS BSD tool differences"
     verifiedOn: 2026-11-18
+  - quest: derivatives-and-gradients
+    claim: "Autodiff references and behaviours cited: Baydin et al. survey (arXiv 1502.05767), micrograd (about 100 lines for the engine), d2l autograd chapter, PyTorch autograd tutorial and notes (saved tensors, no_grad, accumulation into leaf .grad, rebuilt graph), torch.utils.checkpoint, JAX autodiff cookbook (jvp, vjp, grad), Python math docs; plus my own measured finite-difference error table (Python 3.13 doubles)"
+    verifiedOn: 2026-11-25

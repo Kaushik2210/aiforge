@@ -1,0 +1,232 @@
+- id: derivative-meaning
+  question: What does the derivative of f at x = 3 tell you?
+  options:
+  - 'The slope of f at 3: how fast f changes per tiny change in x'
+  - The value of f at 3
+  - The area under f up to 3
+  - The largest value f reaches
+  answer: 0
+  explanation: The derivative is the instantaneous rate of change, the slope of the tangent line at that point.
+  whyWrong:
+    "1": That is f(3) itself, not its rate of change.
+    "2": Area under a curve is an integral, the opposite operation.
+    "3": A derivative says nothing about the maximum on its own.
+- id: secant-to-tangent
+  question: How is the derivative defined from secant slopes?
+  options:
+  - As the average of the slopes over the whole domain
+  - As the limit of (f(x+h) - f(x)) / h as h shrinks toward 0
+  - As f(x+h) - f(x) with h fixed at 1
+  - As the largest secant slope you can find
+  answer: 1
+  explanation: Secant slopes use a gap h between two points. Shrinking the gap toward 0 turns the secant into the tangent.
+  whyWrong:
+    "0": An average over the whole domain is one number for the entire function, not a slope at a point.
+    "2": With h = 1 you get a rough secant slope, not the derivative.
+    "3": There is no largest secant slope in general; the definition uses a limit.
+- id: predict-secant
+  kind: predict-output
+  question: What does this print?
+  code: |
+    f = lambda x: x * x
+    h = 0.01
+    print(round((f(3 + h) - f(3)) / h, 2))
+  options:
+  - "6.0"
+  - "9.0"
+  - "6.01"
+  - "0.06"
+  answer: 2
+  explanation: The secant slope is (9.0601 - 9) / 0.01 = 6.01. It is close to the true derivative 2x = 6 but off by about h.
+  whyWrong:
+    "0": 6.0 is the exact derivative; a secant with h = 0.01 is slightly larger.
+    "1": 9.0 is f(3), not a slope.
+    "3": That would be the numerator (f(3+h) - f(3)) before dividing by h.
+- id: chain-rule-value
+  question: For y = (3x + 1)^2 at x = 2, what is dy/dx by the chain rule?
+  options:
+  - "14"
+  - "49"
+  - "6"
+  - "42"
+  answer: 3
+  explanation: Let u = 3x + 1 = 7. Then dy/du = 2u = 14 and du/dx = 3, so dy/dx = 14 * 3 = 42.
+  whyWrong:
+    "0": 14 is dy/du only; you still have to multiply by du/dx = 3.
+    "1": 49 is the value of y, not its slope.
+    "2": 6 comes from forgetting the inner function, 2 * 3 with no u.
+- id: gradient-direction-quiz
+  question: At a point, which direction does the gradient of a scalar function point?
+  options:
+  - In the direction of steepest increase of f
+  - Toward the nearest minimum
+  - Along the contour line where f stays constant
+  - In the direction of steepest decrease of f
+  answer: 0
+  explanation: The directional derivative along a unit vector u is the gradient dotted with u, which is largest when u points along the gradient.
+  whyWrong:
+    "1": The gradient is local and does not know where any minimum is.
+    "2": Moving along a contour keeps f constant, and the gradient is perpendicular to the contour.
+    "3": That is the negative gradient, which gradient descent follows.
+- id: directional-derivative-value
+  question: The gradient at a point is (8, 3). The rate of change of f along the unit direction (0.6, 0.8) is...
+  options:
+  - "11"
+  - "7.2"
+  - "8.54"
+  - "2.4"
+  answer: 1
+  explanation: 'The directional derivative is the dot product: 8 * 0.6 + 3 * 0.8 = 4.8 + 2.4 = 7.2.'
+  whyWrong:
+    "0": 11 adds the gradient entries without weighting them by the direction.
+    "2": 8.54 is the length of the gradient, the maximum rate over all directions; this direction is not exactly along the gradient.
+    "3": 2.4 is only the second term of the dot product.
+- id: partial-derivative
+  question: For f(x, y) = x^2 + 3xy, what is the partial derivative with respect to x?
+  options:
+  - 2x + 3
+  - "3x"
+  - 2x + 3y
+  - x^2 + 3y
+  answer: 2
+  explanation: 'Treat y as a constant: the derivative of x^2 is 2x and the derivative of 3xy with respect to x is 3y.'
+  whyWrong:
+    "0": 'The factor y must stay: 3xy differentiates to 3y, not 3.'
+    "1": 3x is the partial derivative with respect to y.
+    "3": That is not a derivative; the x^2 term must become 2x.
+- id: forward-vs-reverse
+  question: A loss is one number that depends on 10 million parameters. Which mode of automatic differentiation computes all 10 million partial derivatives most cheaply?
+  options:
+  - Forward mode, one sweep per parameter
+  - Numerical differentiation, one extra evaluation per parameter
+  - Symbolic differentiation of the whole loss
+  - Reverse mode, about one backward sweep in total
+  answer: 3
+  explanation: Reverse mode gets the derivative of one output with respect to all inputs in a single backward pass, a small constant multiple of the forward cost. Forward mode and finite differences both need about one pass per parameter.
+  whyWrong:
+    "0": Forward mode would need about 10 million sweeps here; it wins only when there are few inputs and many outputs.
+    "1": Finite differences also need about one extra evaluation per parameter, and they are approximate.
+    "2": Symbolic algebra on a huge program tends to blow up in size and is not what libraries use.
+- id: predict-reverse-trace
+  kind: predict-output
+  question: d = a * b + a with a = 2 and b = 3. This code does the backward pass by hand, starting from d.grad = 1. What does it print?
+  code: |
+    grad = {"a": 0.0, "b": 0.0}
+    a, b = 2.0, 3.0
+    grad["a"] += 1.0        # through the + , using a
+    grad["a"] += 1.0 * b    # through the * , using a
+    grad["b"] += 1.0 * a    # through the * , using b
+    print(grad["a"], grad["b"])
+  options:
+  - 4.0 2.0
+  - 3.0 2.0
+  - 1.0 2.0
+  - 4.0 3.0
+  answer: 0
+  explanation: 'a feeds two places, so its contributions add: 1 + 3 = 4. b gets 1 * a = 2. This matches the algebra: d = ab + a gives dd/da = b + 1 = 4 and dd/db = a = 2.'
+  whyWrong:
+    "1": That forgets the 1.0 that arrives through the + (a is used twice).
+    "2": That forgets the contribution through the multiplication.
+    "3": b's gradient is a (2), not b itself.
+- id: spot-bug-overwrite
+  kind: spot-bug
+  question: This backward step is meant to differentiate y = x * x. It reports x.grad = 3.0 at x = 3 instead of 6.0. What is the bug?
+  code: |
+    # y = x * x, with both parents being the same Var x
+    y_grad = 1.0
+    for parent, local in [(x, x.value), (x, x.value)]:
+        parent.grad = y_grad * local
+  options:
+  - The local slope should be 2 * x.value
+  - It overwrites parent.grad instead of adding to it, so the second use erases the first
+  - The loop visits x only once
+  - y_grad should start at 0.0
+  answer: 1
+  explanation: Each use of x contributes 3.0, and the contributions must add to 6.0. Writing `=` keeps only the last one. Use `parent.grad += y_grad * local`.
+  whyWrong:
+    "0": Each use contributes the OTHER factor's value, which is x.value; the sum over both uses is 2 * x.
+    "2": The loop visits x twice, once per use, which is correct.
+    "3": The output's gradient must start at 1.0; with 0.0 every gradient would be zero.
+- id: truncation-vs-roundoff
+  question: For a finite-difference derivative, what happens as the step h gets extremely small (for example 1e-16)?
+  options:
+  - The estimate keeps getting better because the secant approaches the tangent
+  - The estimate becomes exact
+  - 'Round-off error takes over: x + h can equal x, and subtracting nearly equal floats loses all the digits'
+  - Python raises an error
+  answer: 2
+  explanation: Truncation error shrinks with h, but round-off error grows as h shrinks. In double precision a step of 1e-16 added to 1.0 changes nothing, so the difference is 0 and the estimate is useless.
+  whyWrong:
+    "0": That is only true until round-off starts to dominate.
+    "1": A finite difference is an estimate, and at this h it is badly wrong, not exact.
+    "3": No error is raised; the answer is quietly wrong, which is why it is dangerous.
+- id: predict-roundoff
+  kind: predict-output
+  question: What does this print?
+  code: |
+    x = 1.0
+    h = 1e-16
+    print((x + h - x) / h)
+  options:
+  - "1.0"
+  - "1e-16"
+  - ZeroDivisionError
+  - "0.0"
+  answer: 3
+  explanation: In double precision 1.0 + 1e-16 rounds back to 1.0, so the difference is exactly 0. The 'slope' of f(x) = x comes out as 0.0 instead of 1.
+  whyWrong:
+    "0": The true slope is 1, but the arithmetic cannot see so small a change.
+    "1": The difference is 0, so the quotient is 0, not 1e-16.
+    "2": h is not zero, so there is no division by zero.
+- id: centered-better
+  question: Why is the centered difference (f(x+h) - f(x-h)) / 2h usually preferred over (f(x+h) - f(x)) / h?
+  options:
+  - Its truncation error shrinks like h squared instead of h
+  - It needs only one function evaluation
+  - It is exact for every function
+  - It never suffers from round-off
+  answer: 0
+  explanation: The first-order error terms cancel in the centered form, leaving error of order h squared, so the same h gives a much better estimate.
+  whyWrong:
+    "1": It uses two evaluations per coordinate.
+    "2": It is exact only for functions up to quadratic, up to rounding.
+    "3": It still subtracts nearly equal numbers and has round-off error.
+- id: detach-effect
+  question: A parameter's .grad stays None (or all zeros) in a PyTorch training loop. Which cause is most likely?
+  options:
+  - The learning rate is too small
+  - The value was cut out of the graph, for example by detach(), no_grad() or converting it to a plain number or array
+  - The loss is too large
+  - The batch size is too small
+  answer: 1
+  explanation: Gradients only flow through operations that autograd recorded. A detach, a no_grad block or a conversion to NumPy breaks the chain, so nothing reaches the parameter.
+  whyWrong:
+    "0": A small learning rate makes updates tiny but the gradient itself still exists.
+    "2": A large loss still has gradients, unless it is NaN.
+    "3": Batch size changes noise, not whether a gradient exists.
+- id: graph-memory
+  question: Why does reverse-mode training use a lot of memory as a network gets deeper?
+  options:
+  - The weights are copied for every layer
+  - Gradients are stored as strings
+  - The forward values needed by the backward pass must be kept until it runs
+  - Reverse mode needs to store the whole dataset
+  answer: 2
+  explanation: Each local derivative often needs a forward value (for a product, the other factor). The library saves these during the forward pass and frees them after backward, so activation memory grows with depth and batch size. Checkpointing trades extra compute for less stored memory.
+  whyWrong:
+    "0": Weights are not copied per layer; the activations are what grow.
+    "1": Gradients are stored as numbers.
+    "3": The dataset is not part of the graph.
+- id: vanishing-product
+  question: A chain of 50 steps, each with local slope 0.25, gives which slope for the first input?
+  options:
+  - About 12.5
+  - About 0.25
+  - Exactly 0
+  - About 8e-31
+  answer: 3
+  explanation: 'Slopes multiply: 0.25 to the power 50 is about 7.9e-31, practically zero but not exactly zero. This is the vanishing gradient problem.'
+  whyWrong:
+    "0": 12.5 would be 0.25 times 50, which adds instead of multiplying.
+    "1": A single 0.25 ignores the other 49 steps.
+    "2": The product is tiny but not exactly 0 in floating point.

@@ -1,0 +1,35 @@
+- question: "Explain what a derivative and a gradient are, without formulas."
+  modelAnswer: "A derivative is the slope of a function at a point: how fast the output changes per tiny change in the input. For a function of many inputs, a partial derivative is the slope along one input with the rest held still, and the gradient is the vector of all of them. It points toward the steepest increase, so training moves against it."
+  followUps: ["Why is the tangent line only a local picture?", "What is the length of the gradient telling you?"]
+
+- question: "State the chain rule and say why it matters for neural networks."
+  modelAnswer: "If y depends on u and u depends on x, then dy/dx is dy/du times du/dx. A network is a long chain of simple functions ending in a loss, so the slope of the loss with respect to any weight is a product of local slopes along the way. Backpropagation is the chain rule organised so each local slope is computed once."
+  followUps: ["What changes when a value feeds two later steps?", "How does a long chain cause vanishing gradients?"]
+
+- question: "Forward-mode versus reverse-mode automatic differentiation: what is the difference and when do you pick each?"
+  modelAnswer: "Forward mode carries a value and its slope through the program and gives the derivative of every output with respect to one input per sweep. Reverse mode runs forward, remembers values, then sweeps backward and gives the derivative of one output with respect to every input in one sweep. Training has one scalar loss and millions of parameters, so reverse mode is used; forward mode suits few inputs and many outputs. Reverse mode costs memory for the stored forward values."
+  followUps: ["What is the cost of the backward sweep compared with the forward one?", "What do jvp and vjp stand for in JAX?"]
+
+- question: "How does automatic differentiation differ from symbolic and numerical differentiation?"
+  modelAnswer: "Symbolic differentiation rewrites a formula into another formula, which can grow huge and does not handle ordinary program control flow well. Numerical differentiation estimates the slope from function values with a small step, which is approximate and suffers from truncation and round-off. Autodiff applies the chain rule to the operations actually executed and gives exact slopes up to floating-point rounding, at a small multiple of the cost of the function."
+  followUps: ["Where would you still use numerical differentiation?", "Does autodiff work through an if statement?"]
+
+- question: "You wrote a backward pass by hand. How do you check it, and what error do you expect?"
+  modelAnswer: "Run a gradient check: on a tiny input in float64, estimate each partial derivative with a centered difference and compare with the analytic one using relative error. Choose h around 1e-5 for a smooth function and try a few values, because too large a step has truncation error and too small has round-off. Small relative errors mean the code matches the maths; they do not show that the loss is the right objective."
+  followUps: ["Why float64 and not float32?", "Why relative error and not absolute?"]
+
+- question: "A value is used in two places in a graph. How does backprop handle it, and what is the common bug?"
+  modelAnswer: "Each use sends back its own contribution through the chain rule, and the contributions add up: for y = x*x + x the gradient of x is 2x + 1. The common bug is overwriting the gradient instead of adding, which keeps only the last contribution. The related bug is not clearing gradients between steps, which adds old values into new ones."
+  followUps: ["How does PyTorch behave when you call backward twice?", "Why do we need a topological order?"]
+
+- question: "Why does a deep network have vanishing or exploding gradients?"
+  modelAnswer: "The slope for an early layer is a product of many local slopes. If they are mostly below 1, as with a saturating sigmoid whose slope is at most 0.25, the product shrinks toward zero and early layers learn very slowly. If they are mostly above 1 the product blows up. Remedies include better activations, normalisation, residual connections and gradient clipping."
+  followUps: ["How does clipping change the update?", "Why do residual connections help?"]
+
+- question: "What is the memory cost of backprop and how can you reduce it?"
+  modelAnswer: "Reverse mode keeps the forward values the backward pass needs, so activation memory grows with network depth and batch size. You can lower the batch size, use mixed precision, or use activation checkpointing, which discards some intermediates and recomputes them during the backward pass: less memory for more compute."
+  followUps: ["What gets recomputed in checkpointing?", "Does inference need the graph?"]
+
+- question: "In PyTorch a parameter has grad None after backward. What do you check?"
+  modelAnswer: "First check requires_grad is set on the parameter. Then look for anything that cut it out of the graph: detach, a no_grad block, an in-place operation on a leaf, or converting a tensor to a Python number or NumPy array in the middle of the forward pass. Also check the parameter really took part in computing the loss and that backward was called on that loss."
+  followUps: ["How would you print which tensors have a grad_fn?", "What does the graph look like for a frozen layer?"]

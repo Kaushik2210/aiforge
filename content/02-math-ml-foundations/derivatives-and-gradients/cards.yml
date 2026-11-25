@@ -1,0 +1,28 @@
+- { id: c-derivative, front: "What is the derivative of f at x?", back: "The slope of f at x: the limit of (f(x+h) - f(x)) / h as h goes to 0." }
+- { id: c-tangent, front: "What is the tangent line good for?", back: "It is the best straight-line approximation of f near the point; far away it can be badly wrong." }
+- { id: c-secant, front: "Secant versus tangent?", back: "A secant joins two points on the curve (slope over a gap h). The tangent is the limit as the gap shrinks to zero." }
+- { id: c-power-rule, front: "Power rule?", back: "The derivative of x^n is n * x^(n-1)." }
+- { id: c-exp-log, front: "Derivatives of exp(x) and log(x)?", back: "exp(x) stays exp(x). log(x) (natural log, x > 0) becomes 1/x." }
+- { id: c-sin-cos, front: "Derivatives of sin and cos?", back: "sin' = cos and cos' = -sin (angles in radians)." }
+- { id: c-tanh, front: "Derivative of tanh(x)?", back: "1 - tanh(x)^2." }
+- { id: c-product, front: "Product rule?", back: "(u * v)' = u' * v + u * v'." }
+- { id: c-quotient, front: "Quotient rule?", back: "(u / v)' = (u' * v - u * v') / v^2." }
+- { id: c-chain, front: "Chain rule?", back: "(u(v(x)))' = u'(v(x)) * v'(x): multiply the local slopes along the chain." }
+- { id: c-partial, front: "What is a partial derivative?", back: "The slope with respect to one input while all the other inputs are held fixed." }
+- { id: c-gradient, front: "What is the gradient?", back: "The vector of all partial derivatives. It points in the direction of steepest increase; its length is the steepest rate." }
+- { id: c-directional, front: "Directional derivative along a unit vector u?", back: "The gradient dotted with u. It is largest when u points along the gradient." }
+- { id: c-steepest-descent, front: "Why is minus the gradient the steepest descent direction?", back: "The rate along -grad/|grad| is -|grad|, the most negative any direction gives." }
+- { id: c-jacobian, front: "What is a Jacobian?", back: "The matrix of all partial derivatives of a vector function: one row per output, one column per input." }
+- { id: c-autodiff, front: "What is automatic differentiation?", back: "Applying the chain rule to the operations a program actually runs. Exact up to floating-point rounding; not symbolic algebra and not finite differences." }
+- { id: c-forward-mode, front: "Forward mode in one line?", back: "Carry (value, slope) through the program; one sweep gives every output's slope for ONE input. Dual numbers do this." }
+- { id: c-reverse-mode, front: "Reverse mode in one line?", back: "Run forward and remember values, then sweep backward; one sweep gives ONE output's slope for EVERY input. Backprop is this." }
+- { id: c-why-reverse, front: "Why do deep learning libraries use reverse mode?", back: "A loss is one output with millions of inputs, so one backward sweep beats millions of forward sweeps." }
+- { id: c-accumulate, front: "What happens when a value is used twice in a graph?", back: "Its gradient is the SUM of the contributions from each use. Use += not =." }
+- { id: c-topo, front: "Why walk the graph in topological order?", back: "A node's gradient must be complete (all its users have contributed) before you push it to its parents." }
+- { id: c-truncation, front: "Truncation versus round-off error?", back: "Truncation error comes from a big h (secant is not tangent). Round-off comes from a tiny h (subtracting nearly equal floats). There is a best h in between." }
+- { id: c-centered, front: "Why is the centered difference better?", back: "Its error shrinks like h^2 instead of h, so the same h is much more accurate." }
+- { id: c-gradcheck, front: "How do you gradient-check?", back: "Compare autodiff or a hand gradient with a centered difference on a tiny float64 input, using relative error." }
+- { id: c-detach, front: "What do detach and no_grad do?", back: "They cut a value out of the graph so no gradient flows through it: right on purpose, a silent bug by accident." }
+- { id: c-memory, front: "Why does reverse mode cost memory?", back: "Forward values needed by the backward pass are kept until it runs, so memory grows with depth and batch size." }
+- { id: c-checkpoint, front: "What does activation checkpointing trade?", back: "It saves memory by discarding intermediates and recomputing them in the backward pass, paying extra compute." }
+- { id: c-vanishing, front: "Vanishing versus exploding gradients?", back: "A product of many local slopes below 1 shrinks to nearly 0; above 1 it blows up. It is the chain rule on a deep chain." }

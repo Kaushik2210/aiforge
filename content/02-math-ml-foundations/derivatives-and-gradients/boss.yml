@@ -1,0 +1,16 @@
+id: derivatives-and-gradients-boss
+passMark: 0.8
+timeLimitSeconds: 900
+quizItems:
+  - chain-rule-value
+  - gradient-direction-quiz
+  - directional-derivative-value
+  - forward-vs-reverse
+  - predict-reverse-trace
+  - spot-bug-overwrite
+  - predict-roundoff
+  - centered-better
+challenges:
+  - dual-numbers
+  - reverse-mode
+interleaveFrom: []
