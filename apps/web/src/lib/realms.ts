@@ -9,7 +9,7 @@ export interface Realm {
 
 export const REALMS: Realm[] = [
   { n: 1, name: "Programming Fundamentals", blurb: "Python, Git, HTTP, the CLI", quest: "python-basics", questCount: 9 },
-  { n: 2, name: "Maths and ML Foundations", blurb: "Gradients, probability, first models", quest: "gradient-descent", questCount: 1 },
+  { n: 2, name: "Maths and ML Foundations", blurb: "Gradients, probability, first models", quest: "derivatives-and-gradients", questCount: 2 },
   { n: 3, name: "Data Engineering", blurb: "NumPy, pandas, SQL, clean datasets" },
   { n: 4, name: "Deep Learning", blurb: "Backprop, optimisers, attention" },
   { n: 5, name: "DL Frameworks", blurb: "PyTorch, Hugging Face, CUDA basics" },

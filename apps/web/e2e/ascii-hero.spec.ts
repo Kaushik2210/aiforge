@@ -21,7 +21,7 @@ test("decorative rules and realm brackets are hidden or generated, and the realm
   expect(await rules.count()).toBeGreaterThanOrEqual(1); // above the quest map
   for (const rule of await rules.all()) await expect(rule).toHaveAttribute("aria-hidden", "true");
   await expect(page.getByRole("link", { name: /Realm 1: .*9 quests/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Realm 2: .*1 quest/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Realm 2: .*2 quests/ })).toBeVisible();
   const bracket = await page.locator(".realm-node").first().evaluate((el) => getComputedStyle(el, "::before").content);
   expect(bracket).toContain("[");
 });

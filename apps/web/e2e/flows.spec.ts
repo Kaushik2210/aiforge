@@ -68,7 +68,7 @@ test("the map can be switched to the list view and a quest opened by keyboard", 
   await expect(list).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("link", { name: /Gradients/ }).first().focus();
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/quests\/gradient-descent\//);
+  await expect(page).toHaveURL(/\/quests\/derivatives-and-gradients\//);
 });
 
 test("the Dashboard and Settings load without errors and show the empty state kindly", async ({ page }) => {

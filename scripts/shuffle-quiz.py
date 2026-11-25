@@ -11,6 +11,7 @@ question the code is run and its printed output must equal the correct option.
 
 import contextlib
 import io
+import re
 import sys
 
 import yaml
@@ -25,6 +26,19 @@ def literal_representer(dumper, data):
 
 
 yaml.add_representer(Literal, literal_representer)
+
+# The site reads YAML 1.2, where "1e-16", "0x1F", "1_000" and "yes" can be numbers or booleans.
+# PyYAML only quotes what YAML 1.1 would misread, so quote every number-like or keyword-like string.
+_AMBIGUOUS = re.compile(r"^[-+.]?\d[\w.+-]*$|^[-+]?\.(inf|nan)$", re.IGNORECASE)
+_KEYWORDS = {"y", "n", "yes", "no", "true", "false", "on", "off", "null", "~"}
+
+
+def str_representer(dumper, data):
+    quoted = bool(_AMBIGUOUS.match(data)) or data.lower() in _KEYWORDS
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"' if quoted else None)
+
+
+yaml.add_representer(str, str_representer)
 
 REFERS = ("above", "both", "none of", "all of")
 
